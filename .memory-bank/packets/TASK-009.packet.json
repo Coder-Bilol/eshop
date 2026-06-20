@@ -1,0 +1,64 @@
+{
+  "task_id": "TASK-009",
+  "status": "ready",
+  "source_task_hash": "sha256:f1c5d1d1da82f24c57057f871dd0ca203aad1029f886d1deebe685be8d08d0e8",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-009.task.json",
+    "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-001/plan.md",
+      ".protocols/FT-001/decision-log.md"
+    ]
+  },
+  "purpose": "Provide executable acceptance evidence for FT-001 as a feature.",
+  "success_outcome": "FT-001 catalog browsing, category, search, filters, and edge cases are verified through local integration/e2e evidence.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/test/**",
+      "apps/storefront/tests/**",
+      "apps/storefront/e2e/**",
+      "package.json",
+      "README.md",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production data",
+      "live provider integrations",
+      "product detail/add-to-cart implementation"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm run smoke:local",
+      "npm --workspace apps/backend run test:integration -- catalog",
+      "npm --workspace apps/storefront run test:e2e -- catalog",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "E2E covers catalog browse, category browse, required filters, search, combined search+filters, empty result state, and missing optional attributes.",
+      "Integration/e2e evidence uses seeded backend data and local stack, not hardcoded frontend data.",
+      "REQ-001, REQ-002, and REQ-003 have executable evidence."
+    ],
+    "evidence_required": [
+      "Local stack smoke output.",
+      "Backend catalog integration test output.",
+      "Storefront catalog e2e output, trace, screenshot, or video artifact links."
+    ]
+  },
+  "stop_conditions": [
+    "Local stack is not available from FT-011.",
+    "Tests cannot prove category/search/filter behavior through seeded backend data.",
+    "E2E coverage requires scope outside FT-001 acceptance criteria."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-009/.",
+    "Run /verify TASK-009 before closure.",
+    "Do not mark done without integration/e2e evidence covering REQ-001 through REQ-003."
+  ]
+}

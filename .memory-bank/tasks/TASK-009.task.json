@@ -1,0 +1,109 @@
+{
+  "id": "TASK-009",
+  "title": "Add FT-001 integration and e2e verification",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003"],
+  "depends_on": ["TASK-008"],
+  "touched_files": [
+    "apps/backend/test/**",
+    "apps/storefront/tests/**",
+    "apps/storefront/e2e/**",
+    "package.json",
+    "README.md",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "local stack smoke",
+      "command": "npm run smoke:local",
+      "required": true
+    },
+    {
+      "name": "backend catalog integration tests",
+      "command": "npm --workspace apps/backend run test:integration -- catalog",
+      "required": true
+    },
+    {
+      "name": "storefront catalog e2e",
+      "command": "npm --workspace apps/storefront run test:e2e -- catalog",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "E2E covers catalog browse, category browse, required filters, search, combined search+filters, empty result state, and missing optional attributes.",
+    "Integration/e2e evidence uses seeded backend data and local stack, not hardcoded frontend data.",
+    "REQ-001, REQ-002, and REQ-003 have executable evidence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Local stack smoke output.",
+    "Backend catalog integration test output.",
+    "Storefront catalog e2e output, trace, screenshot, or video artifact links."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/testing/index.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use local seeded/test catalog data.",
+    "Do not use live providers, production secrets, or production data.",
+    "Do not verify FT-001 by bypassing the storefront/backend boundary."
+  ],
+  "invariants": [
+    "Evidence is required before done.",
+    "No production secrets, production data, or live payment mutation may be used as proof.",
+    "Memory Bank must be synchronized after meaningful changes."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#verification-targets",
+    ".memory-bank/testing/index.md#e2e-tests",
+    ".memory-bank/requirements.md"
+  ],
+  "purpose": "Provide executable acceptance evidence for FT-001 as a feature.",
+  "success_outcome": "FT-001 catalog browsing, category, search, filters, and edge cases are verified through local integration/e2e evidence.",
+  "anti_goals": [
+    "Do not mark FT-001 complete from unit tests alone.",
+    "Do not use production data or live providers.",
+    "Do not implement FT-002 product detail/add-to-cart behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-009.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/test/**",
+      "apps/storefront/tests/**",
+      "apps/storefront/e2e/**",
+      "package.json",
+      "README.md",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production data",
+      "live provider integrations",
+      "product detail/add-to-cart implementation"
+    ],
+    "stop_conditions": [
+      "Local stack is not available from FT-011.",
+      "Tests cannot prove category/search/filter behavior through seeded backend data.",
+      "E2E coverage requires scope outside FT-001 acceptance criteria."
+    ]
+  }
+}

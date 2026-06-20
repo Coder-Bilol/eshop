@@ -1,0 +1,64 @@
+{
+  "task_id": "TASK-001",
+  "status": "ready",
+  "source_task_hash": "sha256:8e7e01f9eadf8eb2ab97c258079d3fb456ec413051ce2a68d0b8dd2fe50fd216",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-001.task.json",
+    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-011/plan.md",
+      ".protocols/FT-011/decision-log.md"
+    ]
+  },
+  "purpose": "Create the executable project scaffold that later feature tasks can build on.",
+  "success_outcome": "A clean checkout has a root workspace and separate storefront/backend app baselines ready for local setup.",
+  "scope": {
+    "allowed_write_scope": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      ".gitignore",
+      "README.md",
+      "apps/storefront/**",
+      "apps/backend/**"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "production deploy configuration",
+      "real provider secrets"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm install",
+      "npm run",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Root npm workspace exists and includes apps/storefront and apps/backend.",
+      "Storefront and backend scaffold files exist without modifying Medusa Core.",
+      "No real secrets or production data are committed."
+    ],
+    "evidence_required": [
+      "Command output for npm install.",
+      "Listing or logs showing root workspace and app scaffold paths.",
+      "Memory Bank lint output."
+    ]
+  },
+  "stop_conditions": [
+    "Selected scaffold contradicts the FT-011 tech spec.",
+    "Implementation requires production credentials or production deploy decisions.",
+    "Scaffold requires changing Medusa Core."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-001/.",
+    "Run /verify TASK-001 before closure.",
+    "Do not mark done without VERDICT: PASS evidence in the task/protocol artifacts."
+  ]
+}

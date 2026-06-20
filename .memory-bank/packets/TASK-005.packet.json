@@ -1,0 +1,63 @@
+{
+  "task_id": "TASK-005",
+  "status": "ready",
+  "source_task_hash": "sha256:b6b161a20833388c8eea6e093bc5eaf5c4117f009de381ac2144b52a7790c434",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-005.task.json",
+    "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/domains/core-domain.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-001/plan.md",
+      ".protocols/FT-001/decision-log.md"
+    ]
+  },
+  "purpose": "Provide backend-owned catalog data needed to verify browse, category, search, and filter behavior.",
+  "success_outcome": "Local backend data can prove FT-001 catalog behavior through repeatable seed and smoke commands.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/scripts/**",
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "production data import",
+      "external search service"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run db:seed",
+      "npm --workspace apps/backend run smoke:catalog",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Seeded catalog data includes home goods, curtain rods, categories, prices, and filterable color/material/size-length/product-type/mounting-method attributes.",
+      "At least one seeded product lacks optional attributes and remains safe for unfiltered listing.",
+      "Catalog persistence smoke reads seeded data through the backend/Medusa boundary."
+    ],
+    "evidence_required": [
+      "Seed command output.",
+      "Catalog persistence smoke output.",
+      "Summary of seeded products/categories/filter attributes."
+    ]
+  },
+  "stop_conditions": [
+    "Seed path cannot write/read through the backend persistence boundary.",
+    "Implementation requires production data.",
+    "Catalog data model contradicts the FT-001 tech spec."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-005/.",
+    "Run /verify TASK-005 before closure.",
+    "Do not mark done without backend seed and catalog persistence evidence."
+  ]
+}

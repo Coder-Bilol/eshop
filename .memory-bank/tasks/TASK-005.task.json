@@ -1,0 +1,101 @@
+{
+  "id": "TASK-005",
+  "title": "Seed catalog data for browse, categories, filters, and search",
+  "status": "planned",
+  "wave": "W1",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003"],
+  "depends_on": ["TASK-004"],
+  "touched_files": [
+    "apps/backend/scripts/**",
+    "apps/backend/src/**",
+    "apps/backend/test/**",
+    "README.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "backend catalog seed",
+      "command": "npm --workspace apps/backend run db:seed",
+      "required": true
+    },
+    {
+      "name": "catalog persistence smoke",
+      "command": "npm --workspace apps/backend run smoke:catalog",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Seeded catalog data includes home goods, curtain rods, categories, prices, and filterable color/material/size-length/product-type/mounting-method attributes.",
+    "At least one seeded product lacks optional attributes and remains safe for unfiltered listing.",
+    "Catalog persistence smoke reads seeded data through the backend/Medusa boundary."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Seed command output.",
+    "Catalog persistence smoke output.",
+    "Summary of seeded products/categories/filter attributes."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/requirements.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/domains/core-domain.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Catalog source of truth is Medusa backend/PostgreSQL.",
+    "Seed data must be local/test data, not production data.",
+    "Do not hardcode storefront catalog data as source of truth."
+  ],
+  "invariants": [
+    "Do not modify Medusa Core.",
+    "Keep catalog/search scope moderate.",
+    "No production secrets or production data may be committed."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#verification-targets",
+    ".memory-bank/testing/index.md"
+  ],
+  "purpose": "Provide backend-owned catalog data needed to verify browse, category, search, and filter behavior.",
+  "success_outcome": "Local backend data can prove FT-001 catalog behavior through repeatable seed and smoke commands.",
+  "anti_goals": [
+    "Do not implement a separate search service.",
+    "Do not hardcode product data in the storefront as source of truth.",
+    "Do not implement product detail or cart behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-005.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/scripts/**",
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "production data import",
+      "external search service"
+    ],
+    "stop_conditions": [
+      "Seed path cannot write/read through the backend persistence boundary.",
+      "Implementation requires production data.",
+      "Catalog data model contradicts the FT-001 tech spec."
+    ]
+  }
+}

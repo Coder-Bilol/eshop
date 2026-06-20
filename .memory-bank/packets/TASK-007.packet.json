@@ -1,0 +1,63 @@
+{
+  "task_id": "TASK-007",
+  "status": "ready",
+  "source_task_hash": "sha256:aec011b455e6b8763dd71dadc4a8cb58490e4d25b0c54f57c6789434f055687a",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-007.task.json",
+    "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+      ".memory-bank/contracts/api-guidelines.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-001/plan.md",
+      ".protocols/FT-001/decision-log.md"
+    ]
+  },
+  "purpose": "Make the backend catalog contract usable through the buyer-facing storefront.",
+  "success_outcome": "Buyer can browse products, categories, search, and required filters in the storefront.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/storefront/app/**",
+      "apps/storefront/src/**",
+      "apps/storefront/components/**",
+      "apps/storefront/lib/**",
+      "apps/storefront/package.json"
+    ],
+    "forbidden_scope": [
+      "backend catalog contract changes not covered by TASK-006",
+      "product detail/add-to-cart behavior",
+      "hardcoded catalog source data"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/storefront run test -- catalog",
+      "npm --workspace apps/storefront run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Storefront renders catalog product cards/list entries from backend data.",
+      "Category navigation, search input, required filters, selected filter state, and pagination/load-more state are usable.",
+      "Storefront does not hardcode catalog data as source of truth."
+    ],
+    "evidence_required": [
+      "Storefront catalog test output.",
+      "Typecheck output.",
+      "Screenshot or trace showing catalog with categories and filters during execution evidence."
+    ]
+  },
+  "stop_conditions": [
+    "Storefront cannot consume the backend catalog contract.",
+    "UI work requires changing FT-001 API semantics.",
+    "Verification cannot show categories and required filters are usable."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-007/.",
+    "Run /verify TASK-007 before closure.",
+    "Do not mark done without storefront catalog evidence against backend data."
+  ]
+}

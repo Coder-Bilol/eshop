@@ -1,0 +1,103 @@
+{
+  "id": "TASK-007",
+  "title": "Implement storefront catalog browsing and filter UI",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003"],
+  "depends_on": ["TASK-006"],
+  "touched_files": [
+    "apps/storefront/app/**",
+    "apps/storefront/src/**",
+    "apps/storefront/components/**",
+    "apps/storefront/lib/**",
+    "apps/storefront/package.json"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "storefront catalog tests",
+      "command": "npm --workspace apps/storefront run test -- catalog",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Storefront renders catalog product cards/list entries from backend data.",
+    "Category navigation, search input, required filters, selected filter state, and pagination/load-more state are usable.",
+    "Storefront does not hardcode catalog data as source of truth."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Storefront catalog test output.",
+    "Typecheck output.",
+    "Screenshot or trace showing catalog with categories and filters during execution evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/contracts/api-guidelines.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Storefront reads catalog data through backend APIs.",
+    "Storefront may control filter display labels/order but not invent available values.",
+    "Catalog browsing should be directly usable as a buyer-facing screen."
+  ],
+  "invariants": [
+    "Do not hardcode product catalog data in the storefront as source of truth.",
+    "Do not implement product detail variant selection or cart behavior in FT-001.",
+    "Do not use the storefront as authoritative backend state."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#storefront-ux-states",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#verification-targets",
+    ".memory-bank/testing/index.md#e2e-tests"
+  ],
+  "purpose": "Make the backend catalog contract usable through the buyer-facing storefront.",
+  "success_outcome": "Buyer can browse products, categories, search, and required filters in the storefront.",
+  "anti_goals": [
+    "Do not implement add-to-cart or product detail selection.",
+    "Do not create a custom admin surface.",
+    "Do not hardcode seeded catalog data into UI code."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-007.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/app/**",
+      "apps/storefront/src/**",
+      "apps/storefront/components/**",
+      "apps/storefront/lib/**",
+      "apps/storefront/package.json"
+    ],
+    "forbidden_scope": [
+      "backend catalog contract changes not covered by TASK-006",
+      "product detail/add-to-cart behavior",
+      "hardcoded catalog source data"
+    ],
+    "stop_conditions": [
+      "Storefront cannot consume the backend catalog contract.",
+      "UI work requires changing FT-001 API semantics.",
+      "Verification cannot show categories and required filters are usable."
+    ]
+  }
+}

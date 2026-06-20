@@ -1,0 +1,74 @@
+{
+  "id": "TASK-008",
+  "title": "Add catalog edge states and query-state unit coverage",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003"],
+  "depends_on": ["TASK-007"],
+  "touched_files": [
+    "apps/storefront/app/**",
+    "apps/storefront/src/**",
+    "apps/storefront/components/**",
+    "apps/storefront/lib/**",
+    "apps/storefront/tests/**"
+  ],
+  "tier": "T1",
+  "gates": [
+    {
+      "name": "storefront catalog unit tests",
+      "command": "npm --workspace apps/storefront run test -- catalog",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Catalog UI supports loading, empty result, backend error, missing optional attributes, selected category, selected filters, and search text states.",
+    "Pure query-state or filter-normalization helpers have unit coverage where introduced."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Storefront unit test output.",
+    "Typecheck output.",
+    "Screenshots or component evidence for empty/error/loading states when practical."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/testing/index.md"
+  ],
+  "constraints": [
+    "Keep edge-state handling local to catalog UI/helpers.",
+    "Do not change backend API semantics in this task."
+  ],
+  "invariants": [
+    "Do not hardcode product catalog data in the storefront as source of truth.",
+    "Search failures must degrade to a safe error state."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#storefront-ux-states",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#verification-targets"
+  ],
+  "purpose": "Cover local catalog UI edge states that can otherwise pass happy-path tests while remaining brittle.",
+  "success_outcome": "Catalog UI remains stable for empty, error, loading, selected-state, and missing-attribute cases.",
+  "anti_goals": [
+    "Do not alter backend catalog query semantics.",
+    "Do not implement product detail or cart behavior."
+  ]
+}

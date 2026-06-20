@@ -4,6 +4,24 @@ status: active
 ---
 # Changelog
 
+## [2026-06-20] README product showcase rewrite
+- Updated: root `README.md` now presents only the target product showcase, not the repository/spec status.
+- Added: explicit killer features section focused on buyer value, cart merge, pending payment, YooKassa webhook correctness, and Medusa Admin visibility.
+
+## [2026-06-20] README showcase
+- Added: root `README.md` as a warm project showcase for the spec-first MVP internet shop.
+- Documented: product vision, planned stack, feature map, core safety rules, Memory Bank navigation, and current project status without claiming executable app readiness.
+
+## [2026-06-20] FT-001 task decomposition
+- Reused the active FT-001 catalog browsing/filtering/search tech spec for task decomposition.
+- Added an implementation plan, schema-backed task records, and required execution packets for catalog seed data, backend query/filter contract, storefront catalog UI, edge states, and integration/e2e verification.
+- Sequenced FT-001 tasks after `TASK-004` so catalog implementation starts only after the FT-011 local executable foundation.
+
+## [2026-06-20] FT-011 task decomposition
+- Completed feature-level SDD design for `FT-011 Docker Compose Local Development`.
+- Added an implementation plan, schema-backed task records, and required execution packets for the local development foundation.
+- Explicitly included database initialization and project scaffold work in the generated task queue.
+
 ## [2026-06-20] PRD decomposition protocol alignment
 - Verified: `.memory-bank/prd.md` functional requirements are decomposed into REQ-001..REQ-030, EP-001..EP-005, and FT-001..FT-011.
 - Updated: feature SDD Design Gate notes now route the happy path through `/prd-to-tasks FT-<NNN>`, which owns feature-level SDD design before task slicing.

@@ -1,0 +1,110 @@
+{
+  "id": "TASK-003",
+  "title": "Add Docker Compose local stack and env templates",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-011",
+  "reqs": ["REQ-030"],
+  "depends_on": ["TASK-001", "TASK-002"],
+  "touched_files": [
+    "docker-compose.yml",
+    ".env.example",
+    ".gitignore",
+    "apps/storefront/.env.example",
+    "apps/backend/.env.example",
+    "README.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "compose config",
+      "command": "docker compose config",
+      "required": true
+    },
+    {
+      "name": "compose startup",
+      "command": "docker compose up -d --build",
+      "required": true
+    },
+    {
+      "name": "compose service status",
+      "command": "docker compose ps",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Docker Compose config includes PostgreSQL, backend, and storefront services.",
+    "Local env templates exist and real .env files are ignored.",
+    "Services start locally without production credentials."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "docker compose config output.",
+    "docker compose up/ps output showing required services.",
+    "Evidence that .env templates are committed and real .env files are ignored."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/contracts/boundary-map.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/boundary-map.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Docker Compose is local-only.",
+    "No production deploy target is introduced.",
+    "Provider settings must use placeholders or mock/local values only."
+  ],
+  "invariants": [
+    "No production secrets may be committed.",
+    "External integrations remain isolated.",
+    "Do not introduce microservices beyond the local Compose services required by the MVP."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#local-service-contract",
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#environment-and-secrets",
+    ".memory-bank/testing/index.md"
+  ],
+  "purpose": "Provide the Docker Compose path required by REQ-030.",
+  "success_outcome": "A developer can start PostgreSQL, backend, and storefront locally through Docker Compose using non-secret env templates.",
+  "anti_goals": [
+    "Do not add production deployment configuration.",
+    "Do not wire real payment/OAuth/email provider credentials.",
+    "Do not replace Medusa Admin with a custom admin."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-003.packet.json",
+    "allowed_write_scope": [
+      "docker-compose.yml",
+      ".env.example",
+      ".gitignore",
+      "apps/storefront/.env.example",
+      "apps/backend/.env.example",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "production deployment files",
+      "real secrets",
+      "live provider integration behavior"
+    ],
+    "stop_conditions": [
+      "Compose setup needs production secrets to start.",
+      "Local stack cannot include all required services.",
+      "Implementation requires adding an external managed service."
+    ]
+  }
+}

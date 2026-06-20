@@ -1,0 +1,104 @@
+{
+  "id": "TASK-001",
+  "title": "Create project workspace and app scaffold",
+  "status": "ready",
+  "wave": "W1",
+  "feature": "FT-011",
+  "reqs": ["REQ-030"],
+  "depends_on": [],
+  "touched_files": [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    ".gitignore",
+    "README.md",
+    "apps/storefront/**",
+    "apps/backend/**"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "dependency install",
+      "command": "npm install",
+      "required": true
+    },
+    {
+      "name": "workspace script discovery",
+      "command": "npm run",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Root npm workspace exists and includes apps/storefront and apps/backend.",
+    "Storefront and backend scaffold files exist without modifying Medusa Core.",
+    "No real secrets or production data are committed."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Command output for npm install.",
+    "Listing or logs showing root workspace and app scaffold paths.",
+    "Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/requirements.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use a simple root workspace with apps/storefront and apps/backend.",
+    "Do not introduce production deployment tooling.",
+    "Do not modify Medusa Core."
+  ],
+  "invariants": [
+    "Keep the MVP KISS and medium-complexity.",
+    "No production secrets or production data may be committed."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#verification-targets",
+    ".memory-bank/testing/index.md"
+  ],
+  "purpose": "Create the executable project scaffold that later feature tasks can build on.",
+  "success_outcome": "A clean checkout has a root workspace and separate storefront/backend app baselines ready for local setup.",
+  "anti_goals": [
+    "Do not implement business features in this task.",
+    "Do not add production deployment scope.",
+    "Do not commit real provider credentials."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-001.packet.json",
+    "allowed_write_scope": [
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      ".gitignore",
+      "README.md",
+      "apps/storefront/**",
+      "apps/backend/**"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "production deploy configuration",
+      "real provider secrets"
+    ],
+    "stop_conditions": [
+      "Selected scaffold contradicts the FT-011 tech spec.",
+      "Implementation requires production credentials or production deploy decisions.",
+      "Scaffold requires changing Medusa Core."
+    ]
+  }
+}

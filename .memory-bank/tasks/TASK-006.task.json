@@ -1,0 +1,100 @@
+{
+  "id": "TASK-006",
+  "title": "Implement backend catalog query and filter contract",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003"],
+  "depends_on": ["TASK-005"],
+  "touched_files": [
+    "apps/backend/src/**",
+    "apps/backend/test/**",
+    "apps/backend/package.json"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "backend catalog integration tests",
+      "command": "npm --workspace apps/backend run test:integration -- catalog",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Backend catalog query supports category, q, price_min, price_max, color, material, size_length, product_type, mounting_method, page, and limit.",
+    "Search and filters can be combined and return empty results without error.",
+    "Response includes enough data for product cards, category navigation, filter state, available values, empty state, and pagination."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Integration test output for category, search, filters, combined filters, and empty results.",
+    "Typecheck output.",
+    "Short note identifying native Medusa route versus thin read-only facade decision."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/contracts/api-guidelines.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use Medusa/PostgreSQL-backed search/filtering or supported Medusa mechanisms.",
+    "Use explicit query parameters for filters and pagination.",
+    "Do not expose internal database identifiers when stable public identifiers/handles are available."
+  ],
+  "invariants": [
+    "Do not modify Medusa Core.",
+    "Do not introduce an external search engine for MVP.",
+    "Backend/PostgreSQL owns catalog source of truth."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#catalog-query-contract",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#filter-semantics",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#search-semantics",
+    ".memory-bank/contracts/api-guidelines.md#pagination-filters-and-search"
+  ],
+  "purpose": "Expose the backend catalog read behavior needed by the storefront without duplicating catalog truth.",
+  "success_outcome": "Backend catalog reads prove required browse, search, and filter semantics against seeded data.",
+  "anti_goals": [
+    "Do not implement FT-002 product detail behavior.",
+    "Do not add external search infrastructure.",
+    "Do not add cart, checkout, payment, or auth behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-006.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "external search service",
+      "cart/order/payment/auth implementation"
+    ],
+    "stop_conditions": [
+      "Native Medusa APIs cannot satisfy required filter semantics and no thin facade can be scoped safely.",
+      "Endpoint contract would conflict with API guidelines.",
+      "Verification cannot prove filters/search against seeded backend data."
+    ]
+  }
+}

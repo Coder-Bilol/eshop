@@ -1,0 +1,65 @@
+{
+  "task_id": "TASK-003",
+  "status": "ready",
+  "source_task_hash": "sha256:79485c92952777c884b8f9c9ea2552640cbd6d93d4f557f8597f377152fe0734",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-003.task.json",
+    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/contracts/boundary-map.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-011/plan.md",
+      ".protocols/FT-011/decision-log.md"
+    ]
+  },
+  "purpose": "Provide the Docker Compose path required by REQ-030.",
+  "success_outcome": "A developer can start PostgreSQL, backend, and storefront locally through Docker Compose using non-secret env templates.",
+  "scope": {
+    "allowed_write_scope": [
+      "docker-compose.yml",
+      ".env.example",
+      ".gitignore",
+      "apps/storefront/.env.example",
+      "apps/backend/.env.example",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "production deployment files",
+      "real secrets",
+      "live provider integration behavior"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "docker compose config",
+      "docker compose up -d --build",
+      "docker compose ps",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Docker Compose config includes PostgreSQL, backend, and storefront services.",
+      "Local env templates exist and real .env files are ignored.",
+      "Services start locally without production credentials."
+    ],
+    "evidence_required": [
+      "docker compose config output.",
+      "docker compose up/ps output showing required services.",
+      "Evidence that .env templates are committed and real .env files are ignored."
+    ]
+  },
+  "stop_conditions": [
+    "Compose setup needs production secrets to start.",
+    "Local stack cannot include all required services.",
+    "Implementation requires adding an external managed service."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-003/.",
+    "Run /verify TASK-003 before closure.",
+    "Do not mark done without Compose config and startup evidence."
+  ]
+}

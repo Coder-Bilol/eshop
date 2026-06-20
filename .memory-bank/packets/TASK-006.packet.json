@@ -1,0 +1,61 @@
+{
+  "task_id": "TASK-006",
+  "status": "ready",
+  "source_task_hash": "sha256:9c0613f15b3f6fd77e1ec7cc14b5e886a5655d31d5dfcda11c8f8bff68ec93e7",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-006.task.json",
+    "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+      ".memory-bank/contracts/api-guidelines.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-001/plan.md",
+      ".protocols/FT-001/decision-log.md"
+    ]
+  },
+  "purpose": "Expose the backend catalog read behavior needed by the storefront without duplicating catalog truth.",
+  "success_outcome": "Backend catalog reads prove required browse, search, and filter semantics against seeded data.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "external search service",
+      "cart/order/payment/auth implementation"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- catalog",
+      "npm --workspace apps/backend run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Backend catalog query supports category, q, price_min, price_max, color, material, size_length, product_type, mounting_method, page, and limit.",
+      "Search and filters can be combined and return empty results without error.",
+      "Response includes enough data for product cards, category navigation, filter state, available values, empty state, and pagination."
+    ],
+    "evidence_required": [
+      "Integration test output for category, search, filters, combined filters, and empty results.",
+      "Typecheck output.",
+      "Short note identifying native Medusa route versus thin read-only facade decision."
+    ]
+  },
+  "stop_conditions": [
+    "Native Medusa APIs cannot satisfy required filter semantics and no thin facade can be scoped safely.",
+    "Endpoint contract would conflict with API guidelines.",
+    "Verification cannot prove filters/search against seeded backend data."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-006/.",
+    "Run /verify TASK-006 before closure.",
+    "Do not mark done without backend integration evidence for required query/filter semantics."
+  ]
+}

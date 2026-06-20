@@ -1,0 +1,106 @@
+{
+  "id": "TASK-002",
+  "title": "Initialize backend database and seed smoke path",
+  "status": "planned",
+  "wave": "W1",
+  "feature": "FT-011",
+  "reqs": ["REQ-030"],
+  "depends_on": ["TASK-001"],
+  "touched_files": [
+    "apps/backend/**",
+    "apps/backend/.env.example",
+    "apps/backend/scripts/**",
+    "README.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "backend database migration",
+      "command": "npm --workspace apps/backend run db:migrate",
+      "required": true
+    },
+    {
+      "name": "backend database seed",
+      "command": "npm --workspace apps/backend run db:seed",
+      "required": true
+    },
+    {
+      "name": "backend database smoke",
+      "command": "npm --workspace apps/backend run smoke:db",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Backend has a deterministic local PostgreSQL configuration path.",
+    "Migration and seed commands exist and run against local PostgreSQL.",
+    "DB smoke check exercises read/write through the backend persistence boundary, not only a direct DB connection."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Migration command output.",
+    "Seed command output or explicit no-seed rationale if the scaffold makes seed data not yet applicable.",
+    "DB smoke output proving backend read/write persistence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/architecture/system-architecture.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "PostgreSQL is the local durable store.",
+    "Database initialization must be owned by backend or supported Medusa commands.",
+    "Do not use direct SQL as the only proof of persistence readiness."
+  ],
+  "invariants": [
+    "No data loss for future cart/order/payment/inventory data.",
+    "No production data may be used as seed data.",
+    "Do not modify Medusa Core."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#database-initialization-requirements",
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#verification-targets",
+    ".memory-bank/testing/index.md"
+  ],
+  "purpose": "Provide the explicit database initialization task required for the local development foundation.",
+  "success_outcome": "The backend can initialize, seed, and smoke-test a local PostgreSQL database through the backend persistence boundary.",
+  "anti_goals": [
+    "Do not implement business domain schemas beyond scaffold/local seed needs.",
+    "Do not use production data.",
+    "Do not bypass backend persistence as the only verification path."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-002.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/**",
+      "apps/backend/.env.example",
+      "apps/backend/scripts/**",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "production database configuration",
+      "production data import",
+      "Medusa Core modifications"
+    ],
+    "stop_conditions": [
+      "Backend scaffold cannot support PostgreSQL initialization without a design change.",
+      "Verification cannot prove backend read/write persistence.",
+      "Implementation requires destructive or production database operations."
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "task_id": "TASK-002",
+  "status": "ready",
+  "source_task_hash": "sha256:8250c046dd8340765c13f1f70c8e67dc7ce15a487f9c14da9482e0282ae9c3b0",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-002.task.json",
+    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-011/plan.md",
+      ".protocols/FT-011/decision-log.md"
+    ]
+  },
+  "purpose": "Provide the explicit database initialization task required for the local development foundation.",
+  "success_outcome": "The backend can initialize, seed, and smoke-test a local PostgreSQL database through the backend persistence boundary.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/**",
+      "apps/backend/.env.example",
+      "apps/backend/scripts/**",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "production database configuration",
+      "production data import",
+      "Medusa Core modifications"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run db:migrate",
+      "npm --workspace apps/backend run db:seed",
+      "npm --workspace apps/backend run smoke:db",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Backend has a deterministic local PostgreSQL configuration path.",
+      "Migration and seed commands exist and run against local PostgreSQL.",
+      "DB smoke check exercises read/write through the backend persistence boundary, not only a direct DB connection."
+    ],
+    "evidence_required": [
+      "Migration command output.",
+      "Seed command output or explicit no-seed rationale if the scaffold makes seed data not yet applicable.",
+      "DB smoke output proving backend read/write persistence."
+    ]
+  },
+  "stop_conditions": [
+    "Backend scaffold cannot support PostgreSQL initialization without a design change.",
+    "Verification cannot prove backend read/write persistence.",
+    "Implementation requires destructive or production database operations."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-002/.",
+    "Run /verify TASK-002 before closure.",
+    "Do not mark done without DB-backed persistence evidence through the backend boundary."
+  ]
+}

@@ -2,7 +2,7 @@
 description: Pure SDD spec registry and planned-spec index.
 status: active
 owner: spec-design
-last_updated: 2026-06-19
+last_updated: 2026-06-20
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-backbone.md
@@ -26,6 +26,7 @@ source_of_truth:
 | API Guidelines | contract | [.memory-bank/contracts/api-guidelines.md](contracts/api-guidelines.md) | active | /spec-design | Shared HTTP API naming, auth, error, status, idempotency, CORS, upload, pagination, and compatibility rules. |
 | FT-001 Catalog Browsing Filtering Search | feature_design | [.memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md](tech-specs/FT-001-catalog-browsing-filtering-search.md) | active | /spec-improve FT-001 | Feature-local catalog query, filter, search, UX state, boundary, and verification design. |
 | FT-002 Product Detail Variant Selection | feature_design | [.memory-bank/tech-specs/FT-002-product-detail-variant-selection.md](tech-specs/FT-002-product-detail-variant-selection.md) | active | /spec-improve FT-002 | Feature-local product detail, variant/SKU selection, availability pre-check, cart-action handoff, and verification design. |
+| FT-011 Docker Compose Local Development | feature_design | [.memory-bank/tech-specs/FT-011-docker-compose-local-development.md](tech-specs/FT-011-docker-compose-local-development.md) | active | /prd-to-tasks FT-011 | Feature-local local runtime, project scaffold, database initialization, env templates, and smoke verification design. |
 | Boundary Map | boundary_hints | [.memory-bank/contracts/boundary-map.md](contracts/boundary-map.md) | active | /spec-init | Responsibility and scope boundary notes. |
 | Lifecycle Map | lifecycle_hints | [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) | active | /spec-init | Initial lifecycle hints retained for traceability. |
 | Order Payment Inventory State | state | [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | active | /spec-design | Authoritative order, payment, inventory reservation, cart ownership, and idempotency guardrails. |

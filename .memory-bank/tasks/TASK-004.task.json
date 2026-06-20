@@ -1,0 +1,102 @@
+{
+  "id": "TASK-004",
+  "title": "Add local smoke scripts and runbook",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-011",
+  "reqs": ["REQ-030"],
+  "depends_on": ["TASK-003"],
+  "touched_files": [
+    "scripts/**",
+    "package.json",
+    "README.md",
+    ".memory-bank/runbooks/local-development.md",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "local smoke",
+      "command": "npm run smoke:local",
+      "required": true
+    },
+    {
+      "name": "compose config",
+      "command": "docker compose config",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Smoke script checks database, backend, and storefront local readiness.",
+    "Runbook explains setup, start, smoke, stop, port conflicts, and local-only reset behavior.",
+    "Local setup evidence is stored under .tasks/TASK-004/ during execution."
+  ],
+  "docs": [
+    ".memory-bank/runbooks/local-development.md",
+    ".memory-bank/changelog.md",
+    ".memory-bank/tasks/plans/IMPL-FT-011.md"
+  ],
+  "evidence_required": [
+    "npm run smoke:local output.",
+    "docker compose config output.",
+    "Runbook link and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tasks/plans/IMPL-FT-011.md",
+    ".memory-bank/testing/index.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Smoke checks must be local and repeatable.",
+    "Runbook must not require production secrets.",
+    "Destructive local reset steps must be explicit, not the default stop path."
+  ],
+  "invariants": [
+    "Evidence is required before done.",
+    "No production secrets or live payment mutation may be used as proof.",
+    "Memory Bank must be synchronized after meaningful changes."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#verification-targets",
+    ".memory-bank/testing/index.md#quality-gates"
+  ],
+  "purpose": "Make the local foundation repeatably verifiable by developers and later agents.",
+  "success_outcome": "A developer can follow the runbook and run one local smoke command that verifies the Compose stack is usable.",
+  "anti_goals": [
+    "Do not make smoke checks depend on live providers.",
+    "Do not use destructive data reset as the default verification path.",
+    "Do not mark the feature complete without local stack evidence."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-004.packet.json",
+    "allowed_write_scope": [
+      "scripts/**",
+      "package.json",
+      "README.md",
+      ".memory-bank/runbooks/local-development.md",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production deploy instructions as an implemented target",
+      "real provider credentials",
+      "live payment mutation"
+    ],
+    "stop_conditions": [
+      "Smoke checks cannot verify all required local services.",
+      "Runbook requires production secrets or live provider credentials.",
+      "Verification would delete local data without explicit operator action."
+    ]
+  }
+}

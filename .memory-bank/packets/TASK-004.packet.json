@@ -1,0 +1,62 @@
+{
+  "task_id": "TASK-004",
+  "status": "ready",
+  "source_task_hash": "sha256:b94cb9e8a853ee07fbe972bcd419484f0dc425f90391fd96e095bafd1e361d26",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-004.task.json",
+    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-011/plan.md",
+      ".protocols/FT-011/decision-log.md"
+    ]
+  },
+  "purpose": "Make the local foundation repeatably verifiable by developers and later agents.",
+  "success_outcome": "A developer can follow the runbook and run one local smoke command that verifies the Compose stack is usable.",
+  "scope": {
+    "allowed_write_scope": [
+      "scripts/**",
+      "package.json",
+      "README.md",
+      ".memory-bank/runbooks/local-development.md",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production deploy instructions as an implemented target",
+      "real provider credentials",
+      "live payment mutation"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm run smoke:local",
+      "docker compose config",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Smoke script checks database, backend, and storefront local readiness.",
+      "Runbook explains setup, start, smoke, stop, port conflicts, and local-only reset behavior.",
+      "Local setup evidence is stored under .tasks/TASK-004/ during execution."
+    ],
+    "evidence_required": [
+      "npm run smoke:local output.",
+      "docker compose config output.",
+      "Runbook link and Memory Bank lint output."
+    ]
+  },
+  "stop_conditions": [
+    "Smoke checks cannot verify all required local services.",
+    "Runbook requires production secrets or live provider credentials.",
+    "Verification would delete local data without explicit operator action."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-004/.",
+    "Run /verify TASK-004 before closure.",
+    "Do not mark done without local smoke and runbook evidence."
+  ]
+}
