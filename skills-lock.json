@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "skills": {
+    "cold-start": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "be5509ec1e2f5b7cd15e8ba94ba5438f4a314e5779c1bcc5dd3228b645b09e29"
+    },
+    "mb-analysis": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "385626a828093cbdb530178215a56b8d87ee86cfb0c8a3a7182ee5b055e33e7e"
+    },
+    "mb-execute": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "5bb59ab12a6797e9800af72388c1ff033071783f71f73edf62836c0ad69ac2e3"
+    },
+    "mb-from-prd": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "b91da6cf7e5e62c31a0628a07dabc750a738433681946f1a49b40377840a286a"
+    },
+    "mb-garden": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "ce38c723d04fc090cb3dc3d1128624ea6da4218edf484ef14a8210b2a38a4f35"
+    },
+    "mb-harness": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "b0c7a18f7258f9a62aacd4d44de31fe01aa185d5da4511c8ca912439f4183c8b"
+    },
+    "mb-init": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "d57f414c0b13d2905af87bf992ead30b91f90842e7602ff107ac3b7eecccdb57"
+    },
+    "mb-map-codebase": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "64d7e739e173c5c5ff78c839f99007ca26e2f3fc7ca21b773a55167cff832531"
+    },
+    "mb-red-verify": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "5a82fd3cec3d65553766ddd48f3ff32c64781c7c1412685653319b3f7c80d4b8"
+    },
+    "mb-review": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "40e21c342e0612231169ee6e43b12691c985956995f7ec0bed420cfb228a43bf"
+    },
+    "mb-verify": {
+      "source": "C:\\Users\\ADMIN\\AppData\\Local\\Temp\\memobank-skills-192L6p\\repo",
+      "sourceType": "local",
+      "computedHash": "8688ac2469003a81fc94a6d3ef01a24a01944b8e88c0131537248020acc91f59"
+    }
+  }
+}
