@@ -1,0 +1,31 @@
+﻿
+> @eshop/backend@0.1.0 test:integration
+> node test/run-integration.cjs catalog
+
+{
+  "suite": "catalog",
+  "status": "ok",
+  "routeDecision": "thin read-only facade",
+  "sourceBoundary": "backend-postgresql",
+  "dockerRequired": false,
+  "productionData": false,
+  "seedCommandStatus": "ok",
+  "assertions": [
+    "category browse narrows products",
+    "search narrows products",
+    "combined search and filters narrow products",
+    "all required MVP filters are supported",
+    "empty result returns empty state without error",
+    "missing optional attributes remain safe",
+    "pagination metadata is returned",
+    "malformed query is rejected before SQL execution"
+  ]
+}
+{
+  "command": "test:integration",
+  "status": "ok",
+  "suites": [
+    "catalog"
+  ]
+}
+

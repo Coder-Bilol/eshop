@@ -5,7 +5,7 @@
   "wave": "W3",
   "feature": "FT-001",
   "reqs": ["REQ-001", "REQ-002", "REQ-003"],
-  "depends_on": ["TASK-007"],
+  "depends_on": ["TASK-007", "TASK-013"],
   "touched_files": [
     "apps/storefront/app/**",
     "apps/storefront/src/**",

@@ -1,0 +1,72 @@
+{
+  "id": "TASK-012",
+  "title": "Add variant selection helper coverage",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-002",
+  "reqs": ["REQ-004", "REQ-005"],
+  "depends_on": ["TASK-011"],
+  "touched_files": [
+    "apps/storefront/src/**",
+    "apps/storefront/lib/**",
+    "apps/storefront/tests/**"
+  ],
+  "tier": "T1",
+  "gates": [
+    {
+      "name": "storefront product detail unit tests",
+      "command": "npm --workspace apps/storefront run test -- product-detail",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Pure variant selection helpers identify missing required options, impossible combinations, exactly one selected variant, unavailable variants, and single/default SKU behavior.",
+    "Helper tests prove add-to-cart validation cannot mark missing or impossible selections as valid."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Storefront product detail unit test output.",
+    "Typecheck output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-002.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/testing/index.md"
+  ],
+  "constraints": [
+    "Keep selection logic local to storefront helpers and component state.",
+    "Do not change backend API semantics in this task.",
+    "Do not implement durable cart persistence."
+  ],
+  "invariants": [
+    "Do not hardcode product variant data as source of truth.",
+    "Unavailable or impossible variants must not become valid add-to-cart selections."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#variant-selection-semantics",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#verification-targets"
+  ],
+  "purpose": "Cover local variant selection rules that can otherwise pass happy-path UI tests while remaining wrong.",
+  "success_outcome": "Variant selection helper behavior is deterministic for missing, impossible, unavailable, valid, and default-SKU cases.",
+  "anti_goals": [
+    "Do not alter backend product detail semantics.",
+    "Do not implement durable cart persistence or cart merge."
+  ]
+}

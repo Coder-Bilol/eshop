@@ -1,7 +1,7 @@
 {
   "id": "TASK-007",
   "title": "Implement storefront catalog browsing and filter UI",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-001",
   "reqs": ["REQ-001", "REQ-002", "REQ-003"],
@@ -34,7 +34,26 @@
   "verify": [
     "Storefront renders catalog product cards/list entries from backend data.",
     "Category navigation, search input, required filters, selected filter state, and pagination/load-more state are usable.",
-    "Storefront does not hardcode catalog data as source of truth."
+    "Storefront does not hardcode catalog data as source of truth.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-24",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-007/verify-storefront-catalog-test-2026-06-24.txt",
+        ".tasks/TASK-007/verify-storefront-catalog-trace-2026-06-24.html",
+        ".tasks/TASK-007/verify-storefront-typecheck-2026-06-24.txt",
+        ".tasks/TASK-007/verify-mb-lint-2026-06-24.txt",
+        ".tasks/TASK-007/verify-mb-doctor-before-close-2026-06-24.txt",
+        ".tasks/TASK-007/verify-storefront-dev-server-http-2026-06-24.json",
+        ".tasks/TASK-007/verify-mb-lint-final-2026-06-24.txt",
+        ".tasks/TASK-007/verify-mb-doctor-final-2026-06-24.txt",
+        ".tasks/TASK-007/TASK-007-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Storefront catalog UI verification passed in manual T2 mode. Fresh storefront catalog tests prove backend Store catalog route consumption with explicit query params, product cards from backend response data, category navigation, search input, required filters, selected filter state, pagination state, empty result state, and no embedded seeded catalog source data in UI. A fresh HTML trace was recorded. Storefront typecheck and Memory Bank lint passed; strict doctor passed before closure with only the expected TASK-007 ready-candidate warning. HTTP check against the local storefront dev server returned 200."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-001.md",

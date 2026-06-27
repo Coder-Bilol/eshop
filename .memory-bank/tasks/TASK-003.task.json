@@ -1,34 +1,35 @@
 {
   "id": "TASK-003",
-  "title": "Add Docker Compose local stack and env templates",
-  "status": "planned",
-  "wave": "W2",
+  "title": "Add Windows-native local runtime scripts and env templates",
+  "status": "done",
+  "wave": "W1",
   "feature": "FT-011",
   "reqs": ["REQ-030"],
-  "depends_on": ["TASK-001", "TASK-002"],
+  "depends_on": ["TASK-001"],
   "touched_files": [
-    "docker-compose.yml",
     ".env.example",
     ".gitignore",
     "apps/storefront/.env.example",
     "apps/backend/.env.example",
+    "package.json",
+    "scripts/**",
     "README.md"
   ],
   "tier": "T2",
   "gates": [
     {
-      "name": "compose config",
-      "command": "docker compose config",
+      "name": "local env check",
+      "command": "npm run check:local-env",
       "required": true
     },
     {
-      "name": "compose startup",
-      "command": "docker compose up -d --build",
+      "name": "local runtime startup",
+      "command": "npm run dev:local",
       "required": true
     },
     {
-      "name": "compose service status",
-      "command": "docker compose ps",
+      "name": "local runtime smoke",
+      "command": "npm run smoke:local",
       "required": true
     },
     {
@@ -38,50 +39,71 @@
     }
   ],
   "verify": [
-    "Docker Compose config includes PostgreSQL, backend, and storefront services.",
+    "Windows-native local runtime scripts start or verify PostgreSQL, backend, and storefront without Docker containers.",
     "Local env templates exist and real .env files are ignored.",
-    "Services start locally without production credentials."
+    "Services start or verify locally without production credentials.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-24",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-003/verify-check-local-env-2026-06-24.txt",
+        ".tasks/TASK-003/verify-dev-local-2026-06-24.txt",
+        ".tasks/TASK-003/verify-smoke-local-2026-06-24.txt",
+        ".tasks/TASK-003/verify-mb-lint-2026-06-24.txt",
+        ".tasks/TASK-003/verify-node-check-local-runtime-2026-06-24.txt",
+        ".tasks/TASK-003/verify-node-check-check-local-env-2026-06-24.txt",
+        ".tasks/TASK-003/verify-node-check-dev-local-2026-06-24.txt",
+        ".tasks/TASK-003/verify-node-check-smoke-local-2026-06-24.txt",
+        ".tasks/TASK-003/verify-gitignore-env-2026-06-24.txt",
+        ".tasks/TASK-003/TASK-003-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Windows-native local runtime verification passed. check:local-env confirmed Windows 10, Node/npm, PostgreSQL 18.4, env templates, ignored real .env files, and dockerRequired:false. dev:local confirmed bounded startup readiness for backend/storefront commands. smoke:local verified backend DB migration/seed/read-write smoke plus backend and storefront typecheck."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
     ".memory-bank/changelog.md"
   ],
   "evidence_required": [
-    "docker compose config output.",
-    "docker compose up/ps output showing required services.",
+    "Local env check output.",
+    "Windows-native startup/smoke output showing required services.",
     "Evidence that .env templates are committed and real .env files are ignored."
   ],
   "source_artifacts": [
-    ".memory-bank/features/FT-011-docker-compose-local-development.md",
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/features/FT-011-windows-native-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
     ".memory-bank/contracts/boundary-map.md"
   ],
   "normative_inputs": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/architecture/system-architecture.md",
     ".memory-bank/contracts/boundary-map.md",
     ".memory-bank/workflows/tier-policy.md"
   ],
   "constraints": [
-    "Docker Compose is local-only.",
-    "No production deploy target is introduced.",
+    "Local development must not require Docker containers.",
+    "No remote server deploy target is introduced.",
     "Provider settings must use placeholders or mock/local values only."
   ],
   "invariants": [
     "No production secrets may be committed.",
     "External integrations remain isolated.",
-    "Do not introduce microservices beyond the local Compose services required by the MVP."
+    "Do not introduce microservices or Docker containers for local development."
   ],
   "verification_targets": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#local-service-contract",
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#environment-and-secrets",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md#local-service-contract",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md#environment-and-secrets",
     ".memory-bank/testing/index.md"
   ],
-  "purpose": "Provide the Docker Compose path required by REQ-030.",
-  "success_outcome": "A developer can start PostgreSQL, backend, and storefront locally through Docker Compose using non-secret env templates.",
+  "purpose": "Provide the Windows-native local runtime path required by REQ-030.",
+  "success_outcome": "A developer can start or verify local PostgreSQL, backend, and storefront on Windows 10 without Docker containers using non-secret env templates.",
   "anti_goals": [
-    "Do not add production deployment configuration.",
+    "Do not add remote server deployment configuration.",
+    "Do not use Docker or Docker Compose for local development.",
     "Do not wire real payment/OAuth/email provider credentials.",
     "Do not replace Medusa Admin with a custom admin."
   ],
@@ -89,21 +111,22 @@
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-003.packet.json",
     "allowed_write_scope": [
-      "docker-compose.yml",
       ".env.example",
       ".gitignore",
       "apps/storefront/.env.example",
       "apps/backend/.env.example",
+      "package.json",
+      "scripts/**",
       "README.md"
     ],
     "forbidden_scope": [
-      "production deployment files",
+      "remote server deployment files",
       "real secrets",
       "live provider integration behavior"
     ],
     "stop_conditions": [
-      "Compose setup needs production secrets to start.",
-      "Local stack cannot include all required services.",
+      "Local Windows-native setup needs production secrets to start.",
+      "Local runtime cannot verify PostgreSQL, backend, and storefront.",
       "Implementation requires adding an external managed service."
     ]
   }

@@ -1,0 +1,32 @@
+﻿Root workspace and scaffold verification
+
+package.json workspaces:
+- apps/storefront
+- apps/backend
+
+Root files:
+
+Name              Length
+----              ------
+package.json         604
+package-lock.json 127803
+tsconfig.json        373
+.gitignore           295
+README.md           4425
+
+
+
+
+App scaffold files:
+apps\backend\medusa-config.ts
+apps\backend\package.json
+apps\backend\README.md
+apps\backend\src\api\health\route.ts
+apps\backend\tsconfig.json
+apps\storefront\app\globals.css
+apps\storefront\app\layout.tsx
+apps\storefront\app\page.tsx
+apps\storefront\next.config.ts
+apps\storefront\next-env.d.ts
+apps\storefront\package.json
+apps\storefront\tsconfig.json

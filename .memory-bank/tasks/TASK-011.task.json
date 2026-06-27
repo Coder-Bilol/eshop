@@ -1,0 +1,137 @@
+{
+  "id": "TASK-011",
+  "title": "Implement backend product detail variant contract",
+  "status": "done",
+  "wave": "W2",
+  "feature": "FT-002",
+  "reqs": ["REQ-004", "REQ-005"],
+  "depends_on": ["TASK-010"],
+  "touched_files": [
+    "apps/backend/src/**",
+    "apps/backend/test/**",
+    "apps/backend/package.json"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "backend product detail integration tests",
+      "command": "npm --workspace apps/backend run test:integration -- product-detail",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Backend product detail payload exposes product identity, media, option dimensions, variants/SKU, option combinations, price data, and availability/sellability signals.",
+    "Backend distinguishes product not found or unpublished from valid product detail responses.",
+    "Single/default SKU products have deterministic selected/default variant behavior without requiring extra option selection.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: FAIL",
+      "verified_at": "2026-06-27",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-011/verify-mb-doctor-strict.txt",
+        ".tasks/TASK-011/verify-backend-product-detail-integration.txt",
+        ".tasks/TASK-011/verify-backend-typecheck.txt",
+        ".tasks/TASK-011/verify-mb-lint.txt",
+        ".tasks/TASK-011/verify-multi-variant-one-sellable.txt",
+        ".tasks/TASK-011/TASK-011-S-verify-final-report-code-01.md",
+        ".memory-bank/bugs/TASK-011-multi-variant-default-selection.md"
+      ],
+      "summary": "Required gates pass, but a multi-variant product with exactly one sellable variant is incorrectly treated as a single/default-SKU product. The payload sets requires_selection false and auto-selects the sellable SKU, conflicting with FT-002 explicit selection semantics for products with multiple concrete variants. Task closure is not eligible until the implementation and integration coverage are corrected."
+    },
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-27",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-011/reverify-mb-doctor-strict.txt",
+        ".tasks/TASK-011/reverify-product-detail-integration.txt",
+        ".tasks/TASK-011/reverify-backend-typecheck.txt",
+        ".tasks/TASK-011/reverify-mb-lint.txt",
+        ".tasks/TASK-011/reverify-multi-variant-one-sellable.txt",
+        ".tasks/TASK-011/reverify-fixture-cleanup.txt",
+        ".tasks/TASK-011/reverify-catalog-product-detail-regression.txt",
+        ".tasks/TASK-011/TASK-011-S-verify-final-report-code-02.md"
+      ],
+      "summary": "TASK-011 passes reverification after default-selection remediation. The PostgreSQL-backed product-detail suite proves the required payload, unavailable and default-SKU behavior, and explicit selection for a multi-variant product with only one sellable variant. Independent reproduction, fixture cleanup, catalog regression, typecheck, Memory Bank lint, full T2 protocol, and required packet/spec gates pass. Manual T2 closure criteria are satisfied; FT-002 feature completion remains pending its remaining tasks and feature-level red verification."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Integration test output for product detail payload, variant combinations, availability, not-found/unpublished, and single/default SKU behavior.",
+    "Typecheck output.",
+    "Short note identifying native Medusa route versus thin read-only facade decision."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/contracts/api-guidelines.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/domains/core-domain.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use Medusa/PostgreSQL-backed product and variant data or supported Medusa mechanisms.",
+    "Use stable public product identifiers or handles where possible.",
+    "Do not expose internal database identifiers or implementation-only fields when stable public identifiers are available."
+  ],
+  "invariants": [
+    "Do not modify Medusa Core.",
+    "Backend/PostgreSQL owns product and variant source of truth.",
+    "Product detail availability is a pre-check and must not create reservation/order state."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#product-detail-data-contract",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#availability-and-inventory-boundary",
+    ".memory-bank/contracts/api-guidelines.md#naming-and-shape"
+  ],
+  "purpose": "Expose backend product detail and variant data needed by the storefront without duplicating variant truth.",
+  "success_outcome": "Backend product detail reads prove required option/variant/availability semantics against seeded data.",
+  "anti_goals": [
+    "Do not implement durable cart persistence or cart merge.",
+    "Do not implement checkout, payment, order, or inventory reservation behavior.",
+    "Do not add a custom product configurator framework."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-011.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "durable cart persistence",
+      "checkout/order/payment/auth implementation",
+      "inventory reservation behavior"
+    ],
+    "stop_conditions": [
+      "Native Medusa APIs cannot satisfy required product detail semantics and no thin facade can be scoped safely.",
+      "Endpoint contract would conflict with API guidelines.",
+      "Verification cannot prove product detail variant behavior against seeded backend data."
+    ]
+  }
+}

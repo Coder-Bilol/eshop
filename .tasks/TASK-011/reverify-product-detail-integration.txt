@@ -1,0 +1,18 @@
+Command: npm --workspace apps/backend run test:integration -- product-detail
+Exit code: 0
+Result: PASS
+
+The product-detail suite returned status "ok" and proved:
+- product identity, media, category, and product type;
+- no exposed internal product or variant database IDs;
+- option dimensions and variant SKU/options/price/availability;
+- unavailable variants are non-sellable;
+- deterministic selection for one default sellable SKU;
+- explicit selection for multiple variants when only one is sellable;
+- distinct not-found and unpublished behavior;
+- route input parsing.
+
+Route decision: thin read-only facade.
+Source boundary: backend-postgresql.
+Docker required: false.
+Production data: false.

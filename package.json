@@ -1,0 +1,28 @@
+{
+  "name": "eshop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MVP internet shop workspace with Next.js storefront and Medusa v2 backend.",
+  "workspaces": [
+    "apps/storefront",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "check:local-env": "node scripts/check-local-env.cjs",
+    "dev:local": "node scripts/dev-local.cjs",
+    "dev:local:check": "node scripts/dev-local.cjs --check",
+    "dev:local:watch": "node scripts/dev-local.cjs --watch",
+    "smoke:local": "node scripts/smoke-local.cjs",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "mb:lint": "node scripts/mb-lint.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

@@ -11,7 +11,7 @@ source_of_truth:
 
 ## What This Is
 
-MVP интернет-магазина товаров для дома, включая разные виды карнизов и сопутствующие категории. Storefront строится на Next.js/TypeScript, backend на Medusa v2/TypeScript/PostgreSQL, локальная разработка поддерживается через Docker Compose.
+MVP интернет-магазина товаров для дома, включая разные виды карнизов и сопутствующие категории. Storefront строится на Next.js/TypeScript, backend на Medusa v2/TypeScript/PostgreSQL, локальная разработка поддерживается через Windows 10 native setup без Docker containers.
 
 ## Core Value
 

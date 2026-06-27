@@ -1,0 +1,21 @@
+Command: inline Node.js verifier calling queryProductDetailWithClient with two backend-known variants, one active/sellable and one inactive/unavailable
+Exit code: 1
+Result: FAIL
+
+Observed:
+{
+  "variant_count": 2,
+  "sellable_count": 1,
+  "requires_selection": false,
+  "default_variant_sku": "ACTIVE-SKU",
+  "selected_variant_sku": "ACTIVE-SKU"
+}
+
+Expected from FT-002 Variant Selection Semantics:
+{
+  "requires_selection": true,
+  "default_variant_sku": null,
+  "selected_variant_sku": null
+}
+
+Failure: a multi-variant product was treated as a single/default-SKU product.

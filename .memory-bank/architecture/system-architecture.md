@@ -2,7 +2,7 @@
 description: Global system architecture backbone for the MVP internet shop.
 status: active
 owner: spec-design
-last_updated: 2026-06-19
+last_updated: 2026-06-23
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -13,7 +13,7 @@ source_of_truth:
 
 ## System Goal
 
-Build a KISS MVP internet shop for home goods with a Next.js storefront, Medusa v2 backend, PostgreSQL storage, Medusa Admin operations, YooKassa payments, OAuth login, email notifications, and reproducible local development through Docker Compose.
+Build a KISS MVP internet shop for home goods with a Next.js storefront, Medusa v2 backend, PostgreSQL storage, Medusa Admin operations, YooKassa payments, OAuth login, email notifications, and reproducible local development on Windows 10 without Docker containers.
 
 The architecture constrains implementation work so agents preserve purchase-flow correctness, avoid Medusa Core changes, and keep payment, order, inventory, auth, and customer data safe.
 
@@ -39,7 +39,7 @@ Use a modular monolith split by product boundary, not by deployable microservice
 - Backend: Medusa v2/TypeScript with custom APIs, workflows, modules, subscribers, and payment/auth/notification integrations.
 - Storage: PostgreSQL as the durable data store for Medusa and custom backend data.
 - Admin: Medusa Admin as the MVP operator surface.
-- Local runtime: Docker Compose starts storefront, backend, and database for development and verification.
+- Local runtime: Windows-native npm processes start storefront/backend, and PostgreSQL runs locally on Windows 10 for development and verification.
 
 No separate search service, event bus, cache service, custom admin application, or delivery-provider service is part of the MVP unless a later explicit spec changes scope.
 
@@ -76,7 +76,7 @@ Runtime source-of-truth rules:
 | Payment integration | Isolated backend module | YooKassa payment creation, webhook verification, retry, status mapping, idempotency. | Webhook is source of truth; duplicate events have no duplicate side effects. |
 | Notification integration | Isolated backend module | Email triggers for pending order, payment success/error, and order status change. | Sends follow committed state; duplicate suppression is required where webhook repeats can trigger email. |
 | Admin operations | Medusa Admin | Operator visibility for contacts, products, delivery, payment/order status, total, and payment method. | No custom admin replacement in MVP. |
-| Local development | Docker Compose and package scripts | Local storefront/backend/database path and smoke gates. | No production secrets in repo. |
+| Local development | Windows-native npm scripts and local PostgreSQL | Local storefront/backend/database path and smoke gates. | No Docker containers for local development; no production secrets in repo. |
 
 ## Data Flow
 
@@ -178,8 +178,9 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 
 ## Deployment Assumptions
 
-- The only designed deployment/runtime path in this backbone is local development through Docker Compose.
-- Production deployment is not designed by this `/spec-design` pass. Any production deploy, live payment mutation, production migration, or production secret handling must be scoped as T3 with explicit operator approval and rollback/recovery notes.
+- The only designed local runtime path in this backbone is Windows 10 native development with local Node.js/npm processes and local PostgreSQL.
+- Docker is reserved for a future remote server deployment path and is not part of local development.
+- Remote server deployment is not designed by this `/spec-design` pass. Any remote deploy, Docker server deployment, live payment mutation, production migration, or production secret handling must be scoped as T3 with explicit operator approval and rollback/recovery notes.
 
 ## Risks
 

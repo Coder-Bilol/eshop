@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+.next/
+dist/
+build/
+.medusa/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+apps/*/.env
+apps/*/.env.*
+!apps/*/.env.example
+
+# Logs and local caches
+*.log
+.npm/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Local runtime data
+.data/
+data/
+uploads/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

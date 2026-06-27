@@ -1,0 +1,55 @@
+﻿
+> @eshop/backend@0.1.0 smoke:product-detail
+> node scripts/smoke-product-detail.cjs
+
+{
+  "command": "smoke:product-detail",
+  "status": "ok",
+  "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+  "sourceBoundary": "backend-postgresql",
+  "dockerRequired": false,
+  "productionData": false,
+  "routeDecision": "seeded backend detail data for future thin read-only facade",
+  "configurableProduct": {
+    "handle": "steel-telescopic-curtain-rod",
+    "variantCount": 4,
+    "sellableVariantSkus": [
+      "CR-STL-BLK-160-300",
+      "CR-STL-BLK-300-500",
+      "CR-STL-BRS-160-300"
+    ],
+    "unavailableVariantSkus": [
+      "CR-STL-BRS-300-500"
+    ],
+    "optionDimensions": {
+      "color": [
+        "black",
+        "brass"
+      ],
+      "material": [
+        "aluminum",
+        "steel"
+      ],
+      "size_length": [
+        "160-300 cm",
+        "300-500 cm"
+      ],
+      "mounting_method": [
+        "wall"
+      ]
+    }
+  },
+  "defaultSkuProduct": {
+    "handle": "basic-home-hook-set",
+    "sku": "HG-HOOK-BASIC",
+    "title": "Default"
+  },
+  "assertions": [
+    "multi-option product detail seed is present",
+    "color, material, size/length, and mounting method data are readable",
+    "unavailable variant is readable through backend persistence",
+    "single/default SKU product is readable through backend persistence",
+    "variant SKU, price, and availability signals are present"
+  ]
+}
+

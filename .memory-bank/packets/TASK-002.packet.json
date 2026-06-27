@@ -1,12 +1,12 @@
 {
   "task_id": "TASK-002",
   "status": "ready",
-  "source_task_hash": "sha256:8250c046dd8340765c13f1f70c8e67dc7ce15a487f9c14da9482e0282ae9c3b0",
+  "source_task_hash": "sha256:0395b2b2dd0a68ab30e3c39e0b12a3ad5bfc1ea7edabad019d4c0da98f2e9662",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-002.task.json",
-    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "feature": ".memory-bank/features/FT-011-windows-native-local-development.md",
     "specs": [
-      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
       ".memory-bank/architecture/system-architecture.md",
       ".memory-bank/testing/index.md",
       ".memory-bank/workflows/tier-policy.md"
@@ -34,6 +34,7 @@
   },
   "verification": {
     "commands": [
+      "npm --workspace apps/backend run db:check",
       "npm --workspace apps/backend run db:migrate",
       "npm --workspace apps/backend run db:seed",
       "npm --workspace apps/backend run smoke:db",
@@ -41,10 +42,12 @@
     ],
     "success_checks": [
       "Backend has a deterministic local PostgreSQL configuration path.",
+      "Backend has a Windows-native local PostgreSQL preflight command.",
       "Migration and seed commands exist and run against local PostgreSQL.",
       "DB smoke check exercises read/write through the backend persistence boundary, not only a direct DB connection."
     ],
     "evidence_required": [
+      "DB preflight output.",
       "Migration command output.",
       "Seed command output or explicit no-seed rationale if the scaffold makes seed data not yet applicable.",
       "DB smoke output proving backend read/write persistence."

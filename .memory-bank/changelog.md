@@ -4,6 +4,41 @@ status: active
 ---
 # Changelog
 
+## [2026-06-25] TASK-010 product detail seed verification
+- Added: backend product-detail seed smoke for multi-option variants, unavailable variant, and default SKU product.
+- Fixed: reconciled TASK-010 scope to include `apps/backend/package.json` for the required `smoke:product-detail` npm gate.
+- Verified: `TASK-010` after packet refresh with passing `db:seed`, `smoke:product-detail`, and Memory Bank lint evidence.
+
+## [2026-06-24] W1 local foundation verification
+- Verified: `TASK-004` with passing `smoke:local`, `check:local-env`, runbook coverage, and Memory Bank lint evidence.
+- Closed: W1 task set `TASK-001`..`TASK-004` now has functional `/verify` PASS evidence and `done` task status.
+- Note: FT-011 feature-level semantic verification remains separate before treating the whole feature as semantically complete.
+
+## [2026-06-24] TASK-004 local smoke runbook
+- Added: Windows-native local development runbook at `.memory-bank/runbooks/local-development.md`.
+- Updated: `smoke:local` summary now links the local runbook and task evidence location.
+- Documented: local setup, startup, smoke, stop, port conflicts, and explicit local-only reset behavior without Docker containers or production secrets.
+
+## [2026-06-23] TASK-002 Windows PostgreSQL verification
+- Added: backend `db:check` command for Windows-native local PostgreSQL preflight.
+- Verified: `TASK-002` against local PostgreSQL 18.4 with passing `db:check`, `db:migrate`, `db:seed`, and `smoke:db` evidence.
+- Updated: `TASK-002` task record to `done`, refreshed its execution packet hash, and archived the previous local PostgreSQL unavailable blocker.
+
+## [2026-06-23] FT-011 Windows-native local runtime pivot
+- Updated: PRD, product, requirements, EP-005, FT-011, global architecture backbone, spec registry, and FT-011 tech spec now require Windows 10 native local development instead of Docker Compose.
+- Updated: FT-011 implementation plan, `TASK-001`..`TASK-004` source/spec references, `TASK-003`/`TASK-004` gates, and required packets to use local PostgreSQL and npm-based startup/smoke checks.
+- Recorded: Docker is reserved only for a future remote server deployment path, which remains out of current local-foundation scope and must be designed separately as T3 deploy work.
+
+## [2026-06-20] Global task wave classification
+- Reclassified task `wave` values as global execution buckets: W1 foundation, W2 core implementation after foundation, and W3 polish/final cross-feature verification.
+- Moved all FT-011 local foundation tasks into W1, moved FT-001/FT-002 core implementation tasks into W2, and kept edge/final verification tasks in W3.
+- Relaxed FT-002 core start from `TASK-009` to `TASK-007`, while keeping final FT-002 verification after FT-001 final verification.
+
+## [2026-06-20] FT-002 task decomposition
+- Reused the active FT-002 product detail and variant selection tech spec for task decomposition.
+- Added an implementation plan, schema-backed task records, and required execution packets for variant seed data, backend product detail contract, storefront variant selection helpers/UI, cart-action handoff, and integration/e2e verification.
+- Sequenced FT-002 tasks after `TASK-009` so product detail work starts after the FT-011 local foundation and FT-001 catalog surfaces.
+
 ## [2026-06-20] README product showcase rewrite
 - Updated: root `README.md` now presents only the target product showcase, not the repository/spec status.
 - Added: explicit killer features section focused on buyer value, cart merge, pending payment, YooKassa webhook correctness, and Medusa Admin visibility.

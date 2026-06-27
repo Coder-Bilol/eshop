@@ -1,12 +1,12 @@
 {
   "task_id": "TASK-001",
   "status": "ready",
-  "source_task_hash": "sha256:8e7e01f9eadf8eb2ab97c258079d3fb456ec413051ce2a68d0b8dd2fe50fd216",
+  "source_task_hash": "sha256:d835c3ced94017e230851f084755087ed6bd837555dbe6fcf28ba9a5068f398a",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-001.task.json",
-    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "feature": ".memory-bank/features/FT-011-windows-native-local-development.md",
     "specs": [
-      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
       ".memory-bank/architecture/system-architecture.md",
       ".memory-bank/workflows/tier-policy.md"
     ],

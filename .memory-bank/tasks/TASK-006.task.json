@@ -1,7 +1,7 @@
 {
   "id": "TASK-006",
   "title": "Implement backend catalog query and filter contract",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-001",
   "reqs": ["REQ-001", "REQ-002", "REQ-003"],
@@ -32,7 +32,24 @@
   "verify": [
     "Backend catalog query supports category, q, price_min, price_max, color, material, size_length, product_type, mounting_method, page, and limit.",
     "Search and filters can be combined and return empty results without error.",
-    "Response includes enough data for product cards, category navigation, filter state, available values, empty state, and pagination."
+    "Response includes enough data for product cards, category navigation, filter state, available values, empty state, and pagination.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-24",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-006/verify-backend-catalog-integration-2026-06-24.txt",
+        ".tasks/TASK-006/verify-backend-typecheck-2026-06-24.txt",
+        ".tasks/TASK-006/verify-mb-lint-2026-06-24.txt",
+        ".tasks/TASK-006/verify-mb-doctor-before-close-2026-06-24.txt",
+        ".tasks/TASK-006/verify-mb-lint-final-2026-06-24.txt",
+        ".tasks/TASK-006/verify-mb-doctor-final-2026-06-24.txt",
+        ".tasks/TASK-006/TASK-006-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Backend catalog contract verification passed in manual T2 mode. Fresh integration evidence proves category browsing, search, combined filters, all required MVP filters, empty result behavior, missing optional attribute safety, pagination metadata, malformed query rejection, thin read-only facade route decision, backend/PostgreSQL source boundary, dockerRequired:false, and productionData:false. Backend typecheck and Memory Bank lint passed; strict doctor passed before closure with only the expected TASK-006 ready-candidate warning."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-001.md",

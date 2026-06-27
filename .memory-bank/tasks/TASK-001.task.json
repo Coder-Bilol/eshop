@@ -1,7 +1,7 @@
 {
   "id": "TASK-001",
   "title": "Create project workspace and app scaffold",
-  "status": "ready",
+  "status": "done",
   "wave": "W1",
   "feature": "FT-011",
   "reqs": ["REQ-030"],
@@ -36,7 +36,25 @@
   "verify": [
     "Root npm workspace exists and includes apps/storefront and apps/backend.",
     "Storefront and backend scaffold files exist without modifying Medusa Core.",
-    "No real secrets or production data are committed."
+    "No real secrets or production data are committed.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-23",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-001/verify-npm-install.txt",
+        ".tasks/TASK-001/verify-npm-run.txt",
+        ".tasks/TASK-001/verify-mb-lint.txt",
+        ".tasks/TASK-001/verify-typecheck.txt",
+        ".tasks/TASK-001/verify-mb-doctor-strict.txt",
+        ".tasks/TASK-001/verify-scaffold-summary.txt",
+        ".tasks/TASK-001/verify-secret-scan.txt",
+        ".tasks/TASK-001/TASK-001-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Root npm workspace and storefront/backend scaffold verified. Required packet/spec gates are satisfied. No forbidden scope or secret/prod data evidence found."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
@@ -48,13 +66,13 @@
     "Memory Bank lint output."
   ],
   "source_artifacts": [
-    ".memory-bank/features/FT-011-docker-compose-local-development.md",
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/features/FT-011-windows-native-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
     ".memory-bank/requirements.md"
   ],
   "normative_inputs": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/architecture/system-architecture.md",
     ".memory-bank/workflows/tier-policy.md"
   ],
@@ -68,7 +86,7 @@
     "No production secrets or production data may be committed."
   ],
   "verification_targets": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#verification-targets",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md#verification-targets",
     ".memory-bank/testing/index.md"
   ],
   "purpose": "Create the executable project scaffold that later feature tasks can build on.",

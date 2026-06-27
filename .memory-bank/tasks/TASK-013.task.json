@@ -1,0 +1,105 @@
+{
+  "id": "TASK-013",
+  "title": "Implement storefront product detail variant UI",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-002",
+  "reqs": ["REQ-004", "REQ-005"],
+  "depends_on": ["TASK-011", "TASK-012"],
+  "touched_files": [
+    "apps/storefront/app/**",
+    "apps/storefront/src/**",
+    "apps/storefront/components/**",
+    "apps/storefront/lib/**",
+    "apps/storefront/package.json"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "storefront product detail tests",
+      "command": "npm --workspace apps/storefront run test -- product-detail",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Storefront product cards expose variant-aware summary data from backend data when provided.",
+    "Product detail page renders loading, not found/unpublished, no-variant/default SKU, missing option, impossible combination, unavailable variant, valid variant, and cart-action handoff failure states.",
+    "Add-to-cart handoff includes product identifier or handle, selected variant/SKU identifier, quantity defaulting to one, and validation state, without implementing durable cart persistence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Storefront product detail test output.",
+    "Typecheck output.",
+    "Screenshot or trace showing product detail variant selection and blocked/valid add-to-cart handoff states."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/contracts/api-guidelines.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Storefront reads product detail and variant data through backend APIs.",
+    "Storefront may render option labels/order but must not invent available variant values.",
+    "Cart-action handoff must remain a narrow validation boundary until FT-003 implements durable cart behavior."
+  ],
+  "invariants": [
+    "Do not hardcode product variant data in the storefront as source of truth.",
+    "Do not implement durable cart persistence, login cart merge, checkout, payment, order, or inventory reservation.",
+    "Product detail availability is not authoritative for final stock consistency."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#storefront-ux-states",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#add-to-cart-handoff",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#verification-targets"
+  ],
+  "purpose": "Make the backend product detail contract usable through buyer-facing product detail and product card variant UI.",
+  "success_outcome": "Buyer can inspect a product, select a valid sellable variant/SKU, and reach a scoped cart-action handoff while invalid selections stay blocked.",
+  "anti_goals": [
+    "Do not implement durable cart persistence or cart merge.",
+    "Do not implement inventory reservation or order behavior.",
+    "Do not turn product cards into full configurators."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-013.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/app/**",
+      "apps/storefront/src/**",
+      "apps/storefront/components/**",
+      "apps/storefront/lib/**",
+      "apps/storefront/package.json"
+    ],
+    "forbidden_scope": [
+      "backend product detail contract changes not covered by TASK-011",
+      "durable cart persistence or cart merge",
+      "checkout/order/payment/auth implementation",
+      "inventory reservation behavior"
+    ],
+    "stop_conditions": [
+      "Storefront cannot consume the backend product detail contract.",
+      "UI work requires changing FT-002 API semantics.",
+      "Verification cannot show invalid selections blocked and valid selected variant handoff."
+    ]
+  }
+}

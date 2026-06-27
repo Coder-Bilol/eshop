@@ -1,0 +1,6 @@
+﻿mb-doctor FAIL (1 errors, 1 warnings, 2 info)
+[INFO] MB_LINT_PASSED scripts/mb-lint.mjs: scripts/mb-lint.mjs passed.
+[ERROR] TASK_PACKET_STALE .memory-bank/packets/TASK-010.packet.json TASK-010: .memory-bank/packets/TASK-010.packet.json: execution packet source_task_hash is mismatched.
+[WARNING] TASK_PLANNED_READY_CANDIDATE .memory-bank/tasks/TASK-010.task.json TASK-010: .memory-bank/tasks/TASK-010.task.json: planned task has all dependencies done and can be promoted to ready.
+[INFO] TASK_QUEUE_SUMMARY .memory-bank/tasks/index.json: Task queue summary.
+

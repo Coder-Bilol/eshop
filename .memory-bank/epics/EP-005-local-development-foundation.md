@@ -7,7 +7,7 @@ lifecycle: planned
 
 ## Value
 
-Give the development team a reproducible local development path for storefront, backend, and database.
+Give the development team a reproducible Windows 10 native local development path for storefront, backend, and database.
 
 ## Source Artifacts
 
@@ -16,11 +16,11 @@ Give the development team a reproducible local development path for storefront, 
 
 ## Features
 
-- [FT-011 Docker Compose Local Development](../features/FT-011-docker-compose-local-development.md)
+- [FT-011 Windows Native Local Development](../features/FT-011-windows-native-local-development.md)
 
 ## Success Metrics
 
-- Local stack can be started through Docker Compose.
+- Local storefront/backend processes and local PostgreSQL can be started or verified on Windows 10 without Docker containers.
 - Required services are documented and smoke-testable.
 
 ## Acceptance Criteria

@@ -1,0 +1,66 @@
+{
+  "task_id": "TASK-010",
+  "status": "ready",
+  "source_task_hash": "sha256:16a9ab8e528c98f657a43914c8b97cf2fa0928bd9cce4a41c4a11946319857e5",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-010.task.json",
+    "feature": ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/domains/core-domain.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-002/plan.md",
+      ".protocols/FT-002/decision-log.md"
+    ]
+  },
+  "purpose": "Provide backend-owned product detail and variant data needed to verify variant-aware product cards and product detail selection.",
+  "success_outcome": "Local backend data can prove FT-002 product detail and variant selection behavior through repeatable seed and smoke commands.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/scripts/**",
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "production data import",
+      "durable cart persistence",
+      "inventory reservation or order state"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run db:seed",
+      "npm --workspace apps/backend run smoke:product-detail",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Seeded product data includes variant dimensions for color, size, length, material, and applicable related attributes.",
+      "Seeded data includes at least one unavailable or out-of-stock variant and one product with no variants or a single default sellable SKU.",
+      "Product detail persistence smoke reads products, option dimensions, variants/SKU, prices, and availability through the backend/Medusa boundary."
+    ],
+    "evidence_required": [
+      "Seed command output.",
+      "Product detail persistence smoke output.",
+      "Summary of seeded products, option dimensions, variants/SKU, prices, and availability cases."
+    ]
+  },
+  "stop_conditions": [
+    "Seed path cannot write/read through the backend persistence boundary.",
+    "Implementation requires production data.",
+    "Variant data model contradicts the FT-002 tech spec."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-010/.",
+    "Run /verify TASK-010 before closure.",
+    "Do not mark done without backend persistence evidence for product detail and variant data."
+  ]
+}

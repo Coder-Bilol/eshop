@@ -1,7 +1,7 @@
 {
   "id": "TASK-002",
   "title": "Initialize backend database and seed smoke path",
-  "status": "planned",
+  "status": "done",
   "wave": "W1",
   "feature": "FT-011",
   "reqs": ["REQ-030"],
@@ -14,6 +14,11 @@
   ],
   "tier": "T2",
   "gates": [
+    {
+      "name": "backend database preflight",
+      "command": "npm --workspace apps/backend run db:check",
+      "required": true
+    },
     {
       "name": "backend database migration",
       "command": "npm --workspace apps/backend run db:migrate",
@@ -37,32 +42,71 @@
   ],
   "verify": [
     "Backend has a deterministic local PostgreSQL configuration path.",
+    "Backend has a Windows-native local PostgreSQL preflight command.",
     "Migration and seed commands exist and run against local PostgreSQL.",
-    "DB smoke check exercises read/write through the backend persistence boundary, not only a direct DB connection."
+    "DB smoke check exercises read/write through the backend persistence boundary, not only a direct DB connection.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: FAIL",
+      "verified_at": "2026-06-23",
+      "mode": "manual",
+      "evidence": [
+        ".tasks/TASK-002/verify-db-migrate.txt",
+        ".tasks/TASK-002/verify-db-seed.txt",
+        ".tasks/TASK-002/verify-smoke-db.txt",
+        ".tasks/TASK-002/verify-mb-lint.txt",
+        ".tasks/TASK-002/verify-typecheck.txt",
+        ".tasks/TASK-002/verify-mb-doctor-strict.txt",
+        ".tasks/TASK-002/verify-docker-info.txt",
+        ".tasks/TASK-002/verify-postgres-port.txt",
+        ".tasks/TASK-002/TASK-002-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Backend DB initialization scripts exist and non-DB gates pass, but required migration/seed/smoke gates failed because local PostgreSQL is not reachable at 127.0.0.1:5432."
+    },
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-23",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-002/verify-db-check-postgres18.txt",
+        ".tasks/TASK-002/verify-db-migrate-postgres18.txt",
+        ".tasks/TASK-002/verify-db-seed-postgres18.txt",
+        ".tasks/TASK-002/verify-smoke-db-postgres18.txt",
+        ".tasks/TASK-002/verify-backend-typecheck-postgres18.txt",
+        ".tasks/TASK-002/verify-node-check-db-check.txt",
+        ".tasks/TASK-002/verify-node-check-local-db.txt",
+        ".tasks/TASK-002/verify-mb-lint-postgres18.txt",
+        ".tasks/TASK-002/TASK-002-S-verify-final-report-code-02.md"
+      ],
+      "summary": "Windows-native PostgreSQL 18.4 is reachable at 127.0.0.1:5432. Backend db:check, migration, seed, and DB smoke gates pass. Smoke evidence proves seeded row verification and backend read/write persistence through the backend package boundary. Docker is not required."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
     ".memory-bank/changelog.md"
   ],
   "evidence_required": [
+    "DB preflight output.",
     "Migration command output.",
     "Seed command output or explicit no-seed rationale if the scaffold makes seed data not yet applicable.",
     "DB smoke output proving backend read/write persistence."
   ],
   "source_artifacts": [
-    ".memory-bank/features/FT-011-docker-compose-local-development.md",
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/features/FT-011-windows-native-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
     ".memory-bank/architecture/system-architecture.md"
   ],
   "normative_inputs": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/architecture/system-architecture.md",
     ".memory-bank/testing/index.md",
     ".memory-bank/workflows/tier-policy.md"
   ],
   "constraints": [
-    "PostgreSQL is the local durable store.",
+    "PostgreSQL is the local durable store and runs locally on Windows 10 outside Docker.",
     "Database initialization must be owned by backend or supported Medusa commands.",
     "Do not use direct SQL as the only proof of persistence readiness."
   ],
@@ -72,8 +116,8 @@
     "Do not modify Medusa Core."
   ],
   "verification_targets": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#database-initialization-requirements",
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#verification-targets",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md#database-initialization-requirements",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md#verification-targets",
     ".memory-bank/testing/index.md"
   ],
   "purpose": "Provide the explicit database initialization task required for the local development foundation.",

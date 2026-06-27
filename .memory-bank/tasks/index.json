@@ -36,6 +36,26 @@
     {
       "id": "TASK-009",
       "file": "TASK-009.task.json"
+    },
+    {
+      "id": "TASK-010",
+      "file": "TASK-010.task.json"
+    },
+    {
+      "id": "TASK-011",
+      "file": "TASK-011.task.json"
+    },
+    {
+      "id": "TASK-012",
+      "file": "TASK-012.task.json"
+    },
+    {
+      "id": "TASK-013",
+      "file": "TASK-013.task.json"
+    },
+    {
+      "id": "TASK-014",
+      "file": "TASK-014.task.json"
     }
   ]
 }

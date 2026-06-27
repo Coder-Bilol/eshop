@@ -1,0 +1,64 @@
+{
+  "task_id": "TASK-011",
+  "status": "ready",
+  "source_task_hash": "sha256:a096b13a229888f7fda7e4788fe7f89f59f53d44b7d89525396400ab6f70c84b",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-011.task.json",
+    "feature": ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+      ".memory-bank/contracts/api-guidelines.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/domains/core-domain.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-002/plan.md",
+      ".protocols/FT-002/decision-log.md"
+    ]
+  },
+  "purpose": "Expose backend product detail and variant data needed by the storefront without duplicating variant truth.",
+  "success_outcome": "Backend product detail reads prove required option/variant/availability semantics against seeded data.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "durable cart persistence",
+      "checkout/order/payment/auth implementation",
+      "inventory reservation behavior"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- product-detail",
+      "npm --workspace apps/backend run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Backend product detail payload exposes product identity, media, option dimensions, variants/SKU, option combinations, price data, and availability/sellability signals.",
+      "Backend distinguishes product not found or unpublished from valid product detail responses.",
+      "Single/default SKU products have deterministic selected/default variant behavior without requiring extra option selection."
+    ],
+    "evidence_required": [
+      "Integration test output for product detail payload, variant combinations, availability, not-found/unpublished, and single/default SKU behavior.",
+      "Typecheck output.",
+      "Short note identifying native Medusa route versus thin read-only facade decision."
+    ]
+  },
+  "stop_conditions": [
+    "Native Medusa APIs cannot satisfy required product detail semantics and no thin facade can be scoped safely.",
+    "Endpoint contract would conflict with API guidelines.",
+    "Verification cannot prove product detail variant behavior against seeded backend data."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-011/.",
+    "Run /verify TASK-011 before closure.",
+    "Do not mark done without backend integration evidence for required product detail semantics."
+  ]
+}

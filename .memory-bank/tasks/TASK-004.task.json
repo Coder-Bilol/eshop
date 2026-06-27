@@ -1,8 +1,8 @@
 {
   "id": "TASK-004",
   "title": "Add local smoke scripts and runbook",
-  "status": "planned",
-  "wave": "W3",
+  "status": "done",
+  "wave": "W1",
   "feature": "FT-011",
   "reqs": ["REQ-030"],
   "depends_on": ["TASK-003"],
@@ -21,8 +21,8 @@
       "required": true
     },
     {
-      "name": "compose config",
-      "command": "docker compose config",
+      "name": "local env check",
+      "command": "npm run check:local-env",
       "required": true
     },
     {
@@ -32,9 +32,25 @@
     }
   ],
   "verify": [
-    "Smoke script checks database, backend, and storefront local readiness.",
-    "Runbook explains setup, start, smoke, stop, port conflicts, and local-only reset behavior.",
-    "Local setup evidence is stored under .tasks/TASK-004/ during execution."
+    "Smoke script checks local PostgreSQL, backend, and storefront readiness without Docker containers.",
+    "Runbook explains Windows setup, start, smoke, stop, port conflicts, and local-only reset behavior.",
+    "Local setup evidence is stored under .tasks/TASK-004/ during execution.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-24",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-004/verify-smoke-local-2026-06-24.txt",
+        ".tasks/TASK-004/verify-check-local-env-2026-06-24.txt",
+        ".tasks/TASK-004/verify-node-check-smoke-local-2026-06-24.txt",
+        ".tasks/TASK-004/verify-runbook-coverage-2026-06-24.txt",
+        ".tasks/TASK-004/verify-mb-lint-2026-06-24.txt",
+        ".tasks/TASK-004/TASK-004-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Windows-native W1 local smoke/runbook verification passed. smoke:local verified local env, backend migration, seed, DB read/write smoke, backend typecheck, and storefront typecheck with dockerRequired:false. check:local-env confirmed Windows-native runtime, PostgreSQL 18.4, env templates, ignored real .env files, and no unsafe placeholders. The runbook covers Windows setup, start, smoke, stop, port conflicts, and explicit local-only reset behavior."
+    }
   ],
   "docs": [
     ".memory-bank/runbooks/local-development.md",
@@ -43,17 +59,17 @@
   ],
   "evidence_required": [
     "npm run smoke:local output.",
-    "docker compose config output.",
+    "Local env check output.",
     "Runbook link and Memory Bank lint output."
   ],
   "source_artifacts": [
-    ".memory-bank/features/FT-011-docker-compose-local-development.md",
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/features/FT-011-windows-native-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/tasks/plans/IMPL-FT-011.md",
     ".memory-bank/testing/index.md"
   ],
   "normative_inputs": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
     ".memory-bank/testing/index.md",
     ".memory-bank/workflows/tier-policy.md"
   ],
@@ -68,15 +84,15 @@
     "Memory Bank must be synchronized after meaningful changes."
   ],
   "verification_targets": [
-    ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md#verification-targets",
+    ".memory-bank/tech-specs/FT-011-windows-native-local-development.md#verification-targets",
     ".memory-bank/testing/index.md#quality-gates"
   ],
   "purpose": "Make the local foundation repeatably verifiable by developers and later agents.",
-  "success_outcome": "A developer can follow the runbook and run one local smoke command that verifies the Compose stack is usable.",
+  "success_outcome": "A developer can follow the runbook and run one local smoke command that verifies the Windows-native local runtime is usable.",
   "anti_goals": [
     "Do not make smoke checks depend on live providers.",
     "Do not use destructive data reset as the default verification path.",
-    "Do not mark the feature complete without local stack evidence."
+    "Do not mark the feature complete without Windows-native local runtime evidence."
   ],
   "runtime_context": {
     "packet_required": true,

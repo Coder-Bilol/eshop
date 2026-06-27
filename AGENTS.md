@@ -4,6 +4,10 @@
 ## Communication
 - Always answer the user in Russian, while keeping established English technical terms where they are the stable project or industry terminology.
 
+## File Encoding
+- When reading text files through PowerShell, always specify UTF-8 explicitly, for example `Get-Content -Raw -Encoding UTF8 -LiteralPath ...`, to avoid mojibake.
+- When writing text files through PowerShell is unavoidable, specify UTF-8 explicitly, for example `Set-Content -Encoding UTF8` / `Add-Content -Encoding UTF8`. Prefer patch-based edits for source and documentation changes.
+
 ## Prime before work
 1. Read `AGENTS.md` (this guide)
 2. Read `.memory-bank/constitution.md` (top governing policy)

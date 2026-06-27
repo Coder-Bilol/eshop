@@ -1,0 +1,25 @@
+﻿
+> @eshop/backend@0.1.0 db:seed
+> node scripts/db-seed.cjs
+
+{
+  "command": "db:seed",
+  "status": "ok",
+  "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+  "seedKey": "seed:local:smoke",
+  "table": "eshop_local_smoke_records",
+  "catalog": {
+    "categories": 4,
+    "products": 5,
+    "variants": 8,
+    "tables": [
+      "eshop_local_catalog_categories",
+      "eshop_local_catalog_products",
+      "eshop_local_catalog_variants"
+    ],
+    "includesCurtainRods": true,
+    "optionalAttributeGapProducts": 1
+  },
+  "productionData": false
+}
+

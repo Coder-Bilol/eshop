@@ -1,0 +1,65 @@
+{
+  "task_id": "TASK-013",
+  "status": "ready",
+  "source_task_hash": "sha256:71feeb7a906004a13cb373882b2579ed33ca0d6123957975215e91d681be265c",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-013.task.json",
+    "feature": ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+      ".memory-bank/contracts/api-guidelines.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-002/plan.md",
+      ".protocols/FT-002/decision-log.md"
+    ]
+  },
+  "purpose": "Make the backend product detail contract usable through buyer-facing product detail and product card variant UI.",
+  "success_outcome": "Buyer can inspect a product, select a valid sellable variant/SKU, and reach a scoped cart-action handoff while invalid selections stay blocked.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/storefront/app/**",
+      "apps/storefront/src/**",
+      "apps/storefront/components/**",
+      "apps/storefront/lib/**",
+      "apps/storefront/package.json"
+    ],
+    "forbidden_scope": [
+      "backend product detail contract changes not covered by TASK-011",
+      "durable cart persistence or cart merge",
+      "checkout/order/payment/auth implementation",
+      "inventory reservation behavior"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/storefront run test -- product-detail",
+      "npm --workspace apps/storefront run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Storefront product cards expose variant-aware summary data from backend data when provided.",
+      "Product detail page renders loading, not found/unpublished, no-variant/default SKU, missing option, impossible combination, unavailable variant, valid variant, and cart-action handoff failure states.",
+      "Add-to-cart handoff includes product identifier or handle, selected variant/SKU identifier, quantity defaulting to one, and validation state, without implementing durable cart persistence."
+    ],
+    "evidence_required": [
+      "Storefront product detail test output.",
+      "Typecheck output.",
+      "Screenshot or trace showing product detail variant selection and blocked/valid add-to-cart handoff states."
+    ]
+  },
+  "stop_conditions": [
+    "Storefront cannot consume the backend product detail contract.",
+    "UI work requires changing FT-002 API semantics.",
+    "Verification cannot show invalid selections blocked and valid selected variant handoff."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-013/.",
+    "Run /verify TASK-013 before closure.",
+    "Do not mark done without storefront evidence for variant selection and scoped cart-action handoff."
+  ]
+}

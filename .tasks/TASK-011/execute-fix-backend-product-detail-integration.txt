@@ -1,0 +1,16 @@
+Command: npm --workspace apps/backend run test:integration -- product-detail
+Exit code: 0
+Result: PASS
+
+The product-detail integration suite returned status "ok".
+Regression assertion passed:
+- multi-variant products retain explicit selection when only one variant is sellable
+
+Existing assertions also passed for identity/media/category/type, no internal
+IDs, option dimensions, SKU/options/price/availability, unavailable variants,
+single/default SKU selection, not-found/unpublished behavior, and route input.
+
+Route decision: thin read-only facade.
+Source boundary: backend-postgresql.
+Docker required: false.
+Production data: false.

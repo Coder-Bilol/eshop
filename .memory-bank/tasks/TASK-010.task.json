@@ -1,0 +1,139 @@
+{
+  "id": "TASK-010",
+  "title": "Seed product detail and variant data",
+  "status": "done",
+  "wave": "W2",
+  "feature": "FT-002",
+  "reqs": ["REQ-004", "REQ-005"],
+  "depends_on": ["TASK-007"],
+  "touched_files": [
+    "apps/backend/scripts/**",
+    "apps/backend/src/**",
+    "apps/backend/test/**",
+    "apps/backend/package.json",
+    "README.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "backend product detail seed",
+      "command": "npm --workspace apps/backend run db:seed",
+      "required": true
+    },
+    {
+      "name": "product detail persistence smoke",
+      "command": "npm --workspace apps/backend run smoke:product-detail",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Seeded product data includes variant dimensions for color, size, length, material, and applicable related attributes.",
+    "Seeded data includes at least one unavailable or out-of-stock variant and one product with no variants or a single default sellable SKU.",
+    "Product detail persistence smoke reads products, option dimensions, variants/SKU, prices, and availability through the backend/Medusa boundary.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: NEEDS-CLARIFICATION",
+      "verified_at": "2026-06-25",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-010/verify-db-seed.txt",
+        ".tasks/TASK-010/verify-smoke-product-detail.txt",
+        ".tasks/TASK-010/verify-mb-lint.txt",
+        ".tasks/TASK-010/verify-mb-doctor-strict.txt",
+        ".tasks/TASK-010/verify-mb-lint-final.txt",
+        ".tasks/TASK-010/verify-mb-doctor-strict-final.txt",
+        ".tasks/TASK-010/TASK-010-S-verify-final-report-code-01.md",
+        ".memory-bank/bugs/TASK-010-package-scope-gap.md"
+      ],
+      "summary": "Functional verification gates passed: db:seed produced local non-production product detail seed data and smoke:product-detail proved multi-option variants, unavailable variant, default SKU product, SKU, price, option dimensions, and availability through backend/PostgreSQL. Memory Bank lint passed. Closure is not eligible because implementation changed apps/backend/package.json to expose the required smoke:product-detail npm script while TASK-010 runtime_context.allowed_write_scope and packet scope omit apps/backend/package.json. After the verification verdict was recorded, strict mb-doctor reports TASK-010 packet source_task_hash stale, so packet refresh is also required before closure."
+    },
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-25",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-010/reverify-db-seed-after-scope-fix.txt",
+        ".tasks/TASK-010/reverify-smoke-product-detail-after-scope-fix.txt",
+        ".tasks/TASK-010/reverify-mb-lint-after-scope-fix.txt",
+        ".tasks/TASK-010/fix-mb-doctor-after-scope-packet-refresh.txt",
+        ".tasks/TASK-010/TASK-010-S-verify-final-report-code-02.md"
+      ],
+      "summary": "TASK-010 verification passed after scope reconciliation. TASK-010 touched_files and runtime_context.allowed_write_scope now include apps/backend/package.json, matching the required smoke:product-detail npm gate. Packet was refreshed before reverify, db:seed passed with local non-production seed data, smoke:product-detail proved multi-option variants, unavailable variant, default SKU product, SKU, price, option dimensions, and availability through backend/PostgreSQL, and Memory Bank lint passed. T2 manual closure criteria are satisfied; feature-level FT-002 semantic completion remains pending after all FT-002 tasks."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Seed command output.",
+    "Product detail persistence smoke output.",
+    "Summary of seeded products, option dimensions, variants/SKU, prices, and availability cases."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/requirements.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/domains/core-domain.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Product and variant source of truth is Medusa backend/PostgreSQL.",
+    "Seed data must be local/test data, not production data.",
+    "Seed data must support product detail and variant selection verification without implementing durable cart behavior."
+  ],
+  "invariants": [
+    "Do not modify Medusa Core.",
+    "No production secrets or production data may be committed.",
+    "Do not create inventory reservation, order, payment, or durable cart state in FT-002."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#product-detail-data-contract",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#verification-targets",
+    ".memory-bank/testing/index.md"
+  ],
+  "purpose": "Provide backend-owned product detail and variant data needed to verify variant-aware product cards and product detail selection.",
+  "success_outcome": "Local backend data can prove FT-002 product detail and variant selection behavior through repeatable seed and smoke commands.",
+  "anti_goals": [
+    "Do not implement durable cart persistence or cart merge.",
+    "Do not hardcode product variant data in the storefront as source of truth.",
+    "Do not implement inventory reservation or order behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-010.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/scripts/**",
+      "apps/backend/src/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json",
+      "README.md"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "production data import",
+      "durable cart persistence",
+      "inventory reservation or order state"
+    ],
+    "stop_conditions": [
+      "Seed path cannot write/read through the backend persistence boundary.",
+      "Implementation requires production data.",
+      "Variant data model contradicts the FT-002 tech spec."
+    ]
+  }
+}

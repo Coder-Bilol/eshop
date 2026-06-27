@@ -44,7 +44,7 @@ source_of_truth:
 - REQ-027: The system must send email notifications for pending order, successful payment, payment error, and order status change.
 - REQ-028: Medusa Admin must show contacts, products, delivery data, payment status, order status, total amount, and payment method.
 - REQ-029: Operators must be able to use Medusa Admin as the MVP order operations surface.
-- REQ-030: The project must provide a Docker Compose local development path for storefront/backend/database.
+- REQ-030: The project must provide a Windows 10 native local development path for storefront/backend/database without requiring Docker containers.
 
 ## Out Of Scope
 
@@ -88,4 +88,4 @@ source_of_truth:
 | REQ-027 | EP-004 | FT-010 | integration: email events | planned |
 | REQ-028 | EP-003 | FT-008 | integration/e2e: admin order visibility | planned |
 | REQ-029 | EP-003 | FT-008 | e2e: operator order surface | planned |
-| REQ-030 | EP-005 | FT-011 | smoke: docker compose local path | planned |
+| REQ-030 | EP-005 | FT-011 | smoke: Windows native local path | planned |

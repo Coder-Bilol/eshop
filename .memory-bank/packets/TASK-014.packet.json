@@ -1,0 +1,65 @@
+{
+  "task_id": "TASK-014",
+  "status": "ready",
+  "source_task_hash": "sha256:1f39a6f71222ff6c009a9f811a73b67e2829b83539ac4a96dcaefe07e4a0c40c",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-014.task.json",
+    "feature": ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-002/plan.md",
+      ".protocols/FT-002/decision-log.md"
+    ]
+  },
+  "purpose": "Provide executable acceptance evidence for FT-002 as a feature.",
+  "success_outcome": "FT-002 product detail, variant selection, unavailable/default SKU cases, and selected variant handoff are verified through local integration/e2e evidence.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/test/**",
+      "apps/storefront/tests/**",
+      "apps/storefront/e2e/**",
+      "package.json",
+      "README.md",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production data",
+      "live provider integrations",
+      "durable cart persistence or cart merge",
+      "checkout/order/payment implementation"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm run smoke:local",
+      "npm --workspace apps/backend run test:integration -- product-detail",
+      "npm --workspace apps/storefront run test:e2e -- product-detail",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "E2E covers product card variant summary, product detail option selection, missing required options, impossible combinations, unavailable variant blocking, valid selected variant handoff, and default-SKU product path.",
+      "Integration/e2e evidence uses seeded backend data and the Windows-native local runtime, not hardcoded frontend data.",
+      "REQ-004 and REQ-005 have executable evidence without claiming durable cart persistence."
+    ],
+    "evidence_required": [
+      "Windows-native local runtime smoke output.",
+      "Backend product detail integration test output.",
+      "Storefront product detail e2e output, trace, screenshot, or video artifact links."
+    ]
+  },
+  "stop_conditions": [
+    "Windows-native local runtime is not available from FT-011.",
+    "Tests cannot prove variant behavior through seeded backend data.",
+    "E2E coverage requires scope outside FT-002 acceptance criteria."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-014/.",
+    "Run /verify TASK-014 before closure.",
+    "Do not mark done without integration/e2e evidence covering REQ-004 and REQ-005."
+  ]
+}

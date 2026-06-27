@@ -1,0 +1,6 @@
+﻿{
+    "status":  "exited",
+    "command":  "npm --workspace apps/storefront run dev -- --hostname 127.0.0.1 --port 3010",
+    "exitCode":  1,
+    "log":  "D:\\projects\\eshop\\.tasks\\FT-011\\red-verify-w1-storefront-default-next-dev-2026-06-25.log"
+}

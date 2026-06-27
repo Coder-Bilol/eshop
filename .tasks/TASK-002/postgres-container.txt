@@ -1,0 +1,1 @@
+﻿PostgreSQL container was not started because Docker daemon was unavailable. See .tasks/TASK-002/docker-info.txt.

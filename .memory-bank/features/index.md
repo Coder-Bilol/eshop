@@ -14,4 +14,4 @@ status: active
 - [FT-008 Order Lifecycle Admin Visibility](FT-008-order-lifecycle-admin-visibility.md): order states and Medusa Admin visibility.
 - [FT-009 ЮKassa Payment Webhook Return](FT-009-yookassa-payment-webhook-return.md): payment methods, return page, webhook source of truth.
 - [FT-010 Order Email Notifications](FT-010-order-email-notifications.md): email events for order/payment/status.
-- [FT-011 Docker Compose Local Development](FT-011-docker-compose-local-development.md): local development stack.
+- [FT-011 Windows Native Local Development](FT-011-windows-native-local-development.md): Windows 10 native local development stack.

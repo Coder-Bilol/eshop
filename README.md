@@ -58,9 +58,41 @@ Order создается до оплаты в статусе `pending_payment`, 
 - **Payments**: ЮKassa, QR СБП
 - **Auth**: Google OAuth, VK ID
 - **Operations**: Medusa Admin
-- **Local runtime**: Docker Compose
+- **Local runtime**: Windows 10 native Node.js/npm + local PostgreSQL
 
 Главный принцип backend: **API -> Workflows -> Modules**. Medusa Core остается чистым, а external integrations живут в своих boundaries.
+
+## 🖥️ Local development on Windows 10
+
+Локальная разработка запускается нативно на Windows 10: Node.js/npm processes
+для backend и storefront, плюс локальный PostgreSQL service. Docker containers
+не используются для local development; Docker зарезервирован только для будущего
+remote server deployment.
+
+```bash
+npm run check:local-env
+npm run dev:local
+npm run smoke:local
+```
+
+Для интерактивного запуска сервисов можно использовать:
+
+```bash
+npm run dev:local:watch
+```
+
+Шаблоны конфигурации лежат в `.env.example`, `apps/backend/.env.example` и
+`apps/storefront/.env.example`. Реальные `.env` файлы игнорируются git и должны
+содержать только local/non-production значения.
+
+Полный локальный runbook: `.memory-bank/runbooks/local-development.md`.
+
+Для проверки backend-owned catalog seed:
+
+```bash
+npm --workspace apps/backend run db:seed
+npm --workspace apps/backend run smoke:catalog
+```
 
 ## 🔒 Что делает магазин надежным
 

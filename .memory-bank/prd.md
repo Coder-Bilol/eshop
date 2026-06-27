@@ -15,10 +15,11 @@ constitution_checked: true
 - [idea.md](../idea.md): initial user-provided concept.
 - [.memory-bank/testing/index.md](testing/index.md): testing and verification baseline.
 - [.memory-bank/workflows/tier-policy.md](workflows/tier-policy.md): task tier and verification policy.
+- User decision on 2026-06-23: local development must run natively on Windows 10, not in Docker containers. This supersedes earlier Docker Compose local-development notes in the Product Brief and brainstorming artifacts.
 
 ## Product Summary
 
-The product is an MVP internet shop for home goods, including curtain rods and related categories. The storefront is built with Next.js and TypeScript, the backend uses Medusa v2, TypeScript, and PostgreSQL, and local development is supported through Docker Compose.
+The product is an MVP internet shop for home goods, including curtain rods and related categories. The storefront is built with Next.js and TypeScript, the backend uses Medusa v2, TypeScript, and PostgreSQL, and local development is supported through a native Windows 10 setup using local Node.js/npm processes and a local PostgreSQL service.
 
 The primary product path is: browse and filter products, choose a product variant/SKU, add it to a guest cart, log in through Google OAuth or VK ID before payment, enter checkout and delivery data, create a pending order, reserve inventory for 72 hours, process payment through ЮKassa, update order status from the ЮKassa webhook, send email notifications, and operate the order through Medusa Admin.
 
@@ -35,7 +36,7 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 - Use ЮKassa webhook as the authoritative payment status source.
 - Create and operate orders in Medusa Admin with clear payment and order status.
 - Keep external integrations isolated as modules and use API -> Workflows -> Modules.
-- Keep local development reproducible through Docker Compose.
+- Keep local development reproducible on Windows 10 without Docker containers.
 
 ## Non-goals
 
@@ -58,7 +59,7 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 - Authenticated customer: has a persisted account through Google OAuth or VK ID, can use wishlist/favorites, and owns carts/orders after login.
 - Store operator: uses Medusa Admin to inspect orders, contacts, products, delivery data, payment status, order status, total amount, and payment method.
 - Payment provider: ЮKassa sends payment status webhooks and handles cards, СБП, and SberPay.
-- Development team: runs and validates the MVP locally with Docker Compose.
+- Development team: runs and validates the MVP locally on Windows 10 with Node.js/npm and a local PostgreSQL service.
 
 ## Functional Requirements
 
@@ -111,7 +112,7 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 
 ### Local Development
 
-- FR-030: The project must provide a Docker Compose local development path for the storefront/backend/database stack.
+- FR-030: The project must provide a Windows 10 native local development path for the storefront/backend/database stack without requiring Docker containers.
 
 ## Non-functional Requirements
 
@@ -174,7 +175,7 @@ Key status model:
 - VK ID.
 - ЮKassa payment integration for cards, СБП, SberPay, return flow, and webhook processing.
 - Email delivery provider or SMTP-style integration to be selected during design/tasking.
-- Docker Compose for local development.
+- Native Windows 10 local development using Node.js/npm and local PostgreSQL.
 - Medusa Admin for operations.
 
 Operational details still to resolve during design/tasking:
@@ -213,7 +214,7 @@ Operational details still to resolve during design/tasking:
 - AC-012: Return page does not independently mark payment as successful.
 - AC-013: Email notifications are emitted for pending order, successful payment, payment error, and order status change.
 - AC-014: Medusa Admin displays order contacts, products, delivery data, payment status, order status, total amount, and payment method.
-- AC-015: Docker Compose local development path starts required services.
+- AC-015: Windows 10 native local development path starts or verifies required storefront, backend, and local PostgreSQL services without Docker containers.
 - AC-016: MVP scope excludes listed non-goals and does not modify Medusa Core.
 
 ## Verification Strategy
@@ -240,6 +241,12 @@ Operational details still to resolve during design/tasking:
 - Webhook repeats must be handled idempotently.
 - Fiscalization/receipts are not implemented in MVP, but remain a legal/payment launch risk.
 - No new clarification questions were asked during `/write-prd`; prior `/brainstorm` and `/constitution` answers were sufficient for PRD decomposition.
+
+### Session 2026-06-23
+
+- Q: How should local development run? -> A: The local development path must run natively on Windows 10, not in Docker containers.
+- Q: What is Docker's role? -> A: Docker may be used only for a future remote server deployment path, not for local development.
+- Impact: FR-030, AC-015, local development dependencies, architecture, FT-011, and generated local-foundation tasks must be synchronized from Docker Compose to Windows-native Node.js/npm plus local PostgreSQL. Future remote-server Docker deployment remains out of the current local-foundation scope and must be designed separately as high-tier deployment work.
 
 ## Unresolved Blockers
 

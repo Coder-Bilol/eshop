@@ -26,7 +26,7 @@ status: active
 - [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md): Authoritative order, payment, inventory, and cart lifecycle guardrails.
 - [.memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md](tech-specs/FT-001-catalog-browsing-filtering-search.md): Feature-local catalog browsing/filtering/search design for FT-001.
 - [.memory-bank/tech-specs/FT-002-product-detail-variant-selection.md](tech-specs/FT-002-product-detail-variant-selection.md): Feature-local product detail and variant/SKU selection design for FT-002.
-- [.memory-bank/tech-specs/FT-011-docker-compose-local-development.md](tech-specs/FT-011-docker-compose-local-development.md): Feature-local local development runtime and scaffold design for FT-011.
+- [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](tech-specs/FT-011-windows-native-local-development.md): Feature-local Windows-native local development runtime and scaffold design for FT-011.
 - [.memory-bank/prd.md](prd.md): Clarified Product Requirements Document.
 - [.memory-bank/user-scenarios.md](user-scenarios.md): User scenarios and architecture implications when created by `/spec-init` or `/spec-design`.
 - [.memory-bank/domains/core-domain.md](domains/core-domain.md): Core domain framing for product decomposition.

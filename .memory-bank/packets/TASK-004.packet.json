@@ -1,12 +1,12 @@
 {
   "task_id": "TASK-004",
   "status": "ready",
-  "source_task_hash": "sha256:b94cb9e8a853ee07fbe972bcd419484f0dc425f90391fd96e095bafd1e361d26",
+  "source_task_hash": "sha256:b15654ada58ecba22c5abba8009aac7d9ad01fec10b817c3fa8b1318b412097f",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-004.task.json",
-    "feature": ".memory-bank/features/FT-011-docker-compose-local-development.md",
+    "feature": ".memory-bank/features/FT-011-windows-native-local-development.md",
     "specs": [
-      ".memory-bank/tech-specs/FT-011-docker-compose-local-development.md",
+      ".memory-bank/tech-specs/FT-011-windows-native-local-development.md",
       ".memory-bank/testing/index.md",
       ".memory-bank/workflows/tier-policy.md"
     ],
@@ -17,7 +17,7 @@
     ]
   },
   "purpose": "Make the local foundation repeatably verifiable by developers and later agents.",
-  "success_outcome": "A developer can follow the runbook and run one local smoke command that verifies the Compose stack is usable.",
+  "success_outcome": "A developer can follow the runbook and run one local smoke command that verifies the Windows-native local runtime is usable.",
   "scope": {
     "allowed_write_scope": [
       "scripts/**",
@@ -35,17 +35,17 @@
   "verification": {
     "commands": [
       "npm run smoke:local",
-      "docker compose config",
+      "npm run check:local-env",
       "node scripts/mb-lint.mjs"
     ],
     "success_checks": [
-      "Smoke script checks database, backend, and storefront local readiness.",
-      "Runbook explains setup, start, smoke, stop, port conflicts, and local-only reset behavior.",
+      "Smoke script checks local PostgreSQL, backend, and storefront readiness without Docker containers.",
+      "Runbook explains Windows setup, start, smoke, stop, port conflicts, and local-only reset behavior.",
       "Local setup evidence is stored under .tasks/TASK-004/ during execution."
     ],
     "evidence_required": [
       "npm run smoke:local output.",
-      "docker compose config output.",
+      "Local env check output.",
       "Runbook link and Memory Bank lint output."
     ]
   },
@@ -57,6 +57,6 @@
   "required_handoff": [
     "Store implementation evidence under .tasks/TASK-004/.",
     "Run /verify TASK-004 before closure.",
-    "Do not mark done without local smoke and runbook evidence."
+    "Do not mark done without Windows-native local smoke and runbook evidence."
   ]
 }

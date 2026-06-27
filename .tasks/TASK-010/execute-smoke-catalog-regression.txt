@@ -1,0 +1,38 @@
+﻿
+> @eshop/backend@0.1.0 smoke:catalog
+> node scripts/smoke-catalog.cjs
+
+{
+  "command": "smoke:catalog",
+  "status": "ok",
+  "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+  "sourceBoundary": "backend-postgresql",
+  "dockerRequired": false,
+  "productionData": false,
+  "tables": [
+    "eshop_local_catalog_categories",
+    "eshop_local_catalog_products",
+    "eshop_local_catalog_variants"
+  ],
+  "counts": {
+    "categories": 4,
+    "products": 5,
+    "variants": 8,
+    "curtainRodProducts": 2,
+    "missingOptionalAttributeProducts": 1,
+    "searchMatches": 4
+  },
+  "filterCoverage": {
+    "color": 4,
+    "material": 4,
+    "size_length": 4,
+    "product_type": 4,
+    "mounting_method": 2
+  },
+  "priceRange": {
+    "min_price": 59000,
+    "max_price": 319000
+  },
+  "unfilteredListingIncludesMissingOptionalAttributes": true
+}
+

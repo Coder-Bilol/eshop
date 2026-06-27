@@ -25,7 +25,7 @@ source_of_truth:
 | Medusa Admin Operations | Operator sees order contacts/products/delivery/payment/order status/amount/payment method. | Backend state -> Medusa Admin | Operations | Medusa Admin is MVP operations surface. | Field visibility/customization later. |
 
 ## Runtime Context Hints
-- Allowed write scope hints: future implementation tasks should keep storefront, backend modules/workflows, integration modules, and local Docker config scoped per feature/task.
+- Allowed write scope hints: future implementation tasks should keep storefront, backend modules/workflows, integration modules, and local Windows runtime config scoped per feature/task.
 - Forbidden scope hints: no Medusa Core modifications, no microservices, no external delivery-provider integration, no fiscalization implementation in MVP.
 - Stop condition hints: stop on unclear payment/compliance obligations, source-of-truth conflict, secret/prod/deploy ambiguity, or design that would require changing Constitution.
 

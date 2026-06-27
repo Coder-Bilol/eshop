@@ -1,0 +1,10 @@
+Command: npm --workspace apps/backend run test:integration -- catalog product-detail
+Exit code: 0
+Result: PASS
+
+Suites:
+- catalog: ok
+- product-detail: ok
+
+The product-detail contract and its temporary regression fixture do not regress
+the existing catalog suite.

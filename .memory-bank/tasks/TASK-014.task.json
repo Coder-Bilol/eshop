@@ -1,0 +1,111 @@
+{
+  "id": "TASK-014",
+  "title": "Add FT-002 integration and e2e verification",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-002",
+  "reqs": ["REQ-004", "REQ-005"],
+  "depends_on": ["TASK-009", "TASK-013"],
+  "touched_files": [
+    "apps/backend/test/**",
+    "apps/storefront/tests/**",
+    "apps/storefront/e2e/**",
+    "package.json",
+    "README.md",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "Windows-native local runtime smoke",
+      "command": "npm run smoke:local",
+      "required": true
+    },
+    {
+      "name": "backend product detail integration tests",
+      "command": "npm --workspace apps/backend run test:integration -- product-detail",
+      "required": true
+    },
+    {
+      "name": "storefront product detail e2e",
+      "command": "npm --workspace apps/storefront run test:e2e -- product-detail",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "E2E covers product card variant summary, product detail option selection, missing required options, impossible combinations, unavailable variant blocking, valid selected variant handoff, and default-SKU product path.",
+    "Integration/e2e evidence uses seeded backend data and the Windows-native local runtime, not hardcoded frontend data.",
+    "REQ-004 and REQ-005 have executable evidence without claiming durable cart persistence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Windows-native local runtime smoke output.",
+    "Backend product detail integration test output.",
+    "Storefront product detail e2e output, trace, screenshot, or video artifact links."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-002.md",
+    ".memory-bank/testing/index.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use local seeded/test product and variant data.",
+    "Do not use live providers, production secrets, or production data.",
+    "Do not verify FT-002 by bypassing the storefront/backend boundary or by claiming FT-003 cart persistence."
+  ],
+  "invariants": [
+    "Evidence is required before done.",
+    "No production secrets, production data, or live payment mutation may be used as proof.",
+    "Memory Bank must be synchronized after meaningful changes.",
+    "Do not create inventory reservation, order, payment, or durable cart state in FT-002."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md#verification-targets",
+    ".memory-bank/testing/index.md#e2e-tests",
+    ".memory-bank/requirements.md"
+  ],
+  "purpose": "Provide executable acceptance evidence for FT-002 as a feature.",
+  "success_outcome": "FT-002 product detail, variant selection, unavailable/default SKU cases, and selected variant handoff are verified through local integration/e2e evidence.",
+  "anti_goals": [
+    "Do not mark FT-002 complete from unit tests alone.",
+    "Do not use production data or live providers.",
+    "Do not implement FT-003 durable cart persistence or cart merge."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-014.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/test/**",
+      "apps/storefront/tests/**",
+      "apps/storefront/e2e/**",
+      "package.json",
+      "README.md",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production data",
+      "live provider integrations",
+      "durable cart persistence or cart merge",
+      "checkout/order/payment implementation"
+    ],
+    "stop_conditions": [
+      "Windows-native local runtime is not available from FT-011.",
+      "Tests cannot prove variant behavior through seeded backend data.",
+      "E2E coverage requires scope outside FT-002 acceptance criteria."
+    ]
+  }
+}

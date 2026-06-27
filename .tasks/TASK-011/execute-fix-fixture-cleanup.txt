@@ -1,0 +1,9 @@
+Check: query local PostgreSQL after the product-detail integration suite for the regression fixture IDs
+Exit code: 0
+Result: PASS
+
+{
+  "fixture_cleanup": "ok",
+  "products": 0,
+  "variants": 0
+}

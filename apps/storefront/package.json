@@ -1,0 +1,23 @@
+{
+  "name": "@eshop/storefront",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Buyer-facing Next.js storefront for the Eshop MVP.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node src/test-runner.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.0.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3"
+  }
+}

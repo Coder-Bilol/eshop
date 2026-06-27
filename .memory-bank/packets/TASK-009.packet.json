@@ -1,7 +1,7 @@
 {
   "task_id": "TASK-009",
   "status": "ready",
-  "source_task_hash": "sha256:f1c5d1d1da82f24c57057f871dd0ca203aad1029f886d1deebe685be8d08d0e8",
+  "source_task_hash": "sha256:a89578128230983a31255d6550b4e37291e1d1e426062c2b7c78390ec560fdb0",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-009.task.json",
     "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
@@ -42,17 +42,17 @@
     ],
     "success_checks": [
       "E2E covers catalog browse, category browse, required filters, search, combined search+filters, empty result state, and missing optional attributes.",
-      "Integration/e2e evidence uses seeded backend data and local stack, not hardcoded frontend data.",
+      "Integration/e2e evidence uses seeded backend data and the Windows-native local runtime, not hardcoded frontend data.",
       "REQ-001, REQ-002, and REQ-003 have executable evidence."
     ],
     "evidence_required": [
-      "Local stack smoke output.",
+      "Windows-native local runtime smoke output.",
       "Backend catalog integration test output.",
       "Storefront catalog e2e output, trace, screenshot, or video artifact links."
     ]
   },
   "stop_conditions": [
-    "Local stack is not available from FT-011.",
+    "Windows-native local runtime is not available from FT-011.",
     "Tests cannot prove category/search/filter behavior through seeded backend data.",
     "E2E coverage requires scope outside FT-001 acceptance criteria."
   ],

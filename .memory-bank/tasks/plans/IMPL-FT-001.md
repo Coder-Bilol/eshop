@@ -33,11 +33,17 @@ Implement catalog discovery for the storefront: home goods product listing, cate
 - Consistent with evidence-before-done: T2 tasks require packets, `/verify`, and substantive evidence.
 - Blockers: none for decomposition. Execution is sequenced after `TASK-004` from FT-011.
 
+## Global Wave Classification
+
+- W1: reserved for FT-011 foundation tasks.
+- W2: core catalog data, backend contract, and storefront catalog UI after W1.
+- W3: catalog edge-state polish and final FT-001 acceptance evidence after core FT-001 and FT-002 product-detail work are in place.
+
 ## Waves
 
 | Wave | Task | Purpose |
 |---|---|---|
-| W1 | TASK-005 | Add DB-backed catalog seed/fixtures and catalog persistence smoke. |
+| W2 | TASK-005 | Add DB-backed catalog seed/fixtures and catalog persistence smoke. |
 | W2 | TASK-006 | Implement backend catalog query/search/filter contract. |
 | W2 | TASK-007 | Implement storefront catalog/category/search/filter UI. |
 | W3 | TASK-008 | Add frontend catalog edge-state handling and local unit coverage. |
@@ -72,7 +78,7 @@ Implementation may adjust exact command names to the scaffold created by FT-011,
 ## UAT Steps
 
 1. Complete FT-011 local foundation tasks through `TASK-004`.
-2. Start the local stack.
+2. Start the Windows-native local runtime.
 3. Seed catalog data including curtain rods, categories, filterable attributes, and one product missing optional attributes.
 4. Open the storefront catalog.
 5. Verify product listing, category browse, search, filters, combined search+filters, empty result state, and safe rendering of missing optional attributes.

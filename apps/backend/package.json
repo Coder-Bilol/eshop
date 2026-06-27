@@ -1,0 +1,26 @@
+{
+  "name": "@eshop/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Medusa v2 backend baseline for the Eshop MVP.",
+  "scripts": {
+    "dev": "medusa develop",
+    "build": "medusa build",
+    "start": "medusa start",
+    "db:check": "node scripts/db-check.cjs",
+    "db:migrate": "node scripts/db-migrate.cjs",
+    "db:seed": "node scripts/db-seed.cjs",
+    "smoke:db": "node scripts/smoke-db.cjs",
+    "smoke:catalog": "node scripts/smoke-catalog.cjs",
+    "smoke:product-detail": "node scripts/smoke-product-detail.cjs",
+    "test:integration": "node test/run-integration.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@medusajs/framework": "2.16.0"
+  },
+  "devDependencies": {
+    "@medusajs/cli": "2.16.0",
+    "@types/node": "26.0.0"
+  }
+}

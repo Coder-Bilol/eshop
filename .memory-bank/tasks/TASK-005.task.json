@@ -1,8 +1,8 @@
 {
   "id": "TASK-005",
   "title": "Seed catalog data for browse, categories, filters, and search",
-  "status": "planned",
-  "wave": "W1",
+  "status": "done",
+  "wave": "W2",
   "feature": "FT-001",
   "reqs": ["REQ-001", "REQ-002", "REQ-003"],
   "depends_on": ["TASK-004"],
@@ -33,7 +33,27 @@
   "verify": [
     "Seeded catalog data includes home goods, curtain rods, categories, prices, and filterable color/material/size-length/product-type/mounting-method attributes.",
     "At least one seeded product lacks optional attributes and remains safe for unfiltered listing.",
-    "Catalog persistence smoke reads seeded data through the backend/Medusa boundary."
+    "Catalog persistence smoke reads seeded data through the backend/Medusa boundary.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-24",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-005/verify-db-seed-2026-06-24.txt",
+        ".tasks/TASK-005/verify-smoke-catalog-2026-06-24.txt",
+        ".tasks/TASK-005/verify-catalog-summary-2026-06-24.txt",
+        ".tasks/TASK-005/verify-backend-typecheck-2026-06-24.txt",
+        ".tasks/TASK-005/verify-smoke-db-regression-2026-06-24.txt",
+        ".tasks/TASK-005/verify-mb-lint-2026-06-24.txt",
+        ".tasks/TASK-005/verify-mb-doctor-before-close-2026-06-24.txt",
+        ".tasks/TASK-005/verify-mb-lint-final-2026-06-24.txt",
+        ".tasks/TASK-005/verify-mb-doctor-final-2026-06-24.txt",
+        ".tasks/TASK-005/TASK-005-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Backend-owned local catalog seed verification passed. db:seed wrote local/test catalog data with 4 categories, 5 products, 5 variants, curtain rods present, and 1 product with missing optional attributes. smoke:catalog read the seeded catalog through the backend/PostgreSQL boundary with dockerRequired:false, productionData:false, category/product/variant counts, curtain rod coverage, search matches, required filter coverage, price range, and safe unfiltered listing inclusion for missing optional attributes. Final mb-lint passed, and final mb-doctor passed with only the expected TASK-006 ready-candidate warning after TASK-005 closure."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-001.md",
