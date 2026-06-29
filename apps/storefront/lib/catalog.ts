@@ -238,3 +238,35 @@ export function selectedCatalogFilters(catalog: CatalogResponse) {
 
   return entries;
 }
+
+export function catalogProductVariantSummary(product: CatalogProduct) {
+  const labels = [
+    ["Color", uniqueVariantValues(product, "color")],
+    ["Material", uniqueVariantValues(product, "material")],
+    ["Size", uniqueVariantValues(product, "size_length")],
+    ["Mounting", uniqueVariantValues(product, "mounting_method")],
+  ]
+    .filter((entry): entry is [string, string[]] => entry[1].length > 0)
+    .map(
+      ([label, values]) =>
+        `${label}: ${values.map(formatCatalogValue).join(", ")}`
+    );
+
+  return {
+    sku_count: product.variants.length,
+    labels,
+  };
+}
+
+function uniqueVariantValues(
+  product: CatalogProduct,
+  key: keyof CatalogProduct["variants"][number]["attributes"]
+) {
+  return Array.from(
+    new Set(
+      product.variants
+        .map((variant) => variant.attributes[key])
+        .filter((value): value is string => Boolean(value))
+    )
+  ).sort();
+}

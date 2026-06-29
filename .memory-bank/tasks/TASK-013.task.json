@@ -1,7 +1,7 @@
 {
   "id": "TASK-013",
   "title": "Implement storefront product detail variant UI",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-002",
   "reqs": ["REQ-004", "REQ-005"],
@@ -34,7 +34,28 @@
   "verify": [
     "Storefront product cards expose variant-aware summary data from backend data when provided.",
     "Product detail page renders loading, not found/unpublished, no-variant/default SKU, missing option, impossible combination, unavailable variant, valid variant, and cart-action handoff failure states.",
-    "Add-to-cart handoff includes product identifier or handle, selected variant/SKU identifier, quantity defaulting to one, and validation state, without implementing durable cart persistence."
+    "Add-to-cart handoff includes product identifier or handle, selected variant/SKU identifier, quantity defaulting to one, and validation state, without implementing durable cart persistence.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-28",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-013/verify-mb-doctor-strict-pre.txt",
+        ".tasks/TASK-013/verify-storefront-product-detail-tests.txt",
+        ".tasks/TASK-013/verify-storefront-typecheck.txt",
+        ".tasks/TASK-013/verify-mb-lint.txt",
+        ".tasks/TASK-013/verify-runtime-http.txt",
+        ".tasks/TASK-013/verify-browser-initial-snapshot.txt",
+        ".tasks/TASK-013/verify-browser-valid-snapshot.txt",
+        ".tasks/TASK-013/verify-browser-handoff-snapshot.txt",
+        ".tasks/TASK-013/verify-browser-handoff.png",
+        ".tasks/TASK-013/verify-scope-boundary.md",
+        ".tasks/TASK-013/TASK-013-S-verify-final-report-code-01.md"
+      ],
+      "summary": "TASK-013 passes functional verification. Packet/spec gates and full T2 protocol are valid; product-detail tests, typecheck, Memory Bank lint, runtime HTTP checks, and an independent production-browser flow pass. Product cards use backend-provided variant summaries; missing, impossible, unavailable, valid, default-SKU, not-found/unpublished, loading, and cart-boundary failure states are covered. Valid handoff contains product handle, selected SKU, quantity one, and validation state, while invalid selections remain blocked. Forbidden durable cart, auth, checkout, order, payment, and inventory behavior is absent. Manual T2 closure criteria are satisfied."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-002.md",

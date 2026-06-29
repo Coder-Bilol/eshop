@@ -1,0 +1,33 @@
+﻿
+> @eshop/storefront@0.1.0 test
+> node src/test-runner.cjs catalog
+
+{
+  "suite": "catalog",
+  "status": "ok",
+  "dataSource": "mocked-backend-catalog-contract",
+  "hardcodedCatalogSource": false,
+  "tracePath": null,
+  "edgeTracePath": "D:\\projects\\eshop\\.tasks\\TASK-008\\catalog-edge-states.html",
+  "assertions": [
+    "storefront requests backend store catalog route with explicit query params",
+    "product cards render from backend response data",
+    "category navigation is visible",
+    "search input and required filters are visible",
+    "selected filter state is visible",
+    "pagination state is visible",
+    "empty result state is visible",
+    "backend error state is visible and does not render stale catalog UI",
+    "missing optional attributes render without invented values",
+    "route-level loading state is visible",
+    "query-state helpers normalize supported params and preserve explicit overrides",
+    "seeded catalog data is not embedded as UI source data"
+  ]
+}
+{
+  "command": "storefront:test",
+  "status": "ok",
+  "suites": [
+    "catalog"
+  ]
+}

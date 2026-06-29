@@ -1,7 +1,7 @@
 {
   "id": "TASK-012",
   "title": "Add variant selection helper coverage",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-002",
   "reqs": ["REQ-004", "REQ-005"],
@@ -31,7 +31,25 @@
   ],
   "verify": [
     "Pure variant selection helpers identify missing required options, impossible combinations, exactly one selected variant, unavailable variants, and single/default SKU behavior.",
-    "Helper tests prove add-to-cart validation cannot mark missing or impossible selections as valid."
+    "Helper tests prove add-to-cart validation cannot mark missing or impossible selections as valid.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-28",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-012/verify-storefront-product-detail-tests.txt",
+        ".tasks/TASK-012/verify-storefront-typecheck.txt",
+        ".tasks/TASK-012/verify-mb-lint.txt",
+        ".tasks/TASK-012/verify-independent-negative-cases.txt",
+        ".tasks/TASK-012/verify-scope-boundary.txt",
+        ".tasks/TASK-012/verify-mb-lint-final.txt",
+        ".tasks/TASK-012/verify-mb-doctor-strict-final.txt",
+        ".tasks/TASK-012/TASK-012-S-verify-final-report-code-01.md"
+      ],
+      "summary": "TASK-012 passes independent functional verification. Unit tests and direct negative-case reproduction prove deterministic missing, impossible, unavailable, valid, and single/default SKU behavior; add-to-cart remains false unless exactly one backend-known variant is sellable. Typecheck, Memory Bank lint, strict doctor, and scope/anti-goal checks pass. Manual T1 closure criteria are satisfied."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-002.md",

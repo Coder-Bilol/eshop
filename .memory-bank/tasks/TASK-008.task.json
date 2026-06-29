@@ -1,7 +1,7 @@
 {
   "id": "TASK-008",
   "title": "Add catalog edge states and query-state unit coverage",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-001",
   "reqs": ["REQ-001", "REQ-002", "REQ-003"],
@@ -33,7 +33,25 @@
   ],
   "verify": [
     "Catalog UI supports loading, empty result, backend error, missing optional attributes, selected category, selected filters, and search text states.",
-    "Pure query-state or filter-normalization helpers have unit coverage where introduced."
+    "Pure query-state or filter-normalization helpers have unit coverage where introduced.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-28",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-008/verify-mb-doctor-strict-pre.txt",
+        ".tasks/TASK-008/verify-storefront-catalog-tests.txt",
+        ".tasks/TASK-008/verify-storefront-typecheck.txt",
+        ".tasks/TASK-008/verify-catalog-edge-states.html",
+        ".tasks/TASK-008/verify-component-trace-check.txt",
+        ".tasks/TASK-008/verify-mb-lint.txt",
+        ".tasks/TASK-008/verify-mb-doctor-strict-final.txt",
+        ".tasks/TASK-008/TASK-008-S-verify-final-report-code-01.md"
+      ],
+      "summary": "TASK-008 passes manual T1 verification. Fresh catalog tests and server-rendered component evidence prove loading, empty, backend error, missing optional attributes, selected category/filter/search state, and pure query-state helper behavior. Storefront typecheck, Memory Bank lint, and strict doctor pass. Backend catalog semantics, product detail, cart behavior, and storefront catalog source-of-truth boundaries remain unchanged."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-001.md",

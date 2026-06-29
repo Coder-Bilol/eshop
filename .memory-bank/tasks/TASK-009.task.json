@@ -10,7 +10,9 @@
     "apps/backend/test/**",
     "apps/storefront/tests/**",
     "apps/storefront/e2e/**",
+    "apps/storefront/package.json",
     "package.json",
+    "package-lock.json",
     "README.md",
     ".memory-bank/changelog.md"
   ],
@@ -91,7 +93,9 @@
       "apps/backend/test/**",
       "apps/storefront/tests/**",
       "apps/storefront/e2e/**",
+      "apps/storefront/package.json",
       "package.json",
+      "package-lock.json",
       "README.md",
       ".memory-bank/changelog.md"
     ],

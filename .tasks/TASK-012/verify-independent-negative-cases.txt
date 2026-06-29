@@ -1,0 +1,11 @@
+﻿{
+  "check": "independent-variant-selection-negative-cases",
+  "status": "ok",
+  "assertions": [
+    "missing and unknown options cannot add to cart",
+    "unavailable and inconsistent availability cannot add to cart",
+    "stale default SKU cannot select a different variant",
+    "multi-variant product does not auto-select the only sellable SKU",
+    "one exact sellable backend-known SKU is valid"
+  ]
+}

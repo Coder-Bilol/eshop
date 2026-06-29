@@ -4,6 +4,26 @@ status: active
 ---
 # Changelog
 
+## [2026-06-28] TASK-009 FT-001 acceptance E2E
+- Fixed: expanded TASK-009 scope and refreshed its packet so the storefront E2E script and dependency lockfile can be maintained.
+- Added: Playwright browser coverage for catalog browse, category, search, all required filters, combined search and filters, empty results, and missing optional attributes.
+- Verified: browser UI mirrors seeded PostgreSQL-backed catalog responses; Windows smoke, backend integration, storefront E2E, Memory Bank lint, and strict doctor pass.
+
+## [2026-06-28] TASK-008 catalog edge-state verification
+- Added: route-level catalog loading UI and local coverage for empty, backend-error, missing-attribute, and selected query states.
+- Verified: pure catalog query-state normalization and href override behavior with deterministic unit assertions.
+- Closed: `TASK-008` after storefront catalog tests, typecheck, Memory Bank lint, component trace evidence, and strict doctor passed.
+
+## [2026-06-28] TASK-013 storefront product detail verification
+- Added: backend-driven product detail route, responsive variant selector, loading/error/default-SKU states, and variant-aware product-card summaries.
+- Verified: missing, impossible, and unavailable selections stay blocked; a valid SKU reaches the narrow product handle/SKU/quantity/validation handoff without cart persistence.
+- Closed: `TASK-013` with manual T2 `VERDICT: PASS`; FT-002 remains incomplete pending TASK-014 and feature-level semantic verification.
+
+## [2026-06-28] TASK-012 variant selection helper verification
+- Added: pure storefront variant selection resolution for missing, impossible, unavailable, valid, and single/default SKU states.
+- Verified: missing, impossible, ambiguous, unavailable, and multi-variant incomplete selections cannot become valid add-to-cart submissions.
+- Closed: `TASK-012` with manual T1 `VERDICT: PASS`; `TASK-013` remains a scheduler promotion decision.
+
 ## [2026-06-25] TASK-010 product detail seed verification
 - Added: backend product-detail seed smoke for multi-option variants, unavailable variant, and default SKU product.
 - Fixed: reconciled TASK-010 scope to include `apps/backend/package.json` for the required `smoke:product-detail` npm gate.

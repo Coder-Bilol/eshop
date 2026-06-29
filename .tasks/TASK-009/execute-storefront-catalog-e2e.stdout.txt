@@ -1,0 +1,18 @@
+
+> @eshop/storefront@0.1.0 test:e2e
+> playwright test --config e2e/playwright.config.cjs catalog
+
+
+Running 11 tests using 1 worker
+
+[1/11] e2e\catalog.spec.cjs:30:3 › FT-001 catalog acceptance › browses seeded home goods and renders missing optional attributes
+[2/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › category browse mirrors backend results
+[3/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › search mirrors backend results
+[4/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › price range mirrors backend results
+[5/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › color mirrors backend results
+[6/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › material mirrors backend results
+[7/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › size or length mirrors backend results
+[8/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › product type mirrors backend results
+[9/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › mounting method mirrors backend results
+[10/11] e2e\catalog.spec.cjs:105:5 › FT-001 catalog acceptance › combined search and filters mirrors backend results
+[11/11] e2e\catalog.spec.cjs:127:3 › FT-001 catalog acceptance › shows an empty result without turning it into an error

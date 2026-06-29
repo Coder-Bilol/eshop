@@ -4,6 +4,7 @@ import {
   type CatalogResponse,
   type CatalogSearchParams,
   buildCatalogHref,
+  catalogProductVariantSummary,
   fetchCatalog,
   formatCatalogMoney,
   formatCatalogValue,
@@ -262,37 +263,60 @@ function ProductResults({
   return (
     <>
       <section className="productGrid" aria-label="Catalog products">
-        {catalog.products.map((product) => (
-          <article key={product.handle} className="productCard">
-            <div className="productVisual" aria-hidden="true">
-              <span>{product.category.name}</span>
-            </div>
-            <div className="productBody">
-              <p className="productCategory">{product.category.name}</p>
-              <h2>{product.title}</h2>
-              <p>{product.description}</p>
-              <p className="productPrice">
-                {product.price.min === product.price.max
-                  ? formatCatalogMoney(product.price.min, product.price.currency_code)
-                  : `${formatCatalogMoney(
-                      product.price.min,
-                      product.price.currency_code
-                    )} - ${formatCatalogMoney(
-                      product.price.max,
-                      product.price.currency_code
-                    )}`}
-              </p>
-              <ul className="attributeList">
-                {catalogProductAttributes(product).map((attribute) => (
-                  <li key={attribute}>{attribute}</li>
-                ))}
-              </ul>
-              {product.has_optional_attribute_gap ? (
-                <p className="attributeGap">Some optional attributes are not set</p>
-              ) : null}
-            </div>
-          </article>
-        ))}
+        {catalog.products.map((product) => {
+          const variantSummary = catalogProductVariantSummary(product);
+
+          return (
+            <article key={product.handle} className="productCard">
+              <div className="productVisual" aria-hidden="true">
+                <span>{product.category.name}</span>
+              </div>
+              <div className="productBody">
+                <p className="productCategory">{product.category.name}</p>
+                <h2>
+                  <a href={`/products/${encodeURIComponent(product.handle)}`}>
+                    {product.title}
+                  </a>
+                </h2>
+                <p>{product.description}</p>
+                <p className="productPrice">
+                  {product.price.min === product.price.max
+                    ? formatCatalogMoney(
+                        product.price.min,
+                        product.price.currency_code
+                      )
+                    : `${formatCatalogMoney(
+                        product.price.min,
+                        product.price.currency_code
+                      )} - ${formatCatalogMoney(
+                        product.price.max,
+                        product.price.currency_code
+                      )}`}
+                </p>
+                <p className="variantCount">
+                  {variantSummary.sku_count}{" "}
+                  {variantSummary.sku_count === 1 ? "SKU" : "SKUs"}
+                </p>
+                <ul className="attributeList">
+                  {variantSummary.labels.map((attribute) => (
+                    <li key={attribute}>{attribute}</li>
+                  ))}
+                </ul>
+                {product.has_optional_attribute_gap ? (
+                  <p className="attributeGap">
+                    Some optional attributes are not set
+                  </p>
+                ) : null}
+                <a
+                  className="productDetailLink"
+                  href={`/products/${encodeURIComponent(product.handle)}`}
+                >
+                  View product
+                </a>
+              </div>
+            </article>
+          );
+        })}
       </section>
       <Pagination catalog={catalog} searchParams={searchParams} compact />
     </>
@@ -336,16 +360,4 @@ function Pagination({
       )}
     </nav>
   );
-}
-
-function catalogProductAttributes(product: CatalogResponse["products"][number]) {
-  const attributes = [
-    product.attributes.color,
-    product.attributes.material,
-    product.attributes.size_length,
-    product.attributes.mounting_method,
-    product.product_type,
-  ].filter((value): value is string => Boolean(value));
-
-  return attributes.map(formatCatalogValue);
 }

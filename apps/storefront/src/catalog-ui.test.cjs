@@ -144,22 +144,120 @@ const emptyCatalogResponse = {
   empty: true,
 };
 
+const missingAttributesCatalogResponse = {
+  ...firstCatalogResponse,
+  products: [
+    {
+      ...firstCatalogResponse.products[0],
+      handle: "fixture-optional-gap",
+      title: "Fixture Optional Gap",
+      attributes: {
+        color: null,
+        material: null,
+        size_length: null,
+        mounting_method: null,
+      },
+      has_optional_attribute_gap: true,
+      variants: [
+        {
+          ...firstCatalogResponse.products[0].variants[0],
+          sku: "FIXTURE-OPTIONAL-GAP",
+          attributes: {
+            color: null,
+            material: null,
+            size_length: null,
+            mounting_method: null,
+          },
+        },
+      ],
+    },
+  ],
+  filters: {
+    ...firstCatalogResponse.filters,
+    selected: {
+      category: null,
+      q: null,
+      price_min: null,
+      price_max: null,
+      color: null,
+      material: null,
+      size_length: null,
+      product_type: null,
+      mounting_method: null,
+    },
+  },
+  pagination: {
+    page: 1,
+    limit: 4,
+    total: 1,
+    total_pages: 1,
+    has_next: false,
+    has_prev: false,
+  },
+  empty: false,
+};
+
 async function run() {
   process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL = "http://backend.test";
 
   const fetchCalls = [];
-  const responses = [firstCatalogResponse, emptyCatalogResponse];
+  const responses = [
+    { ok: true, status: 200, body: firstCatalogResponse },
+    { ok: true, status: 200, body: emptyCatalogResponse },
+    { ok: true, status: 200, body: missingAttributesCatalogResponse },
+    { ok: false, status: 503, body: null },
+  ];
   global.fetch = async (url, init) => {
     fetchCalls.push({ url: String(url), init });
-    const body = responses.shift();
+    const response = responses.shift();
+    assert.ok(response, "unexpected catalog fetch");
     return {
-      ok: true,
-      status: 200,
-      json: async () => structuredClone(body),
+      ok: response.ok,
+      status: response.status,
+      json: async () => structuredClone(response.body),
     };
   };
 
+  const {
+    buildCatalogHref,
+    buildCatalogQueryParams,
+    catalogProductVariantSummary,
+    readSearchParam,
+    selectedCatalogFilters,
+  } = require("../lib/catalog.ts");
   const { default: HomePage } = require("../app/page.tsx");
+  const { default: CatalogLoading } = require("../app/loading.tsx");
+
+  assert.equal(readSearchParam({ q: [" curtain ", "ignored"] }, "q"), "curtain");
+  assert.equal(readSearchParam({ q: "   " }, "q"), null);
+
+  const normalizedQuery = buildCatalogQueryParams({
+    category: " curtain-rods ",
+    q: ["curtain", "ignored"],
+    color: "",
+    page: "2",
+    unknown: "not-forwarded",
+  });
+  assert.equal(normalizedQuery.get("category"), "curtain-rods");
+  assert.equal(normalizedQuery.get("q"), "curtain");
+  assert.equal(normalizedQuery.get("color"), null);
+  assert.equal(normalizedQuery.get("page"), "2");
+  assert.equal(normalizedQuery.get("limit"), "4");
+  assert.equal(normalizedQuery.get("unknown"), null);
+
+  const updatedHref = new URL(
+    buildCatalogHref(
+      { category: "curtain-rods", q: "curtain", page: "3", limit: "8" },
+      { color: "black", page: "1", q: null }
+    ),
+    "http://storefront.test"
+  );
+  assert.equal(updatedHref.searchParams.get("category"), "curtain-rods");
+  assert.equal(updatedHref.searchParams.get("q"), null);
+  assert.equal(updatedHref.searchParams.get("color"), "black");
+  assert.equal(updatedHref.searchParams.get("page"), "1");
+  assert.equal(updatedHref.searchParams.get("limit"), "8");
+
   const firstElement = await HomePage({
     searchParams: Promise.resolve({
       category: "curtain-rods",
@@ -192,6 +290,23 @@ async function run() {
   assert.match(firstHtml, /7 products from backend catalog/);
   assert.match(firstHtml, /Previous/);
   assert.match(firstHtml, /1 of 7/);
+  assert.match(firstHtml, /Search<\/span>curtain/);
+  assert.match(firstHtml, /Category<\/span>Curtain rods/);
+  assert.match(firstHtml, /Color<\/span>Black/);
+
+  const selectedState = selectedCatalogFilters(firstCatalogResponse);
+  assert.deepEqual(
+    selectedState.map((entry) => entry.label),
+    [
+      "Category",
+      "Search",
+      "Color",
+      "Material",
+      "Size / length",
+      "Product type",
+      "Mounting",
+    ]
+  );
 
   const secondElement = await HomePage({
     searchParams: Promise.resolve({
@@ -202,6 +317,39 @@ async function run() {
   const secondHtml = renderToStaticMarkup(React.createElement(React.Fragment, null, secondElement));
   assert.match(secondHtml, /No products match/);
   assert.match(secondHtml, /Change search, category, price, or filters/);
+
+  const missingAttributesElement = await HomePage({
+    searchParams: Promise.resolve({}),
+  });
+  const missingAttributesHtml = renderToStaticMarkup(
+    React.createElement(React.Fragment, null, missingAttributesElement)
+  );
+  assert.match(missingAttributesHtml, /Fixture Optional Gap/);
+  assert.match(missingAttributesHtml, /Some optional attributes are not set/);
+  assert.doesNotMatch(missingAttributesHtml, /Color:/);
+  assert.deepEqual(
+    catalogProductVariantSummary(missingAttributesCatalogResponse.products[0]),
+    {
+      sku_count: 1,
+      labels: [],
+    }
+  );
+
+  const errorElement = await HomePage({
+    searchParams: Promise.resolve({ q: "backend-error" }),
+  });
+  const errorHtml = renderToStaticMarkup(
+    React.createElement(React.Fragment, null, errorElement)
+  );
+  assert.match(errorHtml, /Catalog is not available/);
+  assert.match(errorHtml, /Catalog request failed with HTTP 503/);
+  assert.doesNotMatch(errorHtml, /Catalog browser/);
+
+  const loadingHtml = renderToStaticMarkup(
+    React.createElement(CatalogLoading)
+  );
+  assert.match(loadingHtml, /Loading catalog/);
+  assert.match(loadingHtml, /aria-busy="true"/);
 
   const pageSource = fs.readFileSync(path.join(__dirname, "..", "app", "page.tsx"), "utf8");
   assert.equal(pageSource.includes("steel-telescopic-curtain-rod"), false);
@@ -215,6 +363,17 @@ async function run() {
     fs.writeFileSync(process.env.ESHOP_CATALOG_TRACE_PATH, firstHtml, "utf8");
   }
 
+  if (process.env.ESHOP_CATALOG_EDGE_TRACE_PATH) {
+    fs.mkdirSync(path.dirname(process.env.ESHOP_CATALOG_EDGE_TRACE_PATH), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      process.env.ESHOP_CATALOG_EDGE_TRACE_PATH,
+      `<!doctype html><html><body>${loadingHtml}${secondHtml}${missingAttributesHtml}${errorHtml}</body></html>`,
+      "utf8"
+    );
+  }
+
   process.stdout.write(
     `${JSON.stringify(
       {
@@ -223,6 +382,7 @@ async function run() {
         dataSource: "mocked-backend-catalog-contract",
         hardcodedCatalogSource: false,
         tracePath: process.env.ESHOP_CATALOG_TRACE_PATH || null,
+        edgeTracePath: process.env.ESHOP_CATALOG_EDGE_TRACE_PATH || null,
         assertions: [
           "storefront requests backend store catalog route with explicit query params",
           "product cards render from backend response data",
@@ -231,6 +391,10 @@ async function run() {
           "selected filter state is visible",
           "pagination state is visible",
           "empty result state is visible",
+          "backend error state is visible and does not render stale catalog UI",
+          "missing optional attributes render without invented values",
+          "route-level loading state is visible",
+          "query-state helpers normalize supported params and preserve explicit overrides",
           "seeded catalog data is not embedded as UI source data",
         ],
       },

@@ -1,0 +1,47 @@
+﻿
+> @eshop/storefront@0.1.0 test
+> node src/test-runner.cjs catalog product-detail
+
+{
+  "suite": "catalog",
+  "status": "ok",
+  "dataSource": "mocked-backend-catalog-contract",
+  "hardcodedCatalogSource": false,
+  "tracePath": null,
+  "assertions": [
+    "storefront requests backend store catalog route with explicit query params",
+    "product cards render from backend response data",
+    "category navigation is visible",
+    "search input and required filters are visible",
+    "selected filter state is visible",
+    "pagination state is visible",
+    "empty result state is visible",
+    "seeded catalog data is not embedded as UI source data"
+  ]
+}
+{
+  "suite": "product-detail",
+  "status": "ok",
+  "dataSource": "backend-contract-shaped-fixtures",
+  "assertions": [
+    "missing required options cannot be added to cart",
+    "impossible and ambiguous combinations cannot be added to cart",
+    "exactly one sellable variant produces a valid selection",
+    "unavailable variants cannot be added to cart",
+    "single/default SKU products select deterministically",
+    "multi-variant products do not auto-select the only sellable SKU",
+    "products without a concrete SKU cannot be added to cart",
+    "valid cart handoff includes product handle, SKU, quantity, and validation state",
+    "product cards summarize backend-provided variant dimensions",
+    "product detail fetch maps not-found and unpublished contract errors",
+    "product detail route exposes required loading, selection, and handoff states"
+  ]
+}
+{
+  "command": "storefront:test",
+  "status": "ok",
+  "suites": [
+    "catalog",
+    "product-detail"
+  ]
+}

@@ -1,0 +1,5 @@
+﻿scope_check=PASS
+implementation_files=apps/storefront/src/test-runner.cjs,apps/storefront/lib/product-detail.ts,apps/storefront/src/product-detail.test.cjs
+backend_semantics_changed=false
+durable_cart_added=false
+runtime_fixture_data=false

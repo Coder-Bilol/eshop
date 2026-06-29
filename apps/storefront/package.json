@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node src/test-runner.cjs",
+    "test:e2e": "node e2e/run-catalog-e2e.cjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@types/node": "26.0.0",
     "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3"
+    "@types/react-dom": "19.2.3",
+    "playwright": "1.61.1"
   }
 }

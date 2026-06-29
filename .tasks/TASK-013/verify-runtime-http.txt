@@ -1,0 +1,18 @@
+﻿{
+    "http://127.0.0.1:9000/store/product-detail/steel-telescopic-curtain-rod":  {
+                                                                                    "status":  200,
+                                                                                    "hasExpectedContent":  true
+                                                                                },
+    "http://127.0.0.1:3001/products/steel-telescopic-curtain-rod":  {
+                                                                        "status":  200,
+                                                                        "hasExpectedContent":  true
+                                                                    },
+    "http://127.0.0.1:3001/products/basic-home-hook-set":  {
+                                                               "status":  200,
+                                                               "hasExpectedContent":  true
+                                                           },
+    "http://127.0.0.1:3001/products/not-a-product":  {
+                                                         "status":  200,
+                                                         "hasExpectedContent":  true
+                                                     }
+}

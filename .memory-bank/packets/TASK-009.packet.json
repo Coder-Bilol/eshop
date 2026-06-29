@@ -1,7 +1,7 @@
 {
   "task_id": "TASK-009",
   "status": "ready",
-  "source_task_hash": "sha256:a89578128230983a31255d6550b4e37291e1d1e426062c2b7c78390ec560fdb0",
+  "source_task_hash": "sha256:93aa436ac3bd4fc9568f465c8f4db80213710caea751b08c7ff0d5f05ce8d359",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-009.task.json",
     "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
@@ -23,7 +23,9 @@
       "apps/backend/test/**",
       "apps/storefront/tests/**",
       "apps/storefront/e2e/**",
+      "apps/storefront/package.json",
       "package.json",
+      "package-lock.json",
       "README.md",
       ".memory-bank/changelog.md"
     ],
