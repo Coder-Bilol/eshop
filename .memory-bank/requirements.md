@@ -62,8 +62,8 @@ source_of_truth:
 | REQ-001 | EP-001 | FT-001 | e2e: catalog browse | verified |
 | REQ-002 | EP-001 | FT-001 | e2e: category browse | verified |
 | REQ-003 | EP-001 | FT-001 | integration/e2e: filters/search | verified |
-| REQ-004 | EP-001 | FT-002 | unit/integration: variant model | planned |
-| REQ-005 | EP-001 | FT-002 | e2e: variant add-to-cart | planned |
+| REQ-004 | EP-001 | FT-002 | unit/integration: variant model | verified |
+| REQ-005 | EP-001 | FT-002 | e2e: variant add-to-cart | verified |
 | REQ-006 | EP-002 | FT-003 | e2e: guest cart update | planned |
 | REQ-007 | EP-002 | FT-003 | e2e: cart persistence | planned |
 | REQ-008 | EP-002 | FT-003 | unit/integration: cart merge | planned |

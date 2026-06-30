@@ -1,0 +1,31 @@
+﻿
+> @eshop/backend@0.1.0 test:integration
+> node test/run-integration.cjs product-detail
+
+{
+  "suite": "product-detail",
+  "status": "ok",
+  "routeDecision": "thin read-only facade",
+  "sourceBoundary": "backend-postgresql",
+  "dockerRequired": false,
+  "productionData": false,
+  "seedCommandStatus": "ok",
+  "assertions": [
+    "product identity, media, category, and product type are returned",
+    "internal product and variant database ids are not exposed",
+    "option dimensions include color, material, size/length, and mounting method",
+    "variant SKU, option combinations, price, and availability are returned",
+    "unavailable variants are non-sellable",
+    "single/default SKU products have deterministic default selection",
+    "multi-variant products retain explicit selection when only one variant is sellable",
+    "not-found and unpublished products are distinguished from valid detail responses",
+    "request input can be read from dynamic route params or URL path"
+  ]
+}
+{
+  "command": "test:integration",
+  "status": "ok",
+  "suites": [
+    "product-detail"
+  ]
+}

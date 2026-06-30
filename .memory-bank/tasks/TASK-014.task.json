@@ -1,7 +1,7 @@
 {
   "id": "TASK-014",
   "title": "Add FT-002 integration and e2e verification",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-002",
   "reqs": ["REQ-004", "REQ-005"],
@@ -40,7 +40,24 @@
   "verify": [
     "E2E covers product card variant summary, product detail option selection, missing required options, impossible combinations, unavailable variant blocking, valid selected variant handoff, and default-SKU product path.",
     "Integration/e2e evidence uses seeded backend data and the Windows-native local runtime, not hardcoded frontend data.",
-    "REQ-004 and REQ-005 have executable evidence without claiming durable cart persistence."
+    "REQ-004 and REQ-005 have executable evidence without claiming durable cart persistence.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-30",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-014/verify-mb-doctor-strict-pre.txt",
+        ".tasks/TASK-014/verify-smoke-local.txt",
+        ".tasks/TASK-014/verify-backend-product-detail-integration.txt",
+        ".tasks/TASK-014/verify-storefront-product-detail-e2e.txt",
+        ".tasks/TASK-014/verify-mb-lint.txt",
+        ".tasks/TASK-014/TASK-014-S-verify-final-report-code-01.md",
+        ".tasks/TASK-014/TASK-014-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "summary": "Manual T2 verification passed. Windows-native smoke, backend product-detail integration, storefront browser E2E, Memory Bank lint, packet/spec gates, and prior per-task red-verify semantic-pass cover product card variant summary, product detail option selection, missing required options, impossible combinations, unavailable variant blocking, valid selected variant handoff, default-SKU product path, seeded PostgreSQL-backed data, and REQ-004/REQ-005 without durable cart persistence, cart merge, checkout, order, payment, production data, or live providers."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-002.md",

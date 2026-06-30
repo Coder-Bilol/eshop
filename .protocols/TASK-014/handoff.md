@@ -6,7 +6,8 @@ status: active
 
 ## Status
 - `/execute` implementation handoff complete.
-- `/execute` will not close `TASK-014`.
+- `/verify TASK-014` completed with `VERDICT: PASS`.
+- `TASK-014` was closed as `done` in manual mode by `GENERAL`.
 
 ## Scope Compliance
 - Scope compliance: yes.
@@ -34,20 +35,23 @@ status: active
 - `.tasks/TASK-014/playwright/product-detail-default-sku.png`
 
 ## Gate Results
+- `node scripts/mb-doctor.mjs --strict` precheck: PASS with expected TASK-014 ready-candidate warning before closure
 - `npm --workspace apps/backend run test:integration -- product-detail`: PASS
 - `npm --workspace apps/storefront run test:e2e -- product-detail`: PASS
 - `npm run smoke:local`: PASS
 - `node scripts/mb-lint.mjs`: PASS
+- `node scripts/mb-lint.mjs` final: PASS
+- `node scripts/mb-doctor.mjs --strict` final: PASS with 0 warnings
 
 ## Packet-Sourced Checks
 - Used all packet-sourced commands.
 - No packet-sourced checks were skipped.
 
 ## Next Owner
-- Recommended next owner after implementation handoff: `/verify TASK-014` owner.
+- Recommended next owner: feature-level `/red-verify --feature FT-002` owner before treating FT-002 as semantically complete.
 
 ## Handoff Notes
 - Required integration/e2e evidence must prove REQ-004 and REQ-005 without claiming durable cart persistence.
 - Feature-level `/red-verify --feature FT-002` remains separate after task verification/closure.
-- Task status was not changed by `/execute`.
+- Task status was changed by `/verify` closure, not by `/execute`.
 - Existing pre-TASK-014 dirty worktree changes for `TASK-009`, `AGENTS.md`, and related Memory Bank files were preserved.

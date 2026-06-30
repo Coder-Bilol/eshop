@@ -1,7 +1,7 @@
 {
   "task_id": "TASK-014",
   "status": "ready",
-  "source_task_hash": "sha256:1f39a6f71222ff6c009a9f811a73b67e2829b83539ac4a96dcaefe07e4a0c40c",
+  "source_task_hash": "sha256:a3b3b06a85d580809f289d726ad2c06b1c5639749c742097ee99bc0ce4090b2f",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-014.task.json",
     "feature": ".memory-bank/features/FT-002-product-detail-variant-selection.md",

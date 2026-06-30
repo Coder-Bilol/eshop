@@ -4,6 +4,16 @@ status: active
 ---
 # Changelog
 
+## [2026-06-30] TASK-014 final verification and closure
+- Verified: fresh manual `/verify TASK-014` passed Windows-native smoke, backend product-detail integration, storefront product-detail E2E, Memory Bank lint, and packet/spec gate checks.
+- Closed: `TASK-014` as `done` with T2 closure ownership by GENERAL after executable evidence and prior per-task semantic-pass red-verification.
+- Updated: RTM lifecycle for `REQ-004` and `REQ-005` to `verified`; `FT-002` lifecycle to `implemented`, with feature-level `/red-verify --feature FT-002` still required before treating the feature as semantically complete.
+
+## [2026-06-30] Red-verify all indexed tasks
+- Added: per-task `/red-verify` protocol and final report artifacts for `TASK-001` through `TASK-014`.
+- Result: all indexed tasks received `SEMANTIC_VERDICT: semantic-pass` in per-task mode.
+- Note: task statuses were not changed; `TASK-014` still requires `/verify TASK-014`, and feature-level red-verification remains separate for `FT-001`/`FT-002` completion.
+
 ## [2026-06-30] TASK-014 FT-002 integration and e2e execution
 - Added: product-detail route coverage to the local E2E backend harness and a storefront Playwright E2E flow for FT-002 variant selection acceptance states.
 - Verified: `TASK-014` `/execute` gates passed for Windows-native smoke, backend product-detail integration, storefront product-detail E2E, and Memory Bank lint.
