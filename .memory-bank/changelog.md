@@ -4,6 +4,21 @@ status: active
 ---
 # Changelog
 
+## [2026-06-30] TASK-014 FT-002 integration and e2e execution
+- Added: product-detail route coverage to the local E2E backend harness and a storefront Playwright E2E flow for FT-002 variant selection acceptance states.
+- Verified: `TASK-014` `/execute` gates passed for Windows-native smoke, backend product-detail integration, storefront product-detail E2E, and Memory Bank lint.
+- Note: `TASK-014` remains pending `/verify TASK-014`; FT-002 feature-level semantic completion remains a separate `/red-verify --feature FT-002` step after task closure.
+
+## [2026-06-30] TASK-009 closure sync
+- Synced: `TASK-009` remains closed as `done` with manual T2 `/verify` evidence and GENERAL closure ownership.
+- Updated: RTM lifecycle for `REQ-001`, `REQ-002`, and `REQ-003` to `verified` from TASK-009 browser/integration evidence.
+- Updated: `FT-001` lifecycle to `implemented`; feature-level `verified` remains pending `/red-verify --feature FT-001`.
+
+## [2026-06-29] TASK-009 final verification
+- Verified: fresh manual `/verify TASK-009` passed Windows-native smoke, backend catalog integration, storefront browser E2E, Memory Bank lint, strict doctor precheck, and Playwright artifact checks.
+- Closed: `TASK-009` as `done` with T2 closure ownership by GENERAL after full protocol, packet/spec gate, seeded PostgreSQL-backed evidence, and REQ-001..REQ-003 coverage.
+- Note: FT-001 feature-level semantic completion remains a separate `/red-verify --feature FT-001` step.
+
 ## [2026-06-28] TASK-009 FT-001 acceptance E2E
 - Fixed: expanded TASK-009 scope and refreshed its packet so the storefront E2E script and dependency lockfile can be maintained.
 - Added: Playwright browser coverage for catalog browse, category, search, all required filters, combined search and filters, empty results, and missing optional attributes.

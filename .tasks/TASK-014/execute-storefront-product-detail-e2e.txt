@@ -1,0 +1,44 @@
+﻿
+> @eshop/storefront@0.1.0 test:e2e
+> node e2e/run-catalog-e2e.cjs product-detail
+
+[2026-06-30T07:06:00.334Z] checking ports
+[2026-06-30T07:06:00.347Z] seeding catalog
+[2026-06-30T07:06:02.216Z] starting backend harness
+[2026-06-30T07:06:02.219Z] preparing next app
+⚠ Slow filesystem detected. The benchmark took 451ms. If D:\projects\eshop\apps/storefront/.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+[2026-06-30T07:06:04.318Z] starting storefront server
+[2026-06-30T07:06:04.320Z] launching browser
+[2026-06-30T07:06:04.904Z] verifying catalog card variant summary
+ GET /?category=curtain-rods&limit=20 200 in 1103ms (next.js: 379ms, application-code: 724ms)
+[2026-06-30T07:06:06.818Z] verifying configurable product detail
+ GET /products/steel-telescopic-curtain-rod 200 in 1463ms (next.js: 1113ms, application-code: 350ms)
+[2026-06-30T07:06:09.532Z] verifying default SKU product detail
+ GET /products/basic-home-hook-set 200 in 289ms (next.js: 14ms, application-code: 275ms)
+[2026-06-30T07:06:10.488Z] stopping trace
+[2026-06-30T07:06:10.604Z] product-detail e2e complete
+{
+  "suite": "product-detail-e2e",
+  "status": "ok",
+  "browser": "msedge",
+  "dataSource": "seeded-backend-postgresql",
+  "backendHarness": "apps/backend/test/catalog-e2e-server.cjs",
+  "storefrontRuntime": "next-dev",
+  "productionData": false,
+  "trace": ".tasks/TASK-014/playwright/product-detail-trace.zip",
+  "screenshots": [
+    ".tasks/TASK-014/playwright/product-detail-handoff.png",
+    ".tasks/TASK-014/playwright/product-detail-default-sku.png"
+  ],
+  "assertions": [
+    "product card variant summary is rendered from backend catalog data",
+    "product detail starts with missing required options and disabled add-to-cart",
+    "impossible variant combinations stay blocked",
+    "unavailable variants stay blocked",
+    "valid selected variant reaches the narrow cart-action handoff",
+    "single/default SKU product can reach the same handoff without durable cart persistence"
+  ]
+}
+[2026-06-30T07:06:10.604Z] cleanup started
+[2026-06-30T07:06:11.614Z] cleanup complete

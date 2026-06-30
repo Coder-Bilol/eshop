@@ -1,0 +1,48 @@
+﻿
+> @eshop/storefront@0.1.0 test:e2e
+> node e2e/run-catalog-e2e.cjs catalog
+
+node.exe : ⚠ Slow filesystem detected. The benchmark took 290ms. If D:\projec
+ts\eshop\apps/storefront/.next/dev is a network drive, consider moving it to 
+a local folder.
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (⚠ Slow filesyst...a local folde 
+   r.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+See more: https://nextjs.org/docs/app/guides/local-development
+○ Compiling / ...
+ GET /?limit=20 200 in 13.5s (next.js: 12.2s, application-code: 1350ms)
+ GET /?category=curtain-rods&limit=20 200 in 1048ms (next.js: 19ms, application-code: 1029ms)
+ GET /?q=wooden&limit=20 200 in 271ms (next.js: 7ms, application-code: 264ms)
+ GET /?price_min=240000&price_max=250000&limit=20 200 in 332ms (next.js: 6ms, application-code: 325ms)
+ GET /?color=black&limit=20 200 in 333ms (next.js: 6ms, application-code: 327ms)
+ GET /?material=wood&limit=20 200 in 471ms (next.js: 7ms, application-code: 464ms)
+ GET /?size_length=200+cm&limit=20 200 in 297ms (next.js: 10ms, application-code: 287ms)
+ GET /?product_type=curtain_track&limit=20 200 in 317ms (next.js: 6ms, application-code: 311ms)
+ GET /?mounting_method=ceiling&limit=20 200 in 258ms (next.js: 6ms, application-code: 253ms)
+ GET /?q=curtain&category=curtain-rods&material=wood&limit=20 200 in 322ms (next.js: 6ms, application-code: 315ms)
+ GET /?q=no-such-product&color=black&limit=20 200 in 310ms (next.js: 8ms, application-code: 302ms)
+{
+  "suite": "catalog-e2e",
+  "status": "ok",
+  "browser": "msedge",
+  "dataSource": "seeded-backend-postgresql",
+  "backendHarness": "apps/backend/test/catalog-e2e-server.cjs",
+  "storefrontRuntime": "next-dev",
+  "productionData": false,
+  "trace": ".tasks/TASK-009/playwright/catalog-trace.zip",
+  "screenshot": ".tasks/TASK-009/playwright/catalog-empty-state.png",
+  "assertions": [
+    "catalog browse mirrors backend results",
+    "category browse narrows seeded products",
+    "search narrows seeded products",
+    "price, color, material, size/length, product type, and mounting filters narrow seeded products",
+    "combined search and filters narrow seeded products",
+    "empty result renders without backend error state",
+    "missing optional attributes render safely"
+  ]
+}
+

@@ -2,7 +2,7 @@
 description: Requirements (REQ IDs) and traceability matrix for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-06-18
+last_updated: 2026-06-30
 source_of_truth:
   - .memory-bank/prd.md
 ---
@@ -59,9 +59,9 @@ source_of_truth:
 
 | REQ | Epic | Feature | Test | Lifecycle |
 |---|---|---|---|---|
-| REQ-001 | EP-001 | FT-001 | e2e: catalog browse | planned |
-| REQ-002 | EP-001 | FT-001 | e2e: category browse | planned |
-| REQ-003 | EP-001 | FT-001 | integration/e2e: filters/search | planned |
+| REQ-001 | EP-001 | FT-001 | e2e: catalog browse | verified |
+| REQ-002 | EP-001 | FT-001 | e2e: category browse | verified |
+| REQ-003 | EP-001 | FT-001 | integration/e2e: filters/search | verified |
 | REQ-004 | EP-001 | FT-002 | unit/integration: variant model | planned |
 | REQ-005 | EP-001 | FT-002 | e2e: variant add-to-cart | planned |
 | REQ-006 | EP-002 | FT-003 | e2e: guest cart update | planned |

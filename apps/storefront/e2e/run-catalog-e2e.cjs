@@ -316,7 +316,15 @@ function writeRuntimeEvidence() {
   );
 }
 
-main().then(
+const selectedSuite = process.argv.slice(2).includes("product-detail")
+  ? "product-detail"
+  : "catalog";
+const selectedRunner =
+  selectedSuite === "product-detail"
+    ? require("./run-product-detail-e2e.cjs").main
+    : main;
+
+selectedRunner().then(
   () => process.exit(0),
   (error) => {
     console.error(

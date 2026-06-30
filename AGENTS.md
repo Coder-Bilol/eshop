@@ -7,6 +7,7 @@
 ## File Encoding
 - When reading text files through PowerShell, always specify UTF-8 explicitly, for example `Get-Content -Raw -Encoding UTF8 -LiteralPath ...`, to avoid mojibake.
 - When writing text files through PowerShell is unavoidable, specify UTF-8 explicitly, for example `Set-Content -Encoding UTF8` / `Add-Content -Encoding UTF8`. Prefer patch-based edits for source and documentation changes.
+- When creating files or directories with PowerShell, do not assume every cmdlet supports `-LiteralPath`. In particular, use `New-Item -ItemType Directory -Force -Path ...` for directory creation, then use `Test-Path` / `Get-Content` / `Set-Content` with `-LiteralPath` where supported.
 
 ## Prime before work
 1. Read `AGENTS.md` (this guide)

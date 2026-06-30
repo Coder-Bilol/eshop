@@ -1,7 +1,7 @@
 ---
 description: Feature FT-001 - catalog browsing, filtering, and search.
 status: draft
-lifecycle: planned
+lifecycle: implemented
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md
@@ -55,3 +55,8 @@ spec_design_links:
 - Feature design depth: feature hub only.
 - Catalog query/filter/search behavior is constrained by the feature tech spec and global API guidelines.
 - No shared/global blocker was found; `/prd-to-tasks FT-001` may proceed after reading the linked specs.
+
+## Implementation Status
+
+- `TASK-009` is closed with manual T2 `/verify` evidence covering REQ-001, REQ-002, and REQ-003.
+- Feature lifecycle is `implemented`; feature-level semantic completion still requires `/red-verify --feature FT-001` before marking the feature `verified`.

@@ -1,7 +1,7 @@
 {
   "id": "TASK-009",
   "title": "Add FT-001 integration and e2e verification",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-001",
   "reqs": ["REQ-001", "REQ-002", "REQ-003"],
@@ -42,7 +42,25 @@
   "verify": [
     "E2E covers catalog browse, category browse, required filters, search, combined search+filters, empty result state, and missing optional attributes.",
     "Integration/e2e evidence uses seeded backend data and the Windows-native local runtime, not hardcoded frontend data.",
-    "REQ-001, REQ-002, and REQ-003 have executable evidence."
+    "REQ-001, REQ-002, and REQ-003 have executable evidence.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-06-29",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".tasks/TASK-009/verify-mb-doctor-strict-pre.txt",
+        ".tasks/TASK-009/verify-smoke-local.txt",
+        ".tasks/TASK-009/verify-backend-catalog-integration.txt",
+        ".tasks/TASK-009/verify-storefront-catalog-e2e.txt",
+        ".tasks/TASK-009/verify-mb-lint.txt",
+        ".tasks/TASK-009/verify-playwright-artifacts.txt",
+        ".tasks/TASK-009/verify-mb-doctor-strict-final.txt",
+        ".tasks/TASK-009/TASK-009-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Fresh manual T2 verification passed. Smoke, backend integration, browser E2E, Memory Bank lint, strict doctor precheck, Playwright trace/screenshot, and port cleanup evidence cover FT-001 catalog browse, category browse, search, required filters, combined search and filters, empty result state, missing optional attributes, seeded PostgreSQL-backed data, and REQ-001 through REQ-003 without production data, live providers, or FT-002 product-detail/cart scope."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-001.md",

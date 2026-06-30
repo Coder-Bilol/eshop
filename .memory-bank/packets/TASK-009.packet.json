@@ -1,7 +1,7 @@
 {
   "task_id": "TASK-009",
   "status": "ready",
-  "source_task_hash": "sha256:93aa436ac3bd4fc9568f465c8f4db80213710caea751b08c7ff0d5f05ce8d359",
+  "source_task_hash": "sha256:d5a6b71858c13cbfd028652a7ba9f2d61099c04a1baf372fe6ac488e2bb2f44e",
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-009.task.json",
     "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",

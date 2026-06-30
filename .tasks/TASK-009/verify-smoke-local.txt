@@ -1,0 +1,247 @@
+﻿
+> eshop@0.1.0 smoke:local
+> node scripts/smoke-local.cjs
+
+
+[local-env] C:\Program Files\nodejs\node.exe scripts/check-local-env.cjs
+{
+  "command": "check:local-env",
+  "status": "ok",
+  "platform": "win32",
+  "osRelease": "10.0.19045",
+  "nodeVersion": "v24.11.0",
+  "npmVersion": "11.6.1",
+  "localRuntime": "windows-native",
+  "dockerRequired": false,
+  "templates": {
+    "root": true,
+    "backend": true,
+    "storefront": true
+  },
+  "gitignore": {
+    "requiredPatterns": [
+      ".env",
+      ".env.*",
+      "!.env.example",
+      "apps/*/.env",
+      "apps/*/.env.*",
+      "!apps/*/.env.example"
+    ],
+    "presentPatterns": [
+      ".env",
+      ".env.*",
+      "!.env.example",
+      "apps/*/.env",
+      "apps/*/.env.*",
+      "!apps/*/.env.example"
+    ]
+  },
+  "scripts": {
+    "root": [
+      "check:local-env",
+      "dev:local",
+      "dev:local:watch",
+      "smoke:local"
+    ],
+    "backend": [
+      "db:check",
+      "db:migrate",
+      "db:seed",
+      "smoke:db"
+    ],
+    "storefront": [
+      "dev",
+      "typecheck"
+    ]
+  },
+  "ports": {
+    "backend": {
+      "host": "127.0.0.1",
+      "port": 9000,
+      "available": true
+    },
+    "storefront": {
+      "host": "127.0.0.1",
+      "port": 3000,
+      "available": true
+    }
+  },
+  "database": {
+    "command": "npm --workspace apps/backend run db:check",
+    "result": {
+      "status": 0,
+      "stdout": "> @eshop/backend@0.1.0 db:check\n> node scripts/db-check.cjs\n\n{\n  \"command\": \"db:check\",\n  \"status\": \"ok\",\n  \"databaseUrl\": \"postgres://postgres:*****@127.0.0.1:5432/eshop\",\n  \"host\": \"127.0.0.1\",\n  \"port\": \"5432\",\n  \"database\": \"eshop\",\n  \"maintenanceDatabase\": \"postgres\",\n  \"targetDatabaseExists\": true,\n  \"serverVersion\": \"PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit\",\n  \"localRuntime\": \"windows-native-postgresql\",\n  \"dockerRequired\": false\n}",
+      "stderr": ""
+    },
+    "summary": {
+      "command": "db:check",
+      "status": "ok",
+      "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+      "host": "127.0.0.1",
+      "port": "5432",
+      "database": "eshop",
+      "maintenanceDatabase": "postgres",
+      "targetDatabaseExists": true,
+      "serverVersion": "PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit",
+      "localRuntime": "windows-native-postgresql",
+      "dockerRequired": false
+    }
+  },
+  "envPlaceholders": {
+    "inspectedKeys": [
+      "GOOGLE_OAUTH_CLIENT_SECRET",
+      "VK_ID_CLIENT_SECRET",
+      "YOOKASSA_SECRET_KEY",
+      "YOOKASSA_WEBHOOK_SECRET",
+      "SMTP_PASSWORD",
+      "JWT_SECRET",
+      "COOKIE_SECRET"
+    ],
+    "unsafe": []
+  },
+  "failures": []
+}
+
+[backend-migrate] npm --workspace apps/backend run db:migrate
+
+> @eshop/backend@0.1.0 db:migrate
+> node scripts/db-migrate.cjs
+
+{
+  "command": "db:migrate",
+  "status": "ok",
+  "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+  "migrationId": "TASK-002-local-smoke-v1",
+  "catalogMigrationId": "TASK-005-catalog-seed-v1",
+  "tables": [
+    "eshop_local_migrations",
+    "eshop_local_smoke_records",
+    "eshop_local_catalog_categories",
+    "eshop_local_catalog_products",
+    "eshop_local_catalog_variants"
+  ]
+}
+
+[backend-seed] npm --workspace apps/backend run db:seed
+
+> @eshop/backend@0.1.0 db:seed
+> node scripts/db-seed.cjs
+
+{
+  "command": "db:seed",
+  "status": "ok",
+  "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+  "seedKey": "seed:local:smoke",
+  "table": "eshop_local_smoke_records",
+  "catalog": {
+    "categories": 4,
+    "products": 5,
+    "variants": 8,
+    "tables": [
+      "eshop_local_catalog_categories",
+      "eshop_local_catalog_products",
+      "eshop_local_catalog_variants"
+    ],
+    "includesCurtainRods": true,
+    "optionalAttributeGapProducts": 1
+  },
+  "productionData": false
+}
+
+[backend-db-smoke] npm --workspace apps/backend run smoke:db
+
+> @eshop/backend@0.1.0 smoke:db
+> node scripts/smoke-db.cjs
+
+{
+  "command": "smoke:db",
+  "status": "ok",
+  "databaseUrl": "postgres://postgres:*****@127.0.0.1:5432/eshop",
+  "seedVerified": true,
+  "writeReadVerified": true,
+  "smokeKey": "smoke:1782757362791:14236",
+  "table": "eshop_local_smoke_records"
+}
+
+[backend-typecheck] npm --workspace apps/backend run typecheck
+
+> @eshop/backend@0.1.0 typecheck
+> tsc --noEmit
+
+
+[storefront-typecheck] npm --workspace apps/storefront run typecheck
+
+> @eshop/storefront@0.1.0 typecheck
+> tsc --noEmit
+
+{
+  "command": "smoke:local",
+  "status": "ok",
+  "localRuntime": "windows-native",
+  "dockerRequired": false,
+  "runbook": ".memory-bank/runbooks/local-development.md",
+  "evidenceHint": ".tasks/TASK-XXX/",
+  "services": {
+    "postgresql": "verified by backend db:check and smoke:db",
+    "backend": "verified by db smoke and typecheck",
+    "storefront": "verified by typecheck and local env configuration"
+  },
+  "steps": [
+    {
+      "name": "local-env",
+      "command": "C:\\Program Files\\nodejs\\node.exe scripts/check-local-env.cjs",
+      "result": {
+        "status": 0,
+        "stdout": "{\n  \"command\": \"check:local-env\",\n  \"status\": \"ok\",\n  \"platform\": \"win32\",\n  \"osRelease\": \"10.0.19045\",\n  \"nodeVersion\": \"v24.11.0\",\n  \"npmVersion\": \"11.6.1\",\n  \"localRuntime\": \"windows-native\",\n  \"dockerRequired\": false,\n  \"templates\": {\n    \"root\": true,\n    \"backend\": true,\n    \"storefront\": true\n  },\n  \"gitignore\": {\n    \"requiredPatterns\": [\n      \".env\",\n      \".env.*\",\n      \"!.env.example\",\n      \"apps/*/.env\",\n      \"apps/*/.env.*\",\n      \"!apps/*/.env.example\"\n    ],\n    \"presentPatterns\": [\n      \".env\",\n      \".env.*\",\n      \"!.env.example\",\n      \"apps/*/.env\",\n      \"apps/*/.env.*\",\n      \"!apps/*/.env.example\"\n    ]\n  },\n  \"scripts\": {\n    \"root\": [\n      \"check:local-env\",\n      \"dev:local\",\n      \"dev:local:watch\",\n      \"smoke:local\"\n    ],\n    \"backend\": [\n      \"db:check\",\n      \"db:migrate\",\n      \"db:seed\",\n      \"smoke:db\"\n    ],\n    \"storefront\": [\n      \"dev\",\n      \"typecheck\"\n    ]\n  },\n  \"ports\": {\n    \"backend\": {\n      \"host\": \"127.0.0.1\",\n      \"port\": 9000,\n      \"available\": true\n    },\n    \"storefront\": {\n      \"host\": \"127.0.0.1\",\n      \"port\": 3000,\n      \"available\": true\n    }\n  },\n  \"database\": {\n    \"command\": \"npm --workspace apps/backend run db:check\",\n    \"result\": {\n      \"status\": 0,\n      \"stdout\": \"> @eshop/backend@0.1.0 db:check\\n> node scripts/db-check.cjs\\n\\n{\\n  \\\"command\\\": \\\"db:check\\\",\\n  \\\"status\\\": \\\"ok\\\",\\n  \\\"databaseUrl\\\": \\\"postgres://postgres:*****@127.0.0.1:5432/eshop\\\",\\n  \\\"host\\\": \\\"127.0.0.1\\\",\\n  \\\"port\\\": \\\"5432\\\",\\n  \\\"database\\\": \\\"eshop\\\",\\n  \\\"maintenanceDatabase\\\": \\\"postgres\\\",\\n  \\\"targetDatabaseExists\\\": true,\\n  \\\"serverVersion\\\": \\\"PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit\\\",\\n  \\\"localRuntime\\\": \\\"windows-native-postgresql\\\",\\n  \\\"dockerRequired\\\": false\\n}\",\n      \"stderr\": \"\"\n    },\n    \"summary\": {\n      \"command\": \"db:check\",\n      \"status\": \"ok\",\n      \"databaseUrl\": \"postgres://postgres:*****@127.0.0.1:5432/eshop\",\n      \"host\": \"127.0.0.1\",\n      \"port\": \"5432\",\n      \"database\": \"eshop\",\n      \"maintenanceDatabase\": \"postgres\",\n      \"targetDatabaseExists\": true,\n      \"serverVersion\": \"PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit\",\n      \"localRuntime\": \"windows-native-postgresql\",\n      \"dockerRequired\": false\n    }\n  },\n  \"envPlaceholders\": {\n    \"inspectedKeys\": [\n      \"GOOGLE_OAUTH_CLIENT_SECRET\",\n      \"VK_ID_CLIENT_SECRET\",\n      \"YOOKASSA_SECRET_KEY\",\n      \"YOOKASSA_WEBHOOK_SECRET\",\n      \"SMTP_PASSWORD\",\n      \"JWT_SECRET\",\n      \"COOKIE_SECRET\"\n    ],\n    \"unsafe\": []\n  },\n  \"failures\": []\n}",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "backend-migrate",
+      "command": "npm --workspace apps/backend run db:migrate",
+      "result": {
+        "status": 0,
+        "stdout": "> @eshop/backend@0.1.0 db:migrate\n> node scripts/db-migrate.cjs\n\n{\n  \"command\": \"db:migrate\",\n  \"status\": \"ok\",\n  \"databaseUrl\": \"postgres://postgres:*****@127.0.0.1:5432/eshop\",\n  \"migrationId\": \"TASK-002-local-smoke-v1\",\n  \"catalogMigrationId\": \"TASK-005-catalog-seed-v1\",\n  \"tables\": [\n    \"eshop_local_migrations\",\n    \"eshop_local_smoke_records\",\n    \"eshop_local_catalog_categories\",\n    \"eshop_local_catalog_products\",\n    \"eshop_local_catalog_variants\"\n  ]\n}",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "backend-seed",
+      "command": "npm --workspace apps/backend run db:seed",
+      "result": {
+        "status": 0,
+        "stdout": "> @eshop/backend@0.1.0 db:seed\n> node scripts/db-seed.cjs\n\n{\n  \"command\": \"db:seed\",\n  \"status\": \"ok\",\n  \"databaseUrl\": \"postgres://postgres:*****@127.0.0.1:5432/eshop\",\n  \"seedKey\": \"seed:local:smoke\",\n  \"table\": \"eshop_local_smoke_records\",\n  \"catalog\": {\n    \"categories\": 4,\n    \"products\": 5,\n    \"variants\": 8,\n    \"tables\": [\n      \"eshop_local_catalog_categories\",\n      \"eshop_local_catalog_products\",\n      \"eshop_local_catalog_variants\"\n    ],\n    \"includesCurtainRods\": true,\n    \"optionalAttributeGapProducts\": 1\n  },\n  \"productionData\": false\n}",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "backend-db-smoke",
+      "command": "npm --workspace apps/backend run smoke:db",
+      "result": {
+        "status": 0,
+        "stdout": "> @eshop/backend@0.1.0 smoke:db\n> node scripts/smoke-db.cjs\n\n{\n  \"command\": \"smoke:db\",\n  \"status\": \"ok\",\n  \"databaseUrl\": \"postgres://postgres:*****@127.0.0.1:5432/eshop\",\n  \"seedVerified\": true,\n  \"writeReadVerified\": true,\n  \"smokeKey\": \"smoke:1782757362791:14236\",\n  \"table\": \"eshop_local_smoke_records\"\n}",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "backend-typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "result": {
+        "status": 0,
+        "stdout": "> @eshop/backend@0.1.0 typecheck\n> tsc --noEmit",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "storefront-typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "result": {
+        "status": 0,
+        "stdout": "> @eshop/storefront@0.1.0 typecheck\n> tsc --noEmit",
+        "stderr": ""
+      }
+    }
+  ],
+  "failedSteps": []
+}
+

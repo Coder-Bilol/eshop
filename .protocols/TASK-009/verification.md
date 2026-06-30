@@ -1,27 +1,35 @@
 ---
-description: TASK-009 local execution evidence.
+description: TASK-009 final verification evidence.
 status: complete
 ---
 # TASK-009 Verification
 
-## Local Verdict
+## Final Verdict
 
 VERDICT: PASS
 
-This is a local `/execute` verdict, not final task verification or closure.
+Mode: manual `/verify TASK-009`
+Closure owner: GENERAL
+Tier: T2
+Task status: done
+Verified at: 2026-06-29
 
 ## Gate Status
 
 - PASS: `npm run smoke:local`
-  - `.tasks/TASK-009/execute-smoke-local.txt`
+  - `.tasks/TASK-009/verify-smoke-local.txt`
 - PASS: `npm --workspace apps/backend run test:integration -- catalog`
-  - `.tasks/TASK-009/execute-backend-catalog-integration.txt`
+  - `.tasks/TASK-009/verify-backend-catalog-integration.txt`
 - PASS: `npm --workspace apps/storefront run test:e2e -- catalog`
-  - `.tasks/TASK-009/execute-storefront-catalog-e2e.txt`
+  - `.tasks/TASK-009/verify-storefront-catalog-e2e.txt`
 - PASS: `node scripts/mb-lint.mjs`
-  - `.tasks/TASK-009/execute-mb-lint.txt`
-- PASS: `node scripts/mb-doctor.mjs --strict`
-  - `.tasks/TASK-009/execute-mb-doctor-strict.txt`
+  - `.tasks/TASK-009/verify-mb-lint.txt`
+- PASS: `node scripts/mb-doctor.mjs --strict` precheck
+  - `.tasks/TASK-009/verify-mb-doctor-strict-pre.txt`
+- PASS: Playwright artifact and cleanup check
+  - `.tasks/TASK-009/verify-playwright-artifacts.txt`
+- PASS: `node scripts/mb-doctor.mjs --strict` final
+  - `.tasks/TASK-009/verify-mb-doctor-strict-final.txt`
 
 ## Acceptance Status
 
@@ -32,9 +40,18 @@ This is a local `/execute` verdict, not final task verification or closure.
 - Empty results render as an empty state, not an error.
 - Missing optional attributes render safely.
 - Browser-visible products are compared with the HTTP backend response.
+- REQ-001, REQ-002, and REQ-003 have executable evidence.
+- Forbidden scope was respected: no production data, live providers, or FT-002
+  product detail/add-to-cart implementation was used as proof.
 
 ## Browser Artifacts
 
 - `.tasks/TASK-009/playwright/catalog-trace.zip`
 - `.tasks/TASK-009/playwright/catalog-empty-state.png`
 - `.tasks/TASK-009/playwright/catalog-servers.log`
+
+## Follow-up
+
+TASK-009 is closed by manual T2 `/verify` because full protocol, packet/spec
+gates, and required evidence are present. FT-001 feature-level semantic
+completion remains a separate `/red-verify --feature FT-001` decision.

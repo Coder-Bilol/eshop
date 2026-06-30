@@ -1,0 +1,44 @@
+﻿Artifact metadata:
+
+FullName                                                              Length
+--------                                                              ------
+D:\projects\eshop\.tasks\TASK-009\playwright\catalog-empty-state.png   50384
+D:\projects\eshop\.tasks\TASK-009\playwright\catalog-trace.zip       1109841
+D:\projects\eshop\.tasks\TASK-009\playwright\catalog-servers.log         154
+
+
+
+Trace zip entries:
+trace.trace
+trace.network
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757434609.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757447270.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757447752.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757448294.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757449586.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757449818.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757450433.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757450618.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757450690.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757450754.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757450926.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757451272.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757451334.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757451478.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757451581.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757451869.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757451954.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757452004.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757452185.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757452479.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757452554.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757452572.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757452883.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757453182.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757453235.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757453269.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757453483.jpeg
+resources/page@b7c7040899e39504b3d9bac3e593365c-1782757453864.jpeg
+
+Listeners on E2E ports 3109/9109:
+none
