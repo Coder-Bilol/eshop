@@ -2,7 +2,7 @@
 description: Windows-native local development runbook for storefront, backend, and PostgreSQL.
 status: active
 owner: TASK-004
-last_updated: 2026-06-24
+last_updated: 2026-07-01
 source_of_truth:
   - .memory-bank/tech-specs/FT-011-windows-native-local-development.md
   - .memory-bank/tasks/TASK-004.task.json
@@ -51,6 +51,26 @@ If PostgreSQL is not reachable, start the Windows PostgreSQL service and verify
 that `DATABASE_URL` points to the local database, for example
 `postgres://postgres:postgres@127.0.0.1:5432/eshop`.
 
+## Prepare Medusa Backend
+
+After installing dependencies or creating a new local database, run:
+
+```bash
+npm --workspace apps/backend run db:migrate:medusa
+npm --workspace apps/backend run db:migrate
+npm --workspace apps/backend run db:seed
+npm --workspace apps/backend run seed:medusa:catalog
+```
+
+The first command creates and updates the canonical Medusa module schema. The
+second and third commands maintain infrastructure-only local smoke records. The
+fourth command idempotently creates the local catalog through supported Medusa
+workflows: categories, product types, products, options, variants, prices,
+inventory levels, sales-channel links, and a publishable API key. Its JSON
+output includes the local `publishable_api_key` value required by Store API
+clients. All commands target the local `DATABASE_URL`; do not run local setup
+commands against production or staging.
+
 ## Start Local Services
 
 For an automated bounded startup check:
@@ -74,6 +94,22 @@ Stop interactive local services with `Ctrl+C` in the terminal that started
 `npm run dev:local:watch`. Stopping Node processes must not delete local
 PostgreSQL data.
 
+To verify and run the compiled Medusa backend:
+
+```bash
+npm --workspace apps/backend run build
+npm --workspace apps/backend run start
+```
+
+Expected endpoints:
+- backend health: `http://localhost:9000/health`;
+- Medusa Admin: `http://localhost:9000/app`;
+- Store API routes under `http://localhost:9000/store/*`.
+
+Store API routes require the `x-publishable-api-key` emitted by
+`seed:medusa:catalog`. The key scopes catalog visibility and inventory
+availability to its linked sales channel.
+
 ## Run Local Smoke
 
 Run one command:
@@ -89,6 +125,26 @@ The smoke command verifies:
 - backend DB read/write smoke through the backend package boundary;
 - backend TypeScript typecheck;
 - storefront TypeScript typecheck.
+
+Run the canonical catalog checks separately when catalog behavior changes:
+
+```bash
+npm --workspace apps/backend run smoke:catalog
+npm --workspace apps/backend run smoke:product-detail
+```
+
+Run buyer-flow browser verification through the compiled Medusa Store runtime:
+
+```bash
+npm --workspace apps/storefront run test:e2e -- catalog product-detail
+```
+
+The E2E runner builds the backend, repeats the idempotent canonical seed, reads
+the local publishable key from seed output, starts compiled `medusa start`,
+passes the key to Next.js, and verifies both missing-key rejection and
+key-scoped success. It writes trace/screenshots under
+`.tasks/TASK-016/playwright/` and must report `processCleanup:
+ports-released`.
 
 Store task execution evidence under `.tasks/TASK-XXX/`, for example:
 
@@ -122,6 +178,12 @@ systems, or live payment data as local proof.
   `DATABASE_URL` in `apps/backend/.env`.
 - `DATABASE_URL must include a database name`: ensure the URL path contains the
   local database name, for example `/eshop`.
+- Missing Medusa tables such as `region_country`, `tax_provider`, or
+  `payment_provider`: run
+  `npm --workspace apps/backend run db:migrate:medusa`.
+- `Could not find index.html in the admin build directory`: run the backend
+  build again and start it through the workspace `start` script, which launches
+  from `.medusa/server`.
 - Port check fails for `3000` or `9000`: stop the process using the port or set
   local override values before starting services.
 - Typecheck fails: fix the reported workspace code issue before treating local
@@ -134,8 +196,9 @@ Before later feature work depends on the local foundation, run:
 ```bash
 npm run check:local-env
 npm run smoke:local
+npm --workspace apps/backend run build
 node scripts/mb-lint.mjs
 ```
 
-All three commands must pass without Docker containers and without production
+All commands must pass without Docker containers and without production
 credentials.

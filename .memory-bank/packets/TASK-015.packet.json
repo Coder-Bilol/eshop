@@ -1,0 +1,69 @@
+{
+  "task_id": "TASK-015",
+  "status": "ready",
+  "source_task_hash": "sha256:6f33160b74c495bd018deb18146ef54c12d6ac345d0ac746c19cd868fd7296a5",
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-015.task.json",
+    "feature": ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+      ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/contracts/api-guidelines.md",
+      ".memory-bank/domains/core-domain.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-001/plan.md",
+      ".protocols/FT-001/decision-log.md"
+    ]
+  },
+  "purpose": "Replace the parallel direct-SQL catalog with canonical Medusa commerce records and query boundaries.",
+  "success_outcome": "Catalog and product detail use Medusa-owned identity, prices, inventory, categories, and sales-channel visibility while preserving buyer behavior.",
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/**",
+      "apps/backend/scripts/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json",
+      "README.md",
+      ".memory-bank/**"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "cart/order/payment/auth implementation",
+      "production data or production migrations"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run seed:medusa:catalog",
+      "npm --workspace apps/backend run test:integration -- catalog product-detail",
+      "npm --workspace apps/backend run build",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Seeded categories, products, variants, prices, inventory, sales-channel links, and publishable API key are Medusa records.",
+      "Catalog and product-detail routes resolve Medusa Query from the request scope and do not read eshop_local_catalog_* tables.",
+      "Responses preserve FT-001 and FT-002 contract behavior and expose stable Medusa variant IDs for later cart handoff."
+    ],
+    "evidence_required": [
+      "Medusa workflow seed output with canonical record counts.",
+      "Integration output for catalog and product-detail mapping.",
+      "Backend build output.",
+      "Proof that runtime query code does not reference parallel catalog tables."
+    ]
+  },
+  "stop_conditions": [
+    "Canonical Medusa records cannot preserve required FT-001/FT-002 behavior.",
+    "Implementation requires a breaking storefront contract change.",
+    "Verification cannot prove stable Medusa variant identity."
+  ],
+  "required_handoff": [
+    "Store implementation evidence under .tasks/TASK-015/.",
+    "Run /verify TASK-015 before closure.",
+    "Do not promote TASK-016 until canonical Medusa persistence and identity are verified."
+  ]
+}

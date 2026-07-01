@@ -40,7 +40,27 @@ FT-001 does not own product detail variant selection, add-to-cart behavior, cart
 | Storefront data access | Storefront reads catalog data through Medusa Store APIs or a thin read-only catalog facade when native APIs cannot expose required MVP filters cleanly. | Keeps KISS while allowing REQ-003 without Medusa Core modifications. |
 | Search engine | Do not add a separate search service for MVP. Use Medusa/PostgreSQL-backed search/filtering or supported Medusa mechanisms. | PRD calls for moderate search/filters, not advanced search infrastructure. |
 | Filter ownership | Filter definitions are backend/catalog-owned; storefront may control display labels/order but not invent available values. | Prevents stale hardcoded filters and keeps product data authoritative. |
+| Canonical catalog model | Use Medusa Product, ProductCategory, ProductType, ProductOption, ProductVariant, Pricing, Inventory, and Sales Channel records. | Keeps catalog identity compatible with Medusa Admin, cart, inventory, and later order workflows. |
+| Store API scope | Custom `/store/*` routes require a publishable API key and use its sales-channel context. | Preserves Medusa Store API visibility and inventory scoping. |
 | Feature tier hints | Backend catalog query/facet work is at least T2; UI-only rendering may be T1; e2e coverage follows generated task scope. | Catalog API/filter semantics affect frontend/backend contract and data behavior. |
+
+## Canonical Medusa Model
+
+- Categories use Medusa `ProductCategory` records and stable handles.
+- Product type uses Medusa `ProductType`.
+- Color, material, size/length, and mounting method use Medusa product options
+  and variant option values. Missing optional attributes are represented by an
+  absent option on products that do not use that dimension.
+- Sellable identity is the Medusa Product Variant ID; SKU remains a stable
+  operator-facing identifier but must not replace the variant ID in cart or
+  inventory boundaries.
+- Variant prices use Medusa Pricing records in RUB.
+- Variant availability uses Medusa Inventory records scoped through the
+  request's publishable-key sales channel.
+- Published products are linked to the local storefront sales channel.
+- Local seed data and publishable-key creation use supported Medusa workflows;
+  direct writes to parallel `eshop_local_catalog_*` tables are not the
+  canonical catalog path.
 
 ## Catalog Query Contract
 
@@ -136,6 +156,8 @@ Recommended test levels:
 - Do not introduce an external search engine for MVP.
 - Do not modify Medusa Core.
 - Do not hardcode product catalog data in the storefront as the source of truth.
+- Do not use parallel custom product/category/variant tables as canonical
+  catalog persistence.
 - Do not implement product detail variant selection or cart behavior in FT-001.
 - Do not add analytics, recommendations, personalization, or merchandising rules.
 

@@ -1,7 +1,7 @@
 ---
 description: Feature FT-001 - catalog browsing, filtering, and search.
 status: draft
-lifecycle: implemented
+lifecycle: verified
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md
@@ -59,4 +59,8 @@ spec_design_links:
 ## Implementation Status
 
 - `TASK-009` is closed with manual T2 `/verify` evidence covering REQ-001, REQ-002, and REQ-003.
-- Feature lifecycle is `implemented`; feature-level semantic completion still requires `/red-verify --feature FT-001` before marking the feature `verified`.
+- The first feature-level `/red-verify --feature FT-001` returned `SEMANTIC_VERDICT: semantic-fail` on 2026-07-01 and identified a parallel direct-SQL catalog plus a test-only browser backend.
+- `TASK-015` closed on 2026-07-01 after canonical Medusa Product/Category/Type/Option/Variant/Pricing/Inventory/Sales Channel migration and real-container integration verification.
+- `TASK-016` closed on 2026-07-01 after publishable-key-scoped E2E through compiled Medusa Store runtime; the test-only backend was removed.
+- Repeated feature-level `/red-verify --feature FT-001` returned `SEMANTIC_VERDICT: semantic-pass`.
+- Feature lifecycle is `verified`; REQ-001, REQ-002, and REQ-003 have functional and semantic evidence.

@@ -2,7 +2,7 @@
 description: Implementation plan for FT-001 catalog browsing, filtering, and search.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-06-20
+last_updated: 2026-07-01
 source_of_truth:
   - .memory-bank/features/FT-001-catalog-browsing-filtering-search.md
   - .memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md
@@ -38,6 +38,8 @@ Implement catalog discovery for the storefront: home goods product listing, cate
 - W1: reserved for FT-011 foundation tasks.
 - W2: core catalog data, backend contract, and storefront catalog UI after W1.
 - W3: catalog edge-state polish and final FT-001 acceptance evidence after core FT-001 and FT-002 product-detail work are in place.
+- W3 remediation: replace the semantically failed parallel catalog model and
+  test-only backend harness after `TASK-014`.
 
 ## Waves
 
@@ -48,6 +50,8 @@ Implement catalog discovery for the storefront: home goods product listing, cate
 | W2 | TASK-007 | Implement storefront catalog/category/search/filter UI. |
 | W3 | TASK-008 | Add frontend catalog edge-state handling and local unit coverage. |
 | W3 | TASK-009 | Add integration/e2e coverage for FT-001 acceptance criteria. |
+| W3 | TASK-015 | Move catalog/product-detail data and queries to canonical Medusa modules. |
+| W3 | TASK-016 | Use a publishable key and verify storefront flows through the real Medusa runtime. |
 
 ## Expected Touched Files
 
@@ -71,6 +75,8 @@ Implement catalog discovery for the storefront: home goods product listing, cate
 - `npm --workspace apps/storefront run test -- catalog`
 - `npm --workspace apps/storefront run test:e2e -- catalog`
 - `npm run smoke:local`
+- `npm --workspace apps/backend run seed:medusa:catalog`
+- `npm --workspace apps/backend run build`
 - `node scripts/mb-lint.mjs`
 
 Implementation may adjust exact command names to the scaffold created by FT-011, but verification must still prove the same catalog outcomes.
@@ -92,8 +98,13 @@ Implementation may adjust exact command names to the scaffold created by FT-011,
 | Categories are visible and usable | TASK-006, TASK-007, TASK-009 |
 | Search and moderate filters narrow listings | TASK-006, TASK-007, TASK-009 |
 | Empty result and missing optional attributes are safe | TASK-005, TASK-008, TASK-009 |
+| Canonical Medusa catalog identity and persistence | TASK-015 |
+| Real Medusa Store runtime and publishable-key browser evidence | TASK-016 |
 
 ## Handoff
 
-- Next gate before execution: run `/mb-doctor` for the feature/task-queue boundary.
-- Do not start `/execute` from this command.
+- All indexed FT-001 tasks are `done`.
+- TASK-015 and TASK-016 repaired the initial feature semantic failure.
+- Feature-level `/red-verify --feature FT-001` returned
+  `SEMANTIC_VERDICT: semantic-pass` on 2026-07-01.
+- FT-001 and REQ-001..REQ-003 are synchronized as `verified`.

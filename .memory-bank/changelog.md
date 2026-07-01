@@ -4,6 +4,37 @@ status: active
 ---
 # Changelog
 
+## [2026-07-01] FT-001 semantic completion
+- Verified: repeated `/red-verify --feature FT-001` returned `SEMANTIC_VERDICT: semantic-pass` after TASK-015 and TASK-016 remediation.
+- Updated: FT-001 lifecycle and REQ-001..REQ-003 RTM lifecycle to `verified`; EP-001 lifecycle advanced to `implemented`.
+- Confirmed: canonical Medusa catalog ownership, real Store middleware/browser flow, publishable-key sales-channel scope, inventory-backed availability, and Medusa Product Variant ID handoff.
+
+## [2026-07-01] TASK-016 real Medusa Store E2E
+- Replaced: Playwright startup through `apps/backend/test/catalog-e2e-server.cjs` with the compiled real Medusa backend and canonical PostgreSQL catalog.
+- Added: storefront `x-publishable-api-key` headers for catalog/product-detail reads and Medusa Product Variant ID in the validated cart-action handoff.
+- Verified: missing key returns HTTP 400, seeded key returns HTTP 200, catalog and product-detail browser flows pass in Edge, traces/screenshots are present, and backend/storefront ports are released.
+- Closed: `TASK-016` as `done` after manual T2 `VERDICT: PASS`; FT-001 remains `implemented` until repeated feature-level red-verification.
+
+## [2026-07-01] TASK-015 canonical Medusa catalog
+- Replaced: direct runtime reads and local schema creation for parallel `eshop_local_catalog_*` tables with Medusa Query graph access.
+- Added: an idempotent workflow seed for Medusa categories, product types, products, options, variants, RUB prices, inventory levels, a stock location, sales-channel links, and a publishable API key.
+- Updated: Store catalog and product-detail routes now use request scope plus publishable-key sales-channel context and expose stable Medusa Product Variant IDs.
+- Verified: repeated seed creates no duplicates; backend typecheck, full Medusa backend/Admin build, and real-container catalog/product-detail integration pass.
+- Closed: `TASK-015` as `done` after manual T2 `VERDICT: PASS`; FT-001 remains `implemented` pending TASK-016 real-runtime browser E2E and repeated feature red-verification.
+
+## [2026-07-01] Medusa backend foundation repair
+- Added: the official Medusa `2.16.0` application dependency surface, explicit default draft-order plugin, and a complete regenerated npm lockfile.
+- Fixed: Medusa configuration normalization, compiled TypeScript emission, production start directory, source/compiled `.env` loading, and extensionless runtime route imports.
+- Applied: local Medusa module migrations and link synchronization against PostgreSQL.
+- Verified: backend typecheck and full Medusa backend/Admin build pass; the compiled backend starts and returns HTTP 200 from `/health`, while Store routes enforce the real Medusa publishable-key middleware.
+- Remaining: FT-001 still requires browser E2E through the real Store route before repeated feature red-verification.
+
+## [2026-07-01] FT-001 feature red-verification
+- Result: `/red-verify --feature FT-001` returned `SEMANTIC_VERDICT: semantic-fail`; FT-001 remains `implemented` and is not eligible for `verified`.
+- Confirmed: catalog integration and Playwright behavior pass against seeded PostgreSQL data, but E2E uses a test-only backend harness that bypasses the Medusa runtime.
+- Blocked: the Medusa backend build fails on unresolved `@medusajs/utils`, and the parallel `eshop_local_catalog_*` model has no proven Medusa Product/Variant, cart, inventory, or Admin integration boundary.
+- Updated: REQ-001..REQ-003 lifecycle returned to `implemented` pending remediation and repeated feature-level red-verification.
+
 ## [2026-06-30] TASK-014 final verification and closure
 - Verified: fresh manual `/verify TASK-014` passed Windows-native smoke, backend product-detail integration, storefront product-detail E2E, Memory Bank lint, and packet/spec gate checks.
 - Closed: `TASK-014` as `done` with T2 closure ownership by GENERAL after executable evidence and prior per-task semantic-pass red-verification.

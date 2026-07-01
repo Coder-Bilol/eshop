@@ -90,8 +90,11 @@ npm run dev:local:watch
 Для проверки backend-owned catalog seed:
 
 ```bash
-npm --workspace apps/backend run db:seed
+npm --workspace apps/backend run db:migrate:medusa
+npm --workspace apps/backend run seed:medusa:catalog
 npm --workspace apps/backend run smoke:catalog
+npm --workspace apps/backend run smoke:product-detail
+npm --workspace apps/storefront run test:e2e -- catalog product-detail
 ```
 
 ## 🔒 Что делает магазин надежным

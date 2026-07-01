@@ -98,6 +98,7 @@ export function ProductDetailSelector({ product }: { product: ProductDetail }) {
           className="handoffFailure"
           role="status"
           data-handoff-state="cart-action-unavailable"
+          data-selected-variant-id={handoff.selected_variant_id}
         >
           <strong>Cart is temporarily unavailable</strong>
           <p>

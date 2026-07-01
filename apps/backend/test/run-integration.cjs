@@ -1,26 +1,31 @@
+const { execFileSync } = require("node:child_process");
 const path = require("node:path");
 
+const backendRoot = path.resolve(__dirname, "..");
+const medusaCli = require.resolve("@medusajs/cli/cli");
 const suites = {
-  catalog: path.join(__dirname, "integration", "catalog.test.cjs"),
-  "product-detail": path.join(__dirname, "integration", "product-detail.test.cjs"),
+  catalog: "./src/scripts/smoke-catalog.ts",
+  "product-detail": "./src/scripts/smoke-product-detail.ts",
 };
 
-async function main() {
+function main() {
   const requested = process.argv.slice(2);
   const selected =
-    requested.length === 0 ? Object.keys(suites) : requested.filter((name) => suites[name]);
-
+    requested.length === 0
+      ? Object.keys(suites)
+      : requested.filter((name) => suites[name]);
   if (selected.length === 0) {
     throw new Error(
       `No integration suites matched: ${requested.join(", ") || "(none)"}`
     );
   }
 
-  const results = [];
   for (const name of selected) {
-    const suite = require(suites[name]);
-    await suite.run();
-    results.push(name);
+    execFileSync(process.execPath, [medusaCli, "exec", suites[name]], {
+      cwd: backendRoot,
+      env: process.env,
+      stdio: "inherit",
+    });
   }
 
   process.stdout.write(
@@ -28,7 +33,8 @@ async function main() {
       {
         command: "test:integration",
         status: "ok",
-        suites: results,
+        sourceBoundary: "medusa-query-graph",
+        suites: selected,
       },
       null,
       2
@@ -36,7 +42,13 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error && (error.stack || error.message) ? error.stack || error.message : error);
+try {
+  main();
+} catch (error) {
+  console.error(
+    error && (error.stack || error.message)
+      ? error.stack || error.message
+      : error
+  );
   process.exitCode = 1;
-});
+}

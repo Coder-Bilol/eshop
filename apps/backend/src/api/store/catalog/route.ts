@@ -1,14 +1,18 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/framework";
+import type { MedusaResponse, MedusaStoreRequest } from "@medusajs/framework";
 
 const {
   CatalogValidationError,
   queryCatalog,
   queryInputFromMedusaRequest,
-} = require("../../../catalog/query.ts");
+} = require("../../../catalog/query");
 
-export async function GET(req: MedusaRequest, res: MedusaResponse) {
+export async function GET(req: MedusaStoreRequest, res: MedusaResponse) {
   try {
-    const result = await queryCatalog(queryInputFromMedusaRequest(req));
+    const result = await queryCatalog(
+      req.scope,
+      queryInputFromMedusaRequest(req),
+      req.publishable_key_context.sales_channel_ids
+    );
     res.json(result);
   } catch (error) {
     if (error instanceof CatalogValidationError) {

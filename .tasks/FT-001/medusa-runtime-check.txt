@@ -1,0 +1,8 @@
+﻿server_pid=7708
+health_status=200
+health_body={"status":"ok","service":"eshop-backend"}
+admin_status=200
+catalog_without_key_status=400
+catalog_without_key_body={"type":"not_allowed","message":"Publishable API key required in the request header: x-publishable-api-key. You can manage your keys in settings in the dashboard."}
+url=http://127.0.0.1:9000
+

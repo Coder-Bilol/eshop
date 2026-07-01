@@ -5,6 +5,7 @@ export type ProductDetailOptionDimension = {
 };
 
 export type ProductDetailVariant = {
+  id: string;
   sku: string;
   title: string;
   options: Record<string, string | null>;
@@ -23,7 +24,9 @@ export type ProductDetailSelectionSource = {
   option_dimensions: ProductDetailOptionDimension[];
   variants: ProductDetailVariant[];
   requires_selection: boolean;
+  default_variant_id: string | null;
   default_variant_sku: string | null;
+  selected_variant_id: string | null;
   selected_variant_sku: string | null;
 };
 
@@ -64,6 +67,7 @@ export type VariantSelectionResult = {
 
 export type CartActionHandoff = {
   product_handle: string;
+  selected_variant_id: string;
   selected_variant_sku: string;
   quantity: 1;
   validation_state: "valid";
@@ -95,6 +99,7 @@ export async function fetchProductDetail(handle: string): Promise<ProductDetail>
       cache: "no-store",
       headers: {
         accept: "application/json",
+        "x-publishable-api-key": publishableApiKey(),
       },
     }
   );
@@ -127,6 +132,18 @@ export async function fetchProductDetail(handle: string): Promise<ProductDetail>
   }
 
   return body;
+}
+
+function publishableApiKey() {
+  const key = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY?.trim();
+  if (!key) {
+    throw new ProductDetailFetchError(
+      500,
+      "publishable_api_key_missing",
+      "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is required."
+    );
+  }
+  return key;
 }
 
 export function resolveVariantSelection(
@@ -266,6 +283,7 @@ export function buildCartActionHandoff(
 
   return {
     product_handle: productHandle,
+    selected_variant_id: selection.selectedVariant.id,
     selected_variant_sku: selection.selectedVariant.sku,
     quantity: 1,
     validation_state: "valid",

@@ -7,12 +7,8 @@ const defaultDatabaseUrl =
   "postgres://postgres:postgres@127.0.0.1:5432/eshop";
 const smokeTable = "eshop_local_smoke_records";
 const migrationsTable = "eshop_local_migrations";
-const catalogCategoriesTable = "eshop_local_catalog_categories";
-const catalogProductsTable = "eshop_local_catalog_products";
-const catalogVariantsTable = "eshop_local_catalog_variants";
 const seedKey = "seed:local:smoke";
 const migrationId = "TASK-002-local-smoke-v1";
-const catalogMigrationId = "TASK-005-catalog-seed-v1";
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -145,59 +141,6 @@ async function ensureLocalSmokeSchema(client) {
   `);
 }
 
-async function ensureLocalCatalogSchema(client) {
-  await client.query(`
-    create table if not exists ${catalogCategoriesTable} (
-      id text primary key,
-      handle text not null unique,
-      name text not null,
-      parent_id text null references ${catalogCategoriesTable}(id),
-      is_active boolean not null default true,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now()
-    )
-  `);
-
-  await client.query(`
-    create table if not exists ${catalogProductsTable} (
-      id text primary key,
-      handle text not null unique,
-      title text not null,
-      description text not null,
-      category_id text not null references ${catalogCategoriesTable}(id),
-      product_type text not null,
-      color text null,
-      material text null,
-      size_length text null,
-      mounting_method text null,
-      price_amount integer not null check (price_amount >= 0),
-      currency_code text not null default 'RUB',
-      source text not null,
-      has_optional_attribute_gap boolean not null default false,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now()
-    )
-  `);
-
-  await client.query(`
-    create table if not exists ${catalogVariantsTable} (
-      id text primary key,
-      product_id text not null references ${catalogProductsTable}(id) on delete cascade,
-      sku text not null unique,
-      title text not null,
-      color text null,
-      material text null,
-      size_length text null,
-      mounting_method text null,
-      price_amount integer not null check (price_amount >= 0),
-      currency_code text not null default 'RUB',
-      is_active boolean not null default true,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now()
-    )
-  `);
-}
-
 function printJson(summary) {
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
 }
@@ -228,12 +171,7 @@ function formatError(error) {
 }
 
 module.exports = {
-  catalogCategoriesTable,
-  catalogMigrationId,
-  catalogProductsTable,
-  catalogVariantsTable,
   createClient,
-  ensureLocalCatalogSchema,
   ensureLocalSmokeSchema,
   formatError,
   getConnectionSummary,

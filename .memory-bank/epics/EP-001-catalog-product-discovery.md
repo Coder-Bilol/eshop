@@ -1,7 +1,7 @@
 ---
 description: Epic EP-001 - catalog and product discovery.
 status: draft
-lifecycle: planned
+lifecycle: implemented
 ---
 # EP-001 Catalog And Product Discovery
 

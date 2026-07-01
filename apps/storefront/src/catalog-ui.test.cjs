@@ -199,6 +199,7 @@ const missingAttributesCatalogResponse = {
 
 async function run() {
   process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL = "http://backend.test";
+  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY = "pk_test_catalog";
 
   const fetchCalls = [];
   const responses = [
@@ -275,6 +276,10 @@ async function run() {
   assert.match(fetchCalls[0].url, /material=wood/);
   assert.match(fetchCalls[0].url, /limit=4/);
   assert.equal(fetchCalls[0].init.cache, "no-store");
+  assert.equal(
+    fetchCalls[0].init.headers["x-publishable-api-key"],
+    "pk_test_catalog"
+  );
 
   assert.match(firstHtml, /Fixture Dynamic Rod/);
   assert.match(firstHtml, /Curtain rods/);

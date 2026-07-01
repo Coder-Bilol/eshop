@@ -1,0 +1,128 @@
+{
+  "id": "TASK-015",
+  "title": "Move catalog persistence and queries to canonical Medusa modules",
+  "status": "done",
+  "wave": "W3",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005"],
+  "depends_on": ["TASK-014"],
+  "touched_files": [
+    "apps/backend/src/**",
+    "apps/backend/scripts/**",
+    "apps/backend/test/**",
+    "apps/backend/package.json",
+    "README.md",
+    ".memory-bank/**"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "Medusa catalog seed",
+      "command": "npm --workspace apps/backend run seed:medusa:catalog",
+      "required": true
+    },
+    {
+      "name": "backend catalog integration",
+      "command": "npm --workspace apps/backend run test:integration -- catalog product-detail",
+      "required": true
+    },
+    {
+      "name": "Medusa backend build",
+      "command": "npm --workspace apps/backend run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Seeded categories, products, variants, prices, inventory, sales-channel links, and publishable API key are Medusa records.",
+    "Catalog and product-detail routes resolve Medusa Query from the request scope and do not read eshop_local_catalog_* tables.",
+    "Responses preserve FT-001 and FT-002 contract behavior and expose stable Medusa variant IDs for later cart handoff.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-01",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".protocols/TASK-015/verification.md",
+        ".tasks/TASK-015/TASK-015-S-execute-final-report-code-01.md",
+        ".tasks/TASK-015/TASK-015-S-verify-final-report-code-01.md"
+      ],
+      "summary": "Canonical Medusa workflow seed, Query graph catalog/product-detail integration, stable variant IDs, pricing, inventory availability, backend/Admin build, boundary scan, Memory Bank lint, and strict doctor passed."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md",
+    ".memory-bank/runbooks/local-development.md"
+  ],
+  "evidence_required": [
+    "Medusa workflow seed output with canonical record counts.",
+    "Integration output for catalog and product-detail mapping.",
+    "Backend build output.",
+    "Proof that runtime query code does not reference parallel catalog tables."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/domains/core-domain.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use supported Medusa modules, Query, workflows, and migrations.",
+    "Preserve existing storefront catalog and product-detail response contracts.",
+    "Keep search and filtering moderate and PostgreSQL-backed."
+  ],
+  "invariants": [
+    "Do not modify Medusa Core.",
+    "Medusa Product Variant ID is the sellable identity for later cart and inventory flows.",
+    "Do not retain parallel custom product/category/variant tables as canonical catalog truth."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#canonical-medusa-model",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#verification-targets",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md"
+  ],
+  "purpose": "Replace the parallel direct-SQL catalog with canonical Medusa commerce records and query boundaries.",
+  "success_outcome": "Catalog and product detail use Medusa-owned identity, prices, inventory, categories, and sales-channel visibility while preserving buyer behavior.",
+  "anti_goals": [
+    "Do not redesign the storefront UI.",
+    "Do not implement cart persistence or checkout.",
+    "Do not introduce an external search service."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-015.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/**",
+      "apps/backend/scripts/**",
+      "apps/backend/test/**",
+      "apps/backend/package.json",
+      "README.md",
+      ".memory-bank/**"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "cart/order/payment/auth implementation",
+      "production data or production migrations"
+    ],
+    "stop_conditions": [
+      "Canonical Medusa records cannot preserve required FT-001/FT-002 behavior.",
+      "Implementation requires a breaking storefront contract change.",
+      "Verification cannot prove stable Medusa variant identity."
+    ]
+  }
+}

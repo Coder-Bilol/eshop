@@ -1,15 +1,19 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/framework";
+import type { MedusaResponse, MedusaStoreRequest } from "@medusajs/framework";
 
 const {
   ProductDetailNotFoundError,
   ProductDetailValidationError,
   productDetailInputFromMedusaRequest,
   queryProductDetail,
-} = require("../../../../catalog/product-detail.ts");
+} = require("../../../../catalog/product-detail");
 
-export async function GET(req: MedusaRequest, res: MedusaResponse) {
+export async function GET(req: MedusaStoreRequest, res: MedusaResponse) {
   try {
-    const result = await queryProductDetail(productDetailInputFromMedusaRequest(req));
+    const result = await queryProductDetail(
+      req.scope,
+      productDetailInputFromMedusaRequest(req),
+      req.publishable_key_context.sales_channel_ids
+    );
     res.json(result);
   } catch (error) {
     if (

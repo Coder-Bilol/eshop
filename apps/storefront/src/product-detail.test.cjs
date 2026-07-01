@@ -84,6 +84,7 @@ async function run() {
   assert.equal(valid.canAddToCart, true);
   assert.deepEqual(buildCartActionHandoff("curtain-rod", valid), {
     product_handle: "curtain-rod",
+    selected_variant_id: "variant_SKU-RED-SMALL",
     selected_variant_sku: "SKU-RED-SMALL",
     quantity: 1,
     validation_state: "valid",
@@ -197,6 +198,7 @@ async function run() {
 
 function variant(sku, color, sizeLength, sellable) {
   return {
+    id: `variant_${sku}`,
     sku,
     title: sku,
     price: {
@@ -236,6 +238,7 @@ function catalogVariant(sku, color, material, sizeLength) {
 
 async function verifyProductDetailFetchContract() {
   const originalFetch = global.fetch;
+  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY = "pk_test_product_detail";
   const product = {
     handle: "curtain-rod",
     title: "Curtain rod",
@@ -255,7 +258,9 @@ async function verifyProductDetailFetchContract() {
     },
     requires_selection: true,
     default_variant_sku: null,
+    default_variant_id: null,
     selected_variant_sku: null,
+    selected_variant_id: null,
     visibility: {
       status: "published",
     },
@@ -265,6 +270,10 @@ async function verifyProductDetailFetchContract() {
     global.fetch = async (url, options) => {
       assert.match(String(url), /\/store\/product-detail\/curtain-rod$/);
       assert.equal(options.cache, "no-store");
+      assert.equal(
+        options.headers["x-publishable-api-key"],
+        "pk_test_product_detail"
+      );
       return new Response(JSON.stringify(product), {
         status: 200,
         headers: { "content-type": "application/json" },

@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "test": "node src/test-runner.cjs",
-    "test:e2e": "node e2e/run-catalog-e2e.cjs",
+    "test:e2e": "node e2e/run-real-medusa-e2e.cjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

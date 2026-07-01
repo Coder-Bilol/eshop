@@ -1,0 +1,138 @@
+{
+  "id": "TASK-016",
+  "title": "Verify catalog through real Medusa Store runtime",
+  "status": "done",
+  "wave": "W3",
+  "feature": "FT-001",
+  "reqs": ["REQ-001", "REQ-002", "REQ-003", "REQ-004", "REQ-005"],
+  "depends_on": ["TASK-015"],
+  "touched_files": [
+    "apps/storefront/lib/**",
+    "apps/storefront/src/**",
+    "apps/storefront/e2e/**",
+    "apps/storefront/package.json",
+    "apps/backend/test/**",
+    "apps/backend/src/scripts/**",
+    "scripts/**",
+    "README.md",
+    ".memory-bank/**"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "Windows-native local runtime smoke",
+      "command": "npm run smoke:local",
+      "required": true
+    },
+    {
+      "name": "real Medusa storefront e2e",
+      "command": "npm --workspace apps/storefront run test:e2e -- catalog product-detail",
+      "required": true
+    },
+    {
+      "name": "workspace typecheck",
+      "command": "npm run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Storefront sends x-publishable-api-key for Store API requests.",
+    "Playwright starts the real Medusa backend, not catalog-e2e-server.cjs.",
+    "Browser evidence covers catalog, filters, product detail, variant availability, and Medusa variant-ID handoff.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-01",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".protocols/TASK-016/verification.md",
+        ".tasks/TASK-016/TASK-016-S-execute-final-report-code-01.md",
+        ".tasks/TASK-016/TASK-016-S-verify-final-report-code-01.md",
+        ".tasks/TASK-016/playwright/real-medusa-trace.zip",
+        ".tasks/TASK-016/playwright/catalog.png",
+        ".tasks/TASK-016/playwright/product-detail.png",
+        ".tasks/TASK-016/playwright/real-runtime.log"
+      ],
+      "summary": "Windows-native smoke, compiled Medusa Store E2E, publishable-key boundary, catalog/product-detail buyer flows, Medusa variant-ID handoff, unit tests, typecheck, artifact checks, port cleanup, Memory Bank lint, and strict doctor passed."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md",
+    ".memory-bank/changelog.md",
+    ".memory-bank/runbooks/local-development.md"
+  ],
+  "evidence_required": [
+    "Playwright output naming the real Medusa backend runtime.",
+    "Trace and screenshots for catalog and product detail flows.",
+    "HTTP evidence for publishable-key Store API access.",
+    "Process and port cleanup evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/features/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/tasks/plans/IMPL-FT-001.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/runbooks/local-development.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use a local publishable API key scoped to the seeded storefront sales channel.",
+    "Use the actual Medusa Store API runtime and seeded local PostgreSQL data.",
+    "Keep test startup and cleanup deterministic on Windows."
+  ],
+  "invariants": [
+    "Do not bypass Store middleware with a test-only backend server.",
+    "Do not use production secrets or production data.",
+    "Storefront must not query PostgreSQL directly."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md#verification-targets",
+    ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md",
+    ".memory-bank/testing/index.md#e2e-tests"
+  ],
+  "purpose": "Replace false-success browser evidence with end-to-end proof through the real Medusa Store runtime.",
+  "success_outcome": "The Next.js storefront browses and selects canonical Medusa products and variants through publishable-key-scoped Store APIs.",
+  "anti_goals": [
+    "Do not add production deployment behavior.",
+    "Do not create a second backend harness.",
+    "Do not implement cart persistence beyond the existing narrow handoff."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-016.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/lib/**",
+      "apps/storefront/src/**",
+      "apps/storefront/e2e/**",
+      "apps/storefront/package.json",
+      "apps/backend/test/**",
+      "apps/backend/src/scripts/**",
+      "scripts/**",
+      "README.md",
+      ".memory-bank/**"
+    ],
+    "forbidden_scope": [
+      "test-only backend replacement",
+      "production credentials or data",
+      "cart/order/payment/auth implementation"
+    ],
+    "stop_conditions": [
+      "A local publishable key cannot be created and scoped deterministically.",
+      "Real Medusa runtime cannot expose the required catalog contracts.",
+      "E2E requires production or live-provider access."
+    ]
+  }
+}

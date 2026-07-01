@@ -28,6 +28,7 @@ export type CatalogProduct = {
   };
   has_optional_attribute_gap: boolean;
   variants: Array<{
+    id: string;
     sku: string;
     title: string;
     price: {
@@ -177,6 +178,7 @@ export async function fetchCatalog(
     cache: "no-store",
     headers: {
       accept: "application/json",
+      "x-publishable-api-key": publishableApiKey(),
     },
   });
 
@@ -185,6 +187,16 @@ export async function fetchCatalog(
   }
 
   return (await response.json()) as CatalogResponse;
+}
+
+function publishableApiKey() {
+  const key = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY?.trim();
+  if (!key) {
+    throw new CatalogFetchError(
+      "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is required."
+    );
+  }
+  return key;
 }
 
 export function formatCatalogMoney(amount: number, currencyCode: string) {
