@@ -1,0 +1,114 @@
+{
+  "id": "TASK-021",
+  "title": "Expose authenticated cart merge API",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-003",
+  "reqs": ["REQ-008"],
+  "depends_on": ["TASK-020"],
+  "touched_files": [
+    "apps/backend/package.json",
+    "apps/backend/src/api/middlewares.ts",
+    "apps/backend/src/api/store/carts/[id]/merge/route.ts",
+    "apps/backend/src/api/store/carts/[id]/merge/validators.ts",
+    "apps/backend/src/scripts/smoke-cart-merge-api.ts",
+    "apps/backend/test/run-integration.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "authenticated cart merge API integration",
+      "command": "npm --workspace apps/backend run test:integration -- cart-merge-api",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Route requires customer actor context and rejects client destination/customer fields.",
+    "Foreign-owned source is denied without data disclosure and incompatible/stock/in-progress failures use stable codes.",
+    "Completed replay validates journal customer before source retrieval and returns the recorded target when the source is soft-deleted.",
+    "Concurrent requests converge on one journal result or bounded cart_merge_in_progress response.",
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Authenticated allow/deny and request-validation integration output.",
+    "Journal-first soft-deleted-source replay output.",
+    "Concurrent-request and stable-error output.",
+    "T3 human checkpoint and rollback/recovery note before closure."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Derive customer identity only from authenticated Medusa request context.",
+    "Resolve completed journal replay before requiring source retrieval.",
+    "Return sanitized stable errors and no success before workflow completion."
+  ],
+  "invariants": [
+    "Client cannot select destination or customer.",
+    "A consumed source remains replayable only by its recorded customer.",
+    "Replay and concurrency cannot increment target quantities again."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/cart-api-data-contract.md#custom-merge-route",
+    ".memory-bank/contracts/cart-api-data-contract.md#consumed-source-behavior",
+    ".memory-bank/contracts/cart-access-security.md#ownership-guards",
+    ".memory-bank/states/cart-ownership-merge.md#concurrency-and-retry"
+  ],
+  "purpose": "Expose the security-sensitive HTTP boundary around the completed merge lifecycle.",
+  "success_outcome": "Only the authenticated owner can invoke or replay merge, with deterministic safe responses under retries and concurrency.",
+  "anti_goals": [
+    "Do not implement OAuth providers or login UI.",
+    "Do not duplicate Store cart CRUD routes.",
+    "Do not accept destination or customer identity from the request."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-021.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/package.json",
+      "apps/backend/src/api/middlewares.ts",
+      "apps/backend/src/api/store/carts/[id]/merge/route.ts",
+      "apps/backend/src/api/store/carts/[id]/merge/validators.ts",
+      "apps/backend/src/scripts/smoke-cart-merge-api.ts",
+      "apps/backend/test/run-integration.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "OAuth provider configuration or credentials",
+      "storefront behavior",
+      "Medusa Core modification",
+      "production data"
+    ],
+    "stop_conditions": [
+      "Authenticated actor ownership cannot be proven at the route boundary.",
+      "Replay would require restoring or reading the consumed source.",
+      "A public response must diverge from the linked API contract."
+    ]
+  }
+}

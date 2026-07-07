@@ -155,6 +155,7 @@ async function main() {
           withKeyStatus: 200,
         },
         variantIdentity: "medusa-product-variant-id",
+        mediaContract: "string-url",
         trace: ".tasks/TASK-016/playwright/real-medusa-trace.zip",
         screenshots: selectedSuites.map(
           (suite) => `.tasks/TASK-016/playwright/${suite}.png`
@@ -233,10 +234,24 @@ async function verifyProductDetail(page, publishableKey) {
     publishableKey
   );
   assert.equal(product.requires_selection, true);
-  assert.ok(product.variants.every((variant) => variant.id.startsWith("variant_")));
+  assert.ok(
+    product.variants.every((variant) => variant.id.startsWith("variant_"))
+  );
+  assert.deepEqual(product.media, [
+    "/seed/steel-telescopic-curtain-rod.svg",
+  ]);
 
   await page.goto(`${storefrontUrl}/products/${product.handle}`);
   await visible(page.getByRole("heading", { name: product.title }));
+  const productImage = page.getByRole("img", { name: product.title });
+  await visible(productImage);
+  assert.equal(await productImage.getAttribute("src"), product.media[0]);
+  assert.equal(
+    await productImage.evaluate(
+      (image) => image.complete && image.naturalWidth > 0
+    ),
+    true
+  );
   await visible(page.getByText("Select all required options", { exact: true }));
   await assertAddToCartState(page, true);
 

@@ -4,6 +4,193 @@ status: active
 ---
 # Changelog
 
+## [2026-07-07] TASK-021 authenticated cart merge API execute
+- Added authenticated `POST /store/carts/:id/merge` Store API route backed by
+  TASK-019 planning and TASK-020 lifecycle workflow.
+- Added route middleware for customer authentication and strict route-owned
+  empty-body validation to keep stable `cart_merge_invalid_request` envelopes.
+- Added PostgreSQL-backed Medusa integration smoke covering auth, invalid body,
+  transfer, merge, journal-first replay, foreign source denial, pending journal,
+  and stock conflict.
+- Verified locally during `/execute`: cart merge API integration, backend
+  typecheck, TASK-020 lifecycle regression, Memory Bank lint, and scope audit
+  pass.
+- Not closed: `TASK-021` remains `planned`; T3 closure still requires
+  `/verify TASK-021`, per-task `/red-verify TASK-021`, and exact
+  `HUMAN_CHECKPOINT: done`.
+
+## [2026-07-07] TASK-020 manual closure sync
+- Closed: `TASK-020` is now `done` after explicit manual closure instruction
+  from the user.
+- Confirmed: repeated `/verify TASK-020` is `VERDICT: PASS`, repeated
+  per-task `/red-verify TASK-020` is `SEMANTIC_VERDICT: semantic-pass`, and T3
+  markers are present: `HUMAN_CHECKPOINT: done` and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Synced: task record, protocol state, packet hash, and changelog.
+- Not promoted: no dependent task was advanced during `/mb-sync`; TASK-021
+  readiness remains a separate scheduler/manual decision.
+
+## [2026-07-07] TASK-020 repeated red-verification
+- Result: repeated per-task `/red-verify TASK-020` returned
+  `SEMANTIC_VERDICT: semantic-pass` after duplicate target-line remediation.
+- Confirmed: TASK-019 planning, linked SDD aggregation semantics, and TASK-020
+  lifecycle now align for duplicate target same-variant lines.
+- Resolved: `.memory-bank/bugs/TASK-020-duplicate-target-variant-lines.md`.
+- Not closed: TASK-020 remains `planned`; T3 closure still requires exact
+  `HUMAN_CHECKPOINT: done` under an explicit closure owner.
+
+## [2026-07-07] TASK-020 repeated verification after duplicate-line repair
+- Verified: repeated manual `/verify TASK-020` passed after duplicate target
+  variant-line remediation.
+- Evidence: lifecycle integration now includes
+  `targetDuplicateVariantLinesMerged: true`; backend typecheck, Memory Bank
+  lint, and strict doctor pass.
+- Status: TASK-020 remains `planned`; previous per-task `/red-verify` is still
+  `semantic-fail` until repeated after this repair, and T3 closure still
+  requires `HUMAN_CHECKPOINT: done`.
+
+## [2026-07-07] TASK-020 duplicate target-line remediation
+- Repaired: TASK-020 runtime now validates target before-state by aggregate
+  Product Variant ID quantity plus planned anchor-line presence instead of
+  rejecting duplicate target lines.
+- Added: lifecycle regression creates duplicate target same-variant lines
+  through Medusa `addToCartWorkflow`, proves compensation restores the
+  aggregate, and proves success reaches the exact summed target quantity.
+- Verified locally during `/execute`: backend typecheck, cart-merge lifecycle
+  integration, TASK-017/TASK-019 regression, Memory Bank lint, and scope scan
+  pass.
+- Not closed: previous `/red-verify` remains `semantic-fail` until rerun;
+  TASK-020 remains `planned` pending repeated `/verify`, repeated
+  `/red-verify`, and `HUMAN_CHECKPOINT: done`.
+
+## [2026-07-07] TASK-020 red-verification
+- Result: per-task `/red-verify TASK-020` returned
+  `SEMANTIC_VERDICT: semantic-fail`.
+- Blocker: linked FT-003 SDD and TASK-019 planning aggregate source and target
+  lines by `variant_id`, but TASK-020 runtime rejects target carts that contain
+  more than one line for a planned target variant.
+- Recorded: `.memory-bank/bugs/TASK-020-duplicate-target-variant-lines.md`.
+- Not closed: TASK-020 remains `planned`; repair, repeat `/verify`, repeat
+  `/red-verify`, and human checkpoint are required before T3 closure.
+
+## [2026-07-07] TASK-020 independent verification
+- Verified: repeated manual `/verify TASK-020` passed after the core-workflow
+  remediation. The runtime now uses Medusa core workflows for ownership and
+  target-line mutation, with direct Cart Module calls limited to source
+  soft-delete/restore.
+- Evidence: cart merge lifecycle integration, backend typecheck, Memory Bank
+  lint, and strict doctor pass. Integration assertions cover exact quantities,
+  poisoned source pricing isolation, target totals, taxes, promotions, ordering,
+  restore-first compensation, retry, and stock conflict.
+- Resolved: `.memory-bank/bugs/TASK-020-core-cart-workflow-bypass.md`.
+- Not closed: TASK-020 remains `planned` because T3 closure still requires
+  per-task `/red-verify TASK-020` semantic-pass and `HUMAN_CHECKPOINT: done`.
+
+## [2026-07-05] TASK-020 core cart workflow remediation
+- Replaced direct ownership and target line-item mutations with composed Medusa
+  `transferCartCustomerWorkflow`, `addToCartWorkflow`, and forced
+  `refreshCartItemsWorkflow` execution under the existing sorted cart locks.
+- Retained direct Cart Module calls only for source `softDeleteCarts` and
+  restore-first `restoreCarts` compensation.
+- Added PostgreSQL-backed evidence that poisoned source pricing is not copied,
+  final absolute quantities and totals match a reference Medusa cart, and
+  positive tax totals and promotion discounts are recalculated.
+- Local lifecycle, TASK-017/TASK-019 regression, backend typecheck, and Memory
+  Bank lint gates pass; independent `/verify` and per-task `/red-verify` remain
+  required before T3 closure.
+
+## [2026-07-04] TASK-020 compensatable cart merge lifecycle
+- Added: a T3 Medusa workflow with sorted cart locks, immutable-plan journal
+  lifecycle, core inventory confirmation, exact target mutations, and
+  no-target ownership transfer.
+- Added: existing-target source soft-delete after target mutation, restore-first
+  compensation, reverse target rollback, failed-journal guarded retry, and
+  completion only after source disposition succeeds.
+- Added: real Medusa/PostgreSQL integration coverage for ownership transfer,
+  injected post-soft-delete failure, successful retry, journal ordering, and
+  stock-conflict no-mutation behavior.
+- Verify failed: quantity/lifecycle gates pass, but ownership and target-line
+  changes bypass the required Medusa core cart workflows and directly copy
+  source pricing snapshots; target pricing/tax/promotion correctness is not
+  proven.
+- Blocked: recorded
+  `.memory-bank/bugs/TASK-020-core-cart-workflow-bypass.md`; repair and repeat
+  `/verify` before per-task `/red-verify`, human checkpoint, or T3 closure.
+
+## [2026-07-04] TASK-018 Store cart client and browser reference adapter
+- Added: a typed storefront client for the installed Medusa Store create,
+  retrieve, add-line, absolute update-line, and remove-line cart routes.
+- Added: versioned `eshop.cart.v1` browser persistence containing only the
+  opaque cart ID, plus invalid/stale reference clearing.
+- Added: deterministic client-side validation and stable application error codes
+  without exposing transport details or persisting authoritative cart data.
+- Verified independently: manual T2 `/verify` passed installed-route inspection,
+  focused and full storefront tests, typecheck, strict doctor, and Memory Bank
+  lint.
+- Synced: task verification evidence, protocol state, and required packet hash
+  are consistent; FT-003, EP-002, REQ-006, and REQ-007 correctly remain
+  `planned`.
+- Closed: after explicit user instruction, `GENERAL` recorded TASK-018 as
+  `done`; no dependent promotion was performed, and no cart UI, authenticated
+  merge, OAuth, or checkout was added.
+
+## [2026-07-04] TASK-019 deterministic cart merge planning
+- Added: read-only Medusa Cart Module planning state, actor-scoped destination
+  candidates, deterministic `updated_at DESC, id ASC` target selection, and
+  immutable absolute-quantity plans keyed by Product Variant ID.
+- Added: real Medusa/PostgreSQL integration coverage for actor scoping,
+  compatibility rejection, same-variant aggregation, tie-breaking, ownership
+  guards, malformed/overflow quantities, transfer mode, and read-before/after
+  no-mutation proof.
+- Verified locally during `/execute`: cart-merge-plan integration, TASK-017
+  persistence regression, backend typecheck, planning-slice mutation scan, and
+  Memory Bank lint.
+- Verified independently: manual T2 `/verify` passed packet/spec gates, real
+  Medusa Cart Module/PostgreSQL planning integration, backend typecheck, strict
+  doctor, and Memory Bank lint.
+- Synced: task verification evidence, protocol state, and required packet hash
+  are consistent; FT-003, EP-002, and REQ-008 correctly remain `planned`.
+- Closed: after explicit user instruction, `GENERAL` recorded TASK-019 as
+  `done`; no dependent promotion was performed, and no mutation, HTTP/auth,
+  journal transitions, or storefront behavior was introduced.
+
+## [2026-07-04] TASK-017 cart merge journal implementation
+- Added: registered Medusa `cartMerge` module with one PostgreSQL-backed `CartMerge` journal model, generated migration, unique active `source_cart_id`, actor/status and target indexes, and no cross-module foreign keys.
+- Added: a two-process Medusa exec smoke that creates a journal, proves duplicate-source rejection, and reads the same record after fresh runtime/module resolution.
+- Verified: independent manual T2 `/verify` passed packet/spec gates, strict doctor, repeated migration, PostgreSQL persistence/uniqueness, migration-scope inspection, backend typecheck, and Memory Bank lint.
+- Closed: `TASK-017` is `done`; FT-003 and REQ-008 remain `planned` because the
+  merge behavior is distributed across TASK-019..TASK-026.
+- Synced: task index, closure evidence, protocol, packet reference/hash,
+  changelog, feature lifecycle, and RTM are consistent. TASK-019 is legally
+  promotion-eligible but remains `planned` pending a separate status-transition
+  owner after `/mb-sync`.
+
+## [2026-07-03] FT-003 repaired task decomposition
+- Refreshed: `IMPL-FT-003`, TASK-017..TASK-026, and all required Execution Packets from the consumed-source soft-delete SDD repair.
+- Split: merge planning, compensatable lifecycle, authenticated API, guest state, cart UI, post-auth handoff, backend acceptance, and browser acceptance now have separate bounded tasks.
+- Covered: source `softDeleteCarts`, compensation `restoreCarts`, journal-first replay, consumed-source Store not-found behavior, and exact packet hashes.
+- Next gate: strict `/mb-doctor` at the feature/task-queue boundary before TASK-017 or TASK-018 execution.
+
+## [2026-07-02] FT-003 consumed-source SDD repair
+- Decided: after a successful merge into an existing customer cart, the guest source cart is soft-deleted through the Medusa Cart Module; a no-target ownership transfer keeps the source active as the target.
+- Defined: completed replay queries the durable merge journal before source retrieval, ordinary Store CRUD for the consumed source returns not found, and compensation restores the source before reverting target mutations.
+- Preserved: source cart and line data are not hard-deleted or cleared, Medusa Core remains unchanged, and no cross-route middleware wrapper is introduced.
+- Required next route: rerun `/prd-to-tasks FT-003` to update the pre-repair implementation plan, TASK records, and Execution Packets before any FT-003 `/execute`.
+
+## [2026-07-02] FT-003 SDD and task decomposition
+- Completed: feature-level SDD for guest cart persistence and authenticated merge across architecture/component, REST API, event, boundary payload, persistence, state, and security/access contracts.
+- Reused: Medusa Cart Module and built-in Store cart/line-item routes; added only the missing authenticated merge endpoint design and a small PostgreSQL-backed idempotency/recovery journal.
+- Added: `IMPL-FT-003`, schema-backed `TASK-017`..`TASK-022`, and ready hash-matched Execution Packets.
+- Routed: TASK-017 and TASK-018 are ready; authenticated merge/handoff/final verification tasks are T3 and retain required security, human-checkpoint, and rollback/recovery gates.
+- Next gate: strict `/mb-doctor` at the FT-003 feature/task-queue boundary before `/execute`.
+
+## [2026-07-02] FT-002 semantic repair
+- Fixed: product-detail media now crosses canonical Medusa Query, Store API, and storefront rendering as a consistent URL-string contract.
+- Added: image-bearing canonical fixture reconciliation plus real-browser proof that the product image URL loads successfully.
+- Hardened: variants without a usable SKU remain non-sellable and cannot reach the FT-002 cart-action handoff.
+- Verified: repeated canonical seed, product-detail integration, backend/storefront typechecks, storefront unit coverage, compiled Medusa browser E2E, and strict doctor pass.
+- Result: repeated feature-level red-verification returns `SEMANTIC_VERDICT: semantic-pass`; FT-002 and EP-001 lifecycle are synchronized to `verified`.
+
 ## [2026-07-01] FT-001 semantic completion
 - Verified: repeated `/red-verify --feature FT-001` returned `SEMANTIC_VERDICT: semantic-pass` after TASK-015 and TASK-016 remediation.
 - Updated: FT-001 lifecycle and REQ-001..REQ-003 RTM lifecycle to `verified`; EP-001 lifecycle advanced to `implemented`.

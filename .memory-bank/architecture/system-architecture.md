@@ -2,7 +2,7 @@
 description: Global system architecture backbone for the MVP internet shop.
 status: active
 owner: spec-design
-last_updated: 2026-06-23
+last_updated: 2026-07-07
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -179,8 +179,9 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 ## Deployment Assumptions
 
 - The only designed local runtime path in this backbone is Windows 10 native development with local Node.js/npm processes and local PostgreSQL.
-- Docker is reserved for a future remote server deployment path and is not part of local development.
-- Remote server deployment is not designed by this `/spec-design` pass. Any remote deploy, Docker server deployment, live payment mutation, production migration, or production secret handling must be scoped as T3 with explicit operator approval and rollback/recovery notes.
+- Docker remains excluded from local development.
+- Remote server deployment runbook lives in [DEPLOYMENT.md](../../DEPLOYMENT.md): AlmaLinux VPS, Docker Compose application containers, PostgreSQL container, and host-level Caddy reverse proxy with automatic HTTPS.
+- Any remote deploy, Docker server deployment, live payment mutation, production migration, or production secret handling must be scoped as T3 with explicit operator approval and rollback/recovery notes.
 
 ## Risks
 
@@ -194,7 +195,7 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 - Which email provider or SMTP configuration will be used for MVP local/staging?
 - Which YooKassa local/staging account, webhook URL, and tunneling approach will be available?
 - Which exact Medusa extension points will own reservation release/finalization and status/admin field mapping?
-- What production deployment target, if any, will be introduced after MVP local development?
+- Which external PostgreSQL backup target and production registry/tag policy will be used for the VPS deployment?
 
 These questions do not block the global backbone. They block only the feature-local specs or implementation tasks that require those details.
 

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-022-R2",
+  "task_id": "TASK-022",
+  "created_at": "2026-07-03T22:17:14+03:00",
+  "source_task_hash": "sha256:6e5c85f8a3645e258b100ccf304c0f8b35b8b84200b9b588993d227c9619f567",
+  "status": "ready",
+  "tier": "T2",
+  "purpose": "Provide one deterministic guest-cart state boundary before rendering and post-auth integration.",
+  "success_outcome": "Storefront state can create, restore, mutate, and recover a backend-owned guest cart without browser-authoritative data.",
+  "anti_goals": [
+    "Do not implement cart page markup.",
+    "Do not implement authenticated merge or OAuth.",
+    "Do not cache cart payloads in local storage."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-022.task.json",
+    "feature": ".memory-bank/features/FT-003-guest-cart-persistence-merge.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+      ".memory-bank/architecture/cart-runtime.md",
+      ".memory-bank/contracts/cart-api-data-contract.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-003/plan.md",
+      ".protocols/FT-003/decision-log.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/storefront/lib/cart-state.ts",
+      "apps/storefront/components/cart-provider.tsx",
+      "apps/storefront/src/cart-state.test.cjs",
+      "apps/storefront/src/test-runner.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "cart page/product-detail rendering",
+      "authenticated merge or OAuth",
+      "backend, checkout, order, or payment behavior"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/storefront run test -- cart-state",
+      "npm --workspace apps/storefront run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Lazy create and mutations adopt backend cart responses.",
+      "Only opaque versioned reference is persisted.",
+      "Reload and stale/error recovery are deterministic."
+    ],
+    "evidence_required": [
+      "Cart-state test output.",
+      "Reference-only and stale-recovery assertions.",
+      "Typecheck and Memory Bank lint output."
+    ]
+  },
+  "stop_conditions": [
+    "The Store client cannot expose required backend response state.",
+    "Persistence would require storing cart contents or auth credentials.",
+    "Recovery cannot distinguish stale reference from backend failure."
+  ],
+  "required_handoff": [
+    "Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.",
+    "Store substantive evidence under .tasks/TASK-022/.",
+    "Run /verify TASK-022 before manual or scheduler closure."
+  ]
+}

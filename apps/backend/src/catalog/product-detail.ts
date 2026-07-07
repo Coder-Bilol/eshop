@@ -24,7 +24,7 @@ type ProductDetailVariant = {
   availability: {
     is_available: boolean;
     is_sellable: boolean;
-    reason: "unavailable" | "missing_price" | null;
+    reason: "unavailable" | "missing_price" | "missing_sku" | null;
   };
 };
 

@@ -15,6 +15,7 @@ import {
   createStockLocationsWorkflow,
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
+  updateProductsWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows";
 
@@ -52,6 +53,7 @@ type CatalogProductFixture = {
   productType: string;
   currencyCode?: string;
   hasOptionalAttributeGap?: boolean;
+  media?: string[];
   variants: CatalogVariantFixture[];
 };
 
@@ -326,60 +328,91 @@ async function ensureProducts(
 ) {
   const { data: existing } = await query.graph({
     entity: "product",
-    fields: ["id", "handle"],
+    fields: ["id", "handle", "images.url"],
     filters: { handle: products.map((product) => product.handle) },
   });
   const existingHandles = new Set(existing.map((product) => product.handle));
   const missing = products.filter(
     (product) => !existingHandles.has(product.handle)
   );
-  if (missing.length === 0) return 0;
-
-  await createProductsWorkflow(container).run({
-    input: {
-      products: missing.map((product) => {
-        const options = optionDefinitions(product.variants);
-        return {
-          title: product.title,
-          handle: product.handle,
-          description: product.description,
-          status: ProductStatus.PUBLISHED,
-          category_ids: [String(categoryIds.get(categoryHandle(product.categoryId)))],
-          type_id: String(productTypeIds.get(product.productType)),
-          shipping_profile_id: shippingProfileId,
-          sales_channels: [{ id: salesChannelId }],
-          metadata: {
-            fixture_key: product.id,
-            has_optional_attribute_gap: Boolean(
-              product.hasOptionalAttributeGap
-            ),
-          },
-          options,
-          variants: product.variants.map((variant) => ({
-            title: variant.title,
-            sku: variant.sku,
-            manage_inventory: true,
-            allow_backorder: false,
-            metadata: {
-              fixture_key: variant.id,
-              seed_available: variant.isActive !== false,
-            },
-            options: variantOptions(variant, options),
-            prices: [
-              {
-                amount: variant.priceAmount,
-                currency_code: (
-                  variant.currencyCode ||
-                  product.currencyCode ||
-                  "RUB"
-                ).toLowerCase(),
-              },
+  if (missing.length > 0) {
+    await createProductsWorkflow(container).run({
+      input: {
+        products: missing.map((product) => {
+          const options = optionDefinitions(product.variants);
+          return {
+            title: product.title,
+            handle: product.handle,
+            description: product.description,
+            status: ProductStatus.PUBLISHED,
+            category_ids: [
+              String(categoryIds.get(categoryHandle(product.categoryId))),
             ],
-          })),
-        };
-      }),
-    },
+            type_id: String(productTypeIds.get(product.productType)),
+            shipping_profile_id: shippingProfileId,
+            sales_channels: [{ id: salesChannelId }],
+            images: (product.media || []).map((url) => ({ url })),
+            metadata: {
+              fixture_key: product.id,
+              has_optional_attribute_gap: Boolean(
+                product.hasOptionalAttributeGap
+              ),
+            },
+            options,
+            variants: product.variants.map((variant) => ({
+              title: variant.title,
+              sku: variant.sku,
+              manage_inventory: true,
+              allow_backorder: false,
+              metadata: {
+                fixture_key: variant.id,
+                seed_available: variant.isActive !== false,
+              },
+              options: variantOptions(variant, options),
+              prices: [
+                {
+                  amount: variant.priceAmount,
+                  currency_code: (
+                    variant.currencyCode ||
+                    product.currencyCode ||
+                    "RUB"
+                  ).toLowerCase(),
+                },
+              ],
+            })),
+          };
+        }),
+      },
+    });
+  }
+
+  const fixtureMediaUpdates = existing.flatMap((product) => {
+    const fixture = products.find((item) => item.handle === product.handle);
+    if (!fixture?.media) return [];
+
+    const currentUrls = (product.images || [])
+      .map((image: { url?: unknown }) => String(image.url || "").trim())
+      .filter(Boolean);
+    const matchesFixture =
+      currentUrls.length === fixture.media.length &&
+      currentUrls.every(
+        (url: string, index: number) => url === fixture.media?.[index]
+      );
+    if (matchesFixture) return [];
+
+    return [
+      {
+        id: String(product.id),
+        images: fixture.media.map((url) => ({ url })),
+      },
+    ];
   });
+
+  if (fixtureMediaUpdates.length > 0) {
+    await updateProductsWorkflow(container).run({
+      input: { products: fixtureMediaUpdates },
+    });
+  }
 
   return missing.length;
 }

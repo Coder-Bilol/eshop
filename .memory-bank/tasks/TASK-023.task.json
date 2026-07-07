@@ -1,0 +1,114 @@
+{
+  "id": "TASK-023",
+  "title": "Connect product detail and guest cart UI",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-003",
+  "reqs": ["REQ-006", "REQ-007"],
+  "depends_on": ["TASK-022"],
+  "touched_files": [
+    "apps/storefront/app/layout.tsx",
+    "apps/storefront/app/cart/**",
+    "apps/storefront/components/cart-view.tsx",
+    "apps/storefront/components/product-detail-selector.tsx",
+    "apps/storefront/src/cart-view.test.cjs",
+    "apps/storefront/src/product-detail.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "storefront cart view tests",
+      "command": "npm --workspace apps/storefront run test -- cart-view",
+      "required": true
+    },
+    {
+      "name": "storefront product detail regression",
+      "command": "npm --workspace apps/storefront run test -- product-detail",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "A valid Medusa Product Variant ID from product detail reaches guest-cart add without weakening selection guards.",
+    "Cart page renders backend items/totals and supports absolute quantity update and remove.",
+    "Loading, empty, stale, validation, stock conflict, and backend failure states are visible and recoverable.",
+    "Reload renders the retrieved backend cart rather than cached line data."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Cart-view and product-detail regression output.",
+    "Component evidence for success, empty, stale, conflict, and failure states.",
+    "Storefront typecheck and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/contracts/cart-api-data-contract.md"
+  ],
+  "constraints": [
+    "Use TASK-022 state orchestration.",
+    "Preserve FT-002 valid-variant handoff and blocked-selection behavior.",
+    "Render only backend-returned cart truth."
+  ],
+  "invariants": [
+    "Only a valid Medusa Product Variant ID reaches add-to-cart.",
+    "UI state cannot change ownership or claim uncommitted success.",
+    "Stale references are cleared."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#ux-contract",
+    ".memory-bank/contracts/cart-api-data-contract.md#storefront-cart-view",
+    ".memory-bank/testing/index.md#e2e-tests"
+  ],
+  "purpose": "Turn guest-cart state orchestration into the buyer-visible add, view, update, remove, and reload flow.",
+  "success_outcome": "A buyer can use a persistent backend-owned guest cart from product detail through the cart page.",
+  "anti_goals": [
+    "Do not implement authenticated merge, login, checkout, order, or payment.",
+    "Do not replace FT-002 selection validation.",
+    "Do not add browser-authoritative cart data."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-023.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/app/layout.tsx",
+      "apps/storefront/app/cart/**",
+      "apps/storefront/components/cart-view.tsx",
+      "apps/storefront/components/product-detail-selector.tsx",
+      "apps/storefront/src/cart-view.test.cjs",
+      "apps/storefront/src/product-detail.test.cjs",
+      "apps/storefront/src/test-runner.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "authenticated merge or OAuth",
+      "backend cart APIs",
+      "checkout, order, inventory reservation, or payment"
+    ],
+    "stop_conditions": [
+      "FT-002 no longer supplies a valid Product Variant ID.",
+      "Rendered success cannot be tied to a backend cart response.",
+      "Required UI behavior conflicts with the linked UX contract."
+    ]
+  }
+}

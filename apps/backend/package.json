@@ -15,6 +15,10 @@
     "smoke:db": "node scripts/smoke-db.cjs",
     "smoke:catalog": "medusa exec ./src/scripts/smoke-catalog.ts",
     "smoke:product-detail": "medusa exec ./src/scripts/smoke-product-detail.ts",
+    "smoke:cart-merge-persistence": "medusa exec ./src/scripts/smoke-cart-merge-persistence.ts",
+    "smoke:cart-merge-plan": "medusa exec ./src/scripts/smoke-cart-merge-plan.ts",
+    "smoke:cart-merge-lifecycle": "medusa exec ./src/scripts/smoke-cart-merge-lifecycle.ts",
+    "smoke:cart-merge-api": "medusa exec ./src/scripts/smoke-cart-merge-api.ts",
     "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },

@@ -2,6 +2,14 @@
 description: Feature FT-003 - guest cart persistence and merge.
 status: draft
 lifecycle: planned
+spec_design_status: complete
+spec_design_links:
+  - .memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md
+  - .memory-bank/architecture/cart-runtime.md
+  - .memory-bank/contracts/cart-api-data-contract.md
+  - .memory-bank/contracts/cart-access-security.md
+  - .memory-bank/domains/cart-merge-data.md
+  - .memory-bank/states/cart-ownership-merge.md
 ---
 # FT-003 Guest Cart Persistence Merge
 
@@ -37,11 +45,56 @@ lifecycle: planned
 ## Normative Inputs
 
 - [.memory-bank/invariants.md](../invariants.md)
+- [.memory-bank/architecture/system-architecture.md](../architecture/system-architecture.md)
+- [.memory-bank/contracts/api-guidelines.md](../contracts/api-guidelines.md)
+- [.memory-bank/states/order-payment-inventory.md](../states/order-payment-inventory.md)
+- [.memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md](../tech-specs/FT-003-guest-cart-persistence-merge.md)
+- [.memory-bank/architecture/cart-runtime.md](../architecture/cart-runtime.md)
+- [.memory-bank/contracts/cart-api-data-contract.md](../contracts/cart-api-data-contract.md)
+- [.memory-bank/contracts/cart-access-security.md](../contracts/cart-access-security.md)
+- [.memory-bank/domains/cart-merge-data.md](../domains/cart-merge-data.md)
+- [.memory-bank/states/cart-ownership-merge.md](../states/cart-ownership-merge.md)
 
 ## SDD Design Gate
 
-- Global `/spec-design` gate is complete; verify it before task decomposition.
-- Global backbone links: [.memory-bank/architecture/system-architecture.md](../architecture/system-architecture.md), [.memory-bank/contracts/api-guidelines.md](../contracts/api-guidelines.md), [.memory-bank/states/order-payment-inventory.md](../states/order-payment-inventory.md).
-- Run `/prd-to-tasks FT-003`; it owns feature-level SDD design before task slicing and will set `spec_design_status: complete|not_required|blocked`.
-- Design focus: cart ownership, merge semantics, stock validation after merge.
-- Use standalone `/spec-improve FT-003` only for repair/refresh without creating or updating task records.
+- Global `/spec-design` gate: complete.
+- Feature-level SDD: complete; the linked specs define architecture, component,
+  API, event, boundary payload, persistence, state, and access/security contracts.
+- Repair decision: an existing-target merge soft-deletes the source through the
+  Medusa Cart Module, restores it during compensation, and resolves completed
+  replay from the journal before source retrieval.
+- Implementation route: the repaired TASK-017..TASK-026 queue and packets are
+  current; run strict `/mb-doctor` before the first `/execute`.
+
+## Constraints
+
+- Medusa Cart Module and PostgreSQL remain the durable cart source of truth.
+- Browser persistence stores only the opaque cart reference and schema version,
+  never authoritative line items, totals, ownership, or availability.
+- Reuse Medusa Store cart and line-item routes; do not create duplicate CRUD APIs.
+- FT-003 may consume authenticated customer context but does not implement Google
+  OAuth or VK ID; provider login remains FT-004.
+- Merge must be retry-safe, must sum by Medusa Product Variant ID, and must not
+  silently truncate quantities when stock validation fails.
+- After a merge into an existing customer cart succeeds, the source cart is
+  soft-deleted through the Medusa Cart Module; a no-target ownership transfer
+  keeps the source cart active as the target.
+- Completed-merge replay is resolved from the durable journal before source-cart
+  retrieval, so a soft-deleted source cannot cause duplicate quantities.
+- No queue, broker, cache service, or separate deployable is introduced.
+
+## Verification Targets
+
+- Guest cart create/add/update/remove reads and writes through the Medusa Cart
+  Module and PostgreSQL.
+- A browser reload/new context restores the cart from the persisted opaque ID.
+- Authenticated merge selects only a cart owned by the authenticated customer.
+- Same-variant quantities are summed exactly once across repeated merge requests.
+- After an existing-target merge, standard Store CRUD calls for the consumed
+  source cart return not found, while authenticated merge replay returns the
+  recorded target without mutation.
+- No target cart, incompatible cart, insufficient stock, foreign-owned source,
+  stale reference, source soft-delete, restore compensation, partial failure,
+  and retry paths have executable evidence.
+- FT-003 does not claim OAuth provider login, checkout, inventory reservation,
+  order, or payment completion.

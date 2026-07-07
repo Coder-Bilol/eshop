@@ -1,0 +1,124 @@
+{
+  "id": "TASK-019",
+  "title": "Implement deterministic cart merge planning",
+  "status": "done",
+  "wave": "W2",
+  "feature": "FT-003",
+  "reqs": ["REQ-008"],
+  "depends_on": ["TASK-017"],
+  "touched_files": [
+    "apps/backend/package.json",
+    "apps/backend/src/cart-merge/plan.ts",
+    "apps/backend/src/scripts/smoke-cart-merge-plan.ts",
+    "apps/backend/test/run-integration.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "cart merge plan integration",
+      "command": "npm --workspace apps/backend run test:integration -- cart-merge-plan",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Compatible actor-owned targets are ordered by updated_at DESC and id ASC.",
+    "Region, currency, sales-channel, completion, and ownership incompatibilities are rejected before mutation.",
+    "Source and target lines aggregate by Medusa Product Variant ID into a sorted immutable absolute-quantity plan.",
+    "No cart, journal status, or ownership mutation occurs in the planning slice.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-04",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-04",
+      "closure_decision": "Manual closure explicitly requested by the user.",
+      "evidence": [
+        ".protocols/TASK-019/verification.md",
+        ".tasks/TASK-019/TASK-019-S-execute-final-report-code-01.md",
+        ".tasks/TASK-019/TASK-019-S-verify-final-report-code-01.md",
+        ".tasks/TASK-019/execute-cart-merge-plan.md",
+        ".tasks/TASK-019/execute-scope.md",
+        ".tasks/TASK-019/execute-typecheck.md",
+        ".tasks/TASK-019/execute-mb-lint.md"
+      ],
+      "summary": "Manual T2 functional verification passed. The required packet was ready and hash-matched before the verdict write; strict doctor passed; the real Medusa Cart Module/PostgreSQL integration proved actor-scoped deterministic target selection, compatibility and ownership guards, Product Variant ID aggregation, immutable absolute quantities, and unchanged cart state; backend typecheck and Memory Bank lint passed. GENERAL closed the task after explicit user instruction."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Deterministic target-selection and merge-plan integration output.",
+    "Negative compatibility and ownership-planning output.",
+    "Backend typecheck and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/architecture/cart-runtime.md"
+  ],
+  "constraints": [
+    "Use Medusa Query/Cart Module data and authenticated actor-derived customer scope.",
+    "Plan by Product Variant ID and absolute quantities.",
+    "Keep this slice free of cart mutations and HTTP concerns."
+  ],
+  "invariants": [
+    "Client input cannot choose destination or customer.",
+    "The plan is deterministic and immutable once journaled.",
+    "Non-selected customer carts remain untouched."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#merge-semantics",
+    ".memory-bank/contracts/cart-api-data-contract.md#internal-merge-plan",
+    ".memory-bank/domains/cart-merge-data.md#merge-plan-rules"
+  ],
+  "purpose": "Separate deterministic merge decisions from security-sensitive mutation orchestration.",
+  "success_outcome": "Given source and actor context, backend logic selects one compatible target or transfer mode and produces an exact immutable plan without mutation.",
+  "anti_goals": [
+    "Do not expose an HTTP route.",
+    "Do not mutate either cart or complete a journal.",
+    "Do not implement storefront behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-019.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/package.json",
+      "apps/backend/src/cart-merge/plan.ts",
+      "apps/backend/src/scripts/smoke-cart-merge-plan.ts",
+      "apps/backend/test/run-integration.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "cart mutation or source soft-delete",
+      "HTTP/auth route implementation",
+      "storefront, checkout, order, inventory reservation, or payment behavior"
+    ],
+    "stop_conditions": [
+      "Medusa query data cannot prove ownership or compatibility.",
+      "Plan identity would require SKU display text.",
+      "A required public contract contradicts the linked specs."
+    ]
+  }
+}

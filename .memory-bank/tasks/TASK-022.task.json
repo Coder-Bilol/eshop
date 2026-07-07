@@ -1,0 +1,102 @@
+{
+  "id": "TASK-022",
+  "title": "Implement guest cart state orchestration",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-003",
+  "reqs": ["REQ-006", "REQ-007"],
+  "depends_on": ["TASK-018"],
+  "touched_files": [
+    "apps/storefront/lib/cart-state.ts",
+    "apps/storefront/components/cart-provider.tsx",
+    "apps/storefront/src/cart-state.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "storefront cart state tests",
+      "command": "npm --workspace apps/storefront run test -- cart-state",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "First valid add lazily creates a cart and persists only the returned opaque ID.",
+    "Retrieve/add/absolute-update/remove state always adopts the backend cart response.",
+    "Reload restores by opaque reference, while malformed or not-found references are cleared without reconstructing cart contents.",
+    "Loading, empty, validation, stock conflict, and backend failure states remain deterministic and recoverable."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Cart state orchestration test output.",
+    "Reference-only persistence and stale recovery assertions.",
+    "Storefront typecheck and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/contracts/cart-api-data-contract.md"
+  ],
+  "constraints": [
+    "Use the TASK-018 Store client and reference adapter.",
+    "Treat backend cart responses as rendered state truth.",
+    "Keep UI rendering and authenticated merge outside this slice."
+  ],
+  "invariants": [
+    "Browser storage never owns items, quantities, totals, ownership, or availability.",
+    "Quantity updates are absolute.",
+    "A stale reference is cleared, not reconstructed."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#ux-contract",
+    ".memory-bank/architecture/cart-runtime.md#storefront-reference-adapter",
+    ".memory-bank/contracts/cart-api-data-contract.md#browser-reference-envelope"
+  ],
+  "purpose": "Provide one deterministic guest-cart state boundary before rendering and post-auth integration.",
+  "success_outcome": "Storefront state can create, restore, mutate, and recover a backend-owned guest cart without browser-authoritative data.",
+  "anti_goals": [
+    "Do not implement cart page markup.",
+    "Do not implement authenticated merge or OAuth.",
+    "Do not cache cart payloads in local storage."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-022.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/lib/cart-state.ts",
+      "apps/storefront/components/cart-provider.tsx",
+      "apps/storefront/src/cart-state.test.cjs",
+      "apps/storefront/src/test-runner.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "cart page/product-detail rendering",
+      "authenticated merge or OAuth",
+      "backend, checkout, order, or payment behavior"
+    ],
+    "stop_conditions": [
+      "The Store client cannot expose required backend response state.",
+      "Persistence would require storing cart contents or auth credentials.",
+      "Recovery cannot distinguish stale reference from backend failure."
+    ]
+  }
+}

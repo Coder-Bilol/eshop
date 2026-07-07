@@ -23,4 +23,9 @@ module.exports = defineConfig({
         process.env.COOKIE_SECRET ?? "local-dev-cookie-secret-change-me",
     },
   },
+  modules: [
+    {
+      resolve: "./src/modules/cart-merge",
+    },
+  ],
 });

@@ -1,7 +1,7 @@
 ---
 description: Feature FT-002 - product detail and variant selection.
 status: draft
-lifecycle: implemented
+lifecycle: verified
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-002-product-detail-variant-selection.md

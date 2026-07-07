@@ -1,0 +1,107 @@
+{
+  "id": "TASK-024",
+  "title": "Add post-auth cart merge handoff",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-003",
+  "reqs": ["REQ-008"],
+  "depends_on": ["TASK-021", "TASK-022"],
+  "touched_files": [
+    "apps/storefront/lib/cart-merge.ts",
+    "apps/storefront/components/cart-provider.tsx",
+    "apps/storefront/src/cart-merge.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "storefront cart merge tests",
+      "command": "npm --workspace apps/storefront run test -- cart-merge",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Post-auth handoff sends authenticated credentials and no destination/customer ID.",
+    "Successful merged/transferred/already_merged responses atomically switch to the backend-selected target before render.",
+    "Conflict, forbidden, in-progress, stale, and server failures retain a recoverable source reference.",
+    "A stale consumed-source tab clears ordinary CRUD state and can adopt the target only through authenticated replay.",
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Credentials, request-shape, target-switch, and replay test output.",
+    "Failure-preservation and consumed-source stale-state assertions.",
+    "T3 human checkpoint and rollback/recovery note before closure."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Expose one provider-agnostic function for FT-004.",
+    "Use credentials: include for session-authenticated merge.",
+    "Switch the reference only from a validated successful backend response."
+  ],
+  "invariants": [
+    "Client cannot choose destination or customer.",
+    "Failure cannot discard the source reference.",
+    "Replay cannot duplicate quantity or create another active target."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/cart-api-data-contract.md#retry-and-idempotency",
+    ".memory-bank/contracts/cart-access-security.md#browser-safety",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#ux-contract"
+  ],
+  "purpose": "Provide the security-sensitive provider-agnostic handoff FT-004 invokes after authentication.",
+  "success_outcome": "Successful authenticated merge atomically adopts the recorded target, while every failure remains recoverable.",
+  "anti_goals": [
+    "Do not implement Google OAuth, VK ID, login UI, or callback routes.",
+    "Do not infer customer identity from browser state.",
+    "Do not clear the source before backend success."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-024.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/lib/cart-merge.ts",
+      "apps/storefront/components/cart-provider.tsx",
+      "apps/storefront/src/cart-merge.test.cjs",
+      "apps/storefront/src/test-runner.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "OAuth provider implementation or credentials",
+      "backend merge semantics",
+      "checkout, order, inventory reservation, or payment"
+    ],
+    "stop_conditions": [
+      "Merge response cannot prove the backend-selected target.",
+      "Provider-specific authentication decisions are required.",
+      "Failure handling would discard or expose cart/customer state."
+    ]
+  }
+}

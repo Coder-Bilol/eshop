@@ -1,0 +1,114 @@
+{
+  "id": "TASK-025",
+  "title": "Add backend cart merge acceptance suite",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-003",
+  "reqs": ["REQ-008"],
+  "depends_on": ["TASK-021"],
+  "touched_files": [
+    "apps/backend/package.json",
+    "apps/backend/src/scripts/smoke-cart-merge-acceptance.ts",
+    "apps/backend/test/run-integration.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "backend cart merge acceptance",
+      "command": "npm --workspace apps/backend run test:integration -- cart-merge-acceptance",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Real Medusa/PostgreSQL covers transfer, deterministic existing-target merge, and same-variant summing.",
+    "Authenticated evidence covers foreign ownership, incompatible carts, stock conflict, replay, and concurrency.",
+    "Existing-target success soft-deletes the source, ordinary Store CRUD returns not found, and journal-first replay returns the target.",
+    "Injected post-soft-delete failure restores source and target pre-merge state.",
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Real PostgreSQL ownership/target/summing acceptance logs.",
+    "Replay/concurrency and consumed-source Store not-found logs.",
+    "Injected restore/compensation logs.",
+    "T3 human checkpoint and rollback/recovery note before closure."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use synthetic local customers, carts, variants, and the real Medusa/PostgreSQL boundary.",
+    "Do not use live OAuth providers, production secrets, or production data.",
+    "Keep browser acceptance outside this task."
+  ],
+  "invariants": [
+    "Browser mocks cannot prove ownership, persistence, replay, or compensation.",
+    "Consumed source is unavailable through Store CRUD but replayable through its journal.",
+    "No successful case may lose or duplicate quantity."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#verification-targets",
+    ".memory-bank/contracts/cart-access-security.md#logging-and-evidence",
+    ".memory-bank/domains/cart-merge-data.md#persistence-verification",
+    ".memory-bank/states/cart-ownership-merge.md#recovery"
+  ],
+  "purpose": "Provide independent server-side acceptance evidence for the complete data and security boundary.",
+  "success_outcome": "REQ-008 server behavior is reproducibly proven against real Medusa/PostgreSQL, including consumed-source and recovery semantics.",
+  "anti_goals": [
+    "Do not change production merge behavior to make tests pass.",
+    "Do not use live providers or production data.",
+    "Do not add browser UI coverage."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-025.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/package.json",
+      "apps/backend/src/scripts/smoke-cart-merge-acceptance.ts",
+      "apps/backend/test/run-integration.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production merge behavior",
+      "live OAuth providers or credentials",
+      "production data",
+      "storefront behavior"
+    ],
+    "stop_conditions": [
+      "Tests cannot exercise real Medusa/PostgreSQL.",
+      "Ownership or replay cannot be proven independently of browser UI.",
+      "Failure injection cannot prove source and target restoration."
+    ]
+  }
+}

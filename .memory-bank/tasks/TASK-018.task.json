@@ -1,0 +1,120 @@
+{
+  "id": "TASK-018",
+  "title": "Add Store cart client and browser reference adapter",
+  "status": "done",
+  "wave": "W1",
+  "feature": "FT-003",
+  "reqs": ["REQ-006", "REQ-007"],
+  "depends_on": ["TASK-013", "TASK-016"],
+  "touched_files": [
+    "apps/storefront/lib/cart.ts",
+    "apps/storefront/src/cart-client.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "storefront cart client tests",
+      "command": "npm --workspace apps/storefront run test -- cart-client",
+      "required": true
+    },
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Client uses the installed Medusa Store create/retrieve/add/update/delete cart routes with a publishable key.",
+    "Reference adapter reads, writes, versions, and clears only the eshop.cart.v1 envelope.",
+    "Malformed, unsupported-version, empty, and stale-reference handling cannot reconstruct cart truth from browser data.",
+    "Line quantity updates are absolute and transport errors map to stable application states.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-04",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-04",
+      "closure_decision": "Manual closure explicitly requested by the user.",
+      "evidence": [
+        ".protocols/TASK-018/verification.md",
+        ".tasks/TASK-018/TASK-018-S-execute-final-report-code-01.md",
+        ".tasks/TASK-018/TASK-018-S-verify-final-report-code-01.md",
+        ".tasks/TASK-018/execute-cart-client-tests.md",
+        ".tasks/TASK-018/execute-typecheck.md",
+        ".tasks/TASK-018/execute-mb-lint.md",
+        ".tasks/TASK-018/execute-storefront-regression.md",
+        ".tasks/TASK-018/execute-scope-audit.md"
+      ],
+      "summary": "Manual T2 functional verification passed. The required packet was ready and hash-matched before the verdict write; installed Medusa 2.16 handlers matched the specified Store routes; focused and full storefront tests proved publishable-key transport, absolute quantity updates, stable errors, exact reference-only storage, malformed/stale reference handling, and no authoritative browser cart payload; storefront typecheck, strict doctor, and Memory Bank lint passed. GENERAL closed the task after explicit user instruction."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Storefront cart client/reference unit output.",
+    "Storefront typecheck output.",
+    "Assertions proving browser storage contains no cart payload, auth token, total, or availability data."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/architecture/cart-runtime.md"
+  ],
+  "constraints": [
+    "Reuse Medusa Store cart REST routes rather than a duplicate CRUD facade.",
+    "Always send x-publishable-api-key.",
+    "Persist only the versioned opaque cart reference."
+  ],
+  "invariants": [
+    "Browser state is non-authoritative.",
+    "Medusa Cart Module/PostgreSQL owns items, quantities, totals, and ownership.",
+    "SKU text is not a cart line identity."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/cart-api-data-contract.md#boundary-data-contract",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#verification-targets"
+  ],
+  "purpose": "Provide the narrow browser-to-Medusa boundary for guest cart persistence before UI integration.",
+  "success_outcome": "Storefront code can operate a Medusa cart and restore it from a safe versioned opaque reference.",
+  "anti_goals": [
+    "Do not add cart UI in this task.",
+    "Do not implement authenticated merge or OAuth.",
+    "Do not cache authoritative cart payloads in local storage."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-018.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/lib/cart.ts",
+      "apps/storefront/src/cart-client.test.cjs",
+      "apps/storefront/src/test-runner.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "custom backend cart CRUD routes",
+      "OAuth/login implementation",
+      "checkout/order/payment behavior"
+    ],
+    "stop_conditions": [
+      "Installed Medusa Store route behavior contradicts the API contract.",
+      "The adapter would need to persist cart contents or auth credentials.",
+      "Verification cannot distinguish browser reference from backend cart truth."
+    ]
+  }
+}

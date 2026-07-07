@@ -187,6 +187,7 @@ async function run() {
           "valid cart handoff includes product handle, SKU, quantity, and validation state",
           "product cards summarize backend-provided variant dimensions",
           "product detail fetch maps not-found and unpublished contract errors",
+          "product detail media remains a string URL across the fetch boundary",
           "product detail route exposes required loading, selection, and handoff states",
         ],
       },
@@ -243,7 +244,7 @@ async function verifyProductDetailFetchContract() {
     handle: "curtain-rod",
     title: "Curtain rod",
     description: "A configurable product.",
-    media: [],
+    media: ["/seed/steel-telescopic-curtain-rod.svg"],
     category: {
       handle: "window",
       name: "Window",
@@ -282,6 +283,9 @@ async function verifyProductDetailFetchContract() {
     const fetched = await fetchProductDetail("curtain-rod");
     assert.equal(fetched.handle, "curtain-rod");
     assert.equal(fetched.variants.length, 3);
+    assert.deepEqual(fetched.media, [
+      "/seed/steel-telescopic-curtain-rod.svg",
+    ]);
 
     global.fetch = async () =>
       new Response(

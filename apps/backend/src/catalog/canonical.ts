@@ -28,7 +28,7 @@ type CanonicalVariant = {
   availability: {
     is_available: boolean;
     is_sellable: boolean;
-    reason: "unavailable" | "missing_price" | null;
+    reason: "unavailable" | "missing_price" | "missing_sku" | null;
   };
 };
 
@@ -134,9 +134,9 @@ function normalizeProduct(
     description: String(product.description || ""),
     status: String(product.status),
     metadata: product.metadata || {},
-    media: (product.images || []).map((image: { url: string }) => ({
-      url: String(image.url),
-    })),
+    media: (product.images || [])
+      .map((image: { url: unknown }) => String(image.url || "").trim())
+      .filter(Boolean),
     category: category
       ? {
           handle: String(category.handle),
@@ -176,6 +176,9 @@ function normalizeVariant(
   ) || variant.prices?.[0];
   const amount = Number(price?.amount);
   const hasPrice = Number.isInteger(amount) && amount >= 0;
+  const sku =
+    typeof variant.sku === "string" ? variant.sku.trim() : "";
+  const hasSku = sku.length > 0;
   const isAvailable =
     variant.allow_backorder === true ||
     variant.manage_inventory !== true ||
@@ -183,7 +186,7 @@ function normalizeVariant(
 
   return {
     id: String(variant.id),
-    sku: String(variant.sku),
+    sku,
     title: String(variant.title),
     options,
     price: {
@@ -192,12 +195,14 @@ function normalizeVariant(
     },
     availability: {
       is_available: isAvailable,
-      is_sellable: isAvailable && hasPrice,
-      reason: isAvailable
-        ? hasPrice
-          ? null
-          : "missing_price"
-        : "unavailable",
+      is_sellable: isAvailable && hasPrice && hasSku,
+      reason: !isAvailable
+        ? "unavailable"
+        : !hasPrice
+          ? "missing_price"
+          : !hasSku
+            ? "missing_sku"
+            : null,
     },
   };
 }
@@ -223,5 +228,6 @@ function requireSalesChannelId(salesChannelIds: string[]) {
 module.exports = {
   loadCanonicalCategories,
   loadCanonicalProducts,
+  normalizeVariant,
   requireSalesChannelId,
 };

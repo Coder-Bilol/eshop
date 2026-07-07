@@ -1,0 +1,127 @@
+{
+  "id": "TASK-017",
+  "title": "Add cart merge journal persistence",
+  "status": "done",
+  "wave": "W1",
+  "feature": "FT-003",
+  "reqs": ["REQ-008"],
+  "depends_on": ["TASK-016"],
+  "touched_files": [
+    "apps/backend/medusa-config.ts",
+    "apps/backend/package.json",
+    "apps/backend/src/modules/cart-merge/**",
+    "apps/backend/src/scripts/smoke-cart-merge-persistence.ts",
+    "apps/backend/test/run-integration.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {
+      "name": "Medusa module migration",
+      "command": "npm --workspace apps/backend run db:migrate:medusa",
+      "required": true
+    },
+    {
+      "name": "cart merge persistence integration",
+      "command": "npm --workspace apps/backend run test:integration -- cart-merge-persistence",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Cart Merge Module resolves through the real Medusa container and persists to local PostgreSQL.",
+    "The migration adds only the custom journal model and indexes and does not alter Medusa core cart tables.",
+    "A second independent plan for the same source_cart_id is rejected by a durable unique constraint.",
+    "A journal record can be read after a fresh runtime/module resolution.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-04",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "evidence": [
+        ".protocols/TASK-017/verification.md",
+        ".tasks/TASK-017/TASK-017-S-execute-final-report-code-01.md",
+        ".tasks/TASK-017/TASK-017-S-verify-final-report-code-01.md",
+        ".tasks/TASK-017/execute-migration.md",
+        ".tasks/TASK-017/execute-cart-merge-persistence.md",
+        ".tasks/TASK-017/execute-migration-scope.md",
+        ".tasks/TASK-017/execute-typecheck.md",
+        ".tasks/TASK-017/execute-mb-lint.md"
+      ],
+      "summary": "Manual T2 verification passed. The required packet was ready and hash-matched; strict doctor passed; the Medusa migration was up-to-date; two independent Medusa exec processes proved PostgreSQL persistence and durable source-cart uniqueness; direct migration and database inspection proved only the custom cart_merge table and indexes were added; backend typecheck and Memory Bank lint passed."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Migration command output.",
+    "PostgreSQL-backed create/read/unique-constraint integration output.",
+    "Backend typecheck and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use a supported Medusa custom module and migration.",
+    "Store core cart/customer references as scalar IDs without cross-module database foreign keys.",
+    "Do not modify or duplicate Medusa Cart or LineItem persistence."
+  ],
+  "invariants": [
+    "source_cart_id is unique.",
+    "The immutable merge plan is keyed by Medusa Product Variant ID.",
+    "No credentials or customer contact data enter the journal."
+  ],
+  "verification_targets": [
+    ".memory-bank/domains/cart-merge-data.md#persistence-verification",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#verification-targets"
+  ],
+  "purpose": "Create the durable exactly-once and recovery boundary required before authenticated cart merge.",
+  "success_outcome": "A Medusa-managed custom module persists one immutable merge journal per source cart and survives runtime restart.",
+  "anti_goals": [
+    "Do not create parallel cart or line-item tables.",
+    "Do not implement the merge API or storefront UI in this task.",
+    "Do not run destructive production migrations."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-017.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/medusa-config.ts",
+      "apps/backend/package.json",
+      "apps/backend/src/modules/cart-merge/**",
+      "apps/backend/src/scripts/smoke-cart-merge-persistence.ts",
+      "apps/backend/test/run-integration.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "Medusa core source or core cart table changes",
+      "storefront behavior",
+      "production data or destructive cleanup"
+    ],
+    "stop_conditions": [
+      "The supported Medusa module model cannot express the required unique source constraint.",
+      "Implementation requires changing Medusa core cart persistence.",
+      "PostgreSQL read/write cannot be exercised through the module boundary."
+    ]
+  }
+}

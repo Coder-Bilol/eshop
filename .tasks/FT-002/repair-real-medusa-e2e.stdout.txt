@@ -1,0 +1,41 @@
+
+> @eshop/storefront@0.1.0 test:e2e
+> node e2e/run-real-medusa-e2e.cjs product-detail
+
+[2026-07-02T06:46:26.601Z] building real Medusa backend
+[2026-07-02T06:47:29.359Z] seeding canonical Medusa catalog
+[2026-07-02T06:47:53.939Z] waiting for compiled Medusa health endpoint
+[2026-07-02T06:48:11.534Z] preparing Next.js storefront
+[2026-07-02T06:48:15.168Z] launching browser
+[2026-07-02T06:48:16.399Z] verifying product detail through Medusa Store API
+ GET /products/steel-telescopic-curtain-rod 200 in 2.1s (next.js: 1666ms, application-code: 465ms)
+ GET /products/basic-home-hook-set 200 in 247ms (next.js: 17ms, application-code: 229ms)
+[2026-07-02T06:48:21.685Z] cleanup started
+[2026-07-02T06:48:21.686Z] closing browser
+[2026-07-02T06:48:26.688Z] closing storefront server
+[2026-07-02T06:48:26.690Z] stopping Medusa backend
+[2026-07-02T06:48:28.785Z] checking released ports
+[2026-07-02T06:48:28.788Z] cleanup complete
+{
+  "command": "test:e2e",
+  "status": "ok",
+  "suites": [
+    "product-detail"
+  ],
+  "browser": "msedge",
+  "backendRuntime": "compiled-medusa-start",
+  "backendHarness": null,
+  "dataSource": "canonical-medusa-postgresql",
+  "publishableKeyBoundary": {
+    "withoutKeyStatus": 400,
+    "withKeyStatus": 200
+  },
+  "variantIdentity": "medusa-product-variant-id",
+  "mediaContract": "string-url",
+  "trace": ".tasks/TASK-016/playwright/real-medusa-trace.zip",
+  "screenshots": [
+    ".tasks/TASK-016/playwright/product-detail.png"
+  ],
+  "processCleanup": "ports-released",
+  "productionData": false
+}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import type { ExecArgs } from "@medusajs/framework/types";
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils";
 
+const { normalizeVariant } = require("../catalog/canonical");
 const {
   ProductDetailNotFoundError,
   ProductDetailValidationError,
@@ -18,6 +19,9 @@ export default async function smokeProductDetail({ container }: ExecArgs) {
   );
 
   assert.equal(configurable.title, "Steel telescopic curtain rod");
+  assert.deepEqual(configurable.media, [
+    "/seed/steel-telescopic-curtain-rod.svg",
+  ]);
   assert.equal(configurable.category.handle, "curtain-rods");
   assert.equal(configurable.product_type, "curtain_rod");
   assert.equal(configurable.variants.length, 4);
@@ -60,6 +64,23 @@ export default async function smokeProductDetail({ container }: ExecArgs) {
     max: 329000,
     currency_code: "RUB",
   });
+
+  const missingSku = normalizeVariant(
+    {
+      id: "variant_missing_sku",
+      sku: null,
+      title: "Missing SKU",
+      manage_inventory: false,
+      allow_backorder: false,
+      options: [],
+      prices: [{ amount: 1000, currency_code: "rub" }],
+    },
+    undefined
+  );
+  assert.equal(missingSku.sku, "");
+  assert.equal(missingSku.availability.is_available, true);
+  assert.equal(missingSku.availability.is_sellable, false);
+  assert.equal(missingSku.availability.reason, "missing_sku");
 
   const defaultSku = await queryProductDetail(
     container,

@@ -6,6 +6,10 @@ const medusaCli = require.resolve("@medusajs/cli/cli");
 const suites = {
   catalog: "./src/scripts/smoke-catalog.ts",
   "product-detail": "./src/scripts/smoke-product-detail.ts",
+  "cart-merge-persistence": "./src/scripts/smoke-cart-merge-persistence.ts",
+  "cart-merge-plan": "./src/scripts/smoke-cart-merge-plan.ts",
+  "cart-merge-lifecycle": "./src/scripts/smoke-cart-merge-lifecycle.ts",
+  "cart-merge-api": "./src/scripts/smoke-cart-merge-api.ts",
 };
 
 function main() {
@@ -21,11 +25,11 @@ function main() {
   }
 
   for (const name of selected) {
-    execFileSync(process.execPath, [medusaCli, "exec", suites[name]], {
-      cwd: backendRoot,
-      env: process.env,
-      stdio: "inherit",
-    });
+    if (name === "cart-merge-persistence") {
+      runCartMergePersistenceSuite(suites[name]);
+      continue;
+    }
+    runMedusaScript(suites[name]);
   }
 
   process.stdout.write(
@@ -33,13 +37,36 @@ function main() {
       {
         command: "test:integration",
         status: "ok",
-        sourceBoundary: "medusa-query-graph",
+        sourceBoundary: selected.some((name) => name.startsWith("cart-merge"))
+          ? "medusa-module-postgresql"
+          : "medusa-query-graph",
         suites: selected,
       },
       null,
       2
     )}\n`
   );
+}
+
+function runCartMergePersistenceSuite(script) {
+  const sourceCartId = `cart_task017_${process.pid}_${Date.now()}`;
+  for (const phase of ["write", "read"]) {
+    runMedusaScript(script, {
+      CART_MERGE_PERSISTENCE_PHASE: phase,
+      CART_MERGE_PERSISTENCE_SOURCE_CART_ID: sourceCartId,
+    });
+  }
+}
+
+function runMedusaScript(script, extraEnv = {}) {
+  execFileSync(process.execPath, [medusaCli, "exec", script], {
+    cwd: backendRoot,
+    env: {
+      ...process.env,
+      ...extraEnv,
+    },
+    stdio: "inherit",
+  });
 }
 
 try {

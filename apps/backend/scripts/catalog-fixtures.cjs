@@ -31,6 +31,7 @@ const products = [
     handle: "steel-telescopic-curtain-rod",
     title: "Steel telescopic curtain rod",
     description: "Adjustable curtain rod for home windows.",
+    media: ["/seed/steel-telescopic-curtain-rod.svg"],
     categoryId: "cat-curtain-rods",
     productType: "curtain_rod",
     color: "black",

@@ -2,7 +2,7 @@
 description: Pure SDD spec registry and planned-spec index.
 status: active
 owner: spec-design
-last_updated: 2026-06-23
+last_updated: 2026-07-02
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-backbone.md
@@ -26,6 +26,12 @@ source_of_truth:
 | API Guidelines | contract | [.memory-bank/contracts/api-guidelines.md](contracts/api-guidelines.md) | active | /spec-design | Shared HTTP API naming, auth, error, status, idempotency, CORS, upload, pagination, and compatibility rules. |
 | FT-001 Catalog Browsing Filtering Search | feature_design | [.memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md](tech-specs/FT-001-catalog-browsing-filtering-search.md) | active | /spec-improve FT-001 | Feature-local catalog query, filter, search, UX state, boundary, and verification design. |
 | FT-002 Product Detail Variant Selection | feature_design | [.memory-bank/tech-specs/FT-002-product-detail-variant-selection.md](tech-specs/FT-002-product-detail-variant-selection.md) | active | /spec-improve FT-002 | Feature-local product detail, variant/SKU selection, availability pre-check, cart-action handoff, and verification design. |
+| FT-003 Guest Cart Persistence Merge | feature_design | [.memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md](tech-specs/FT-003-guest-cart-persistence-merge.md) | active | /spec-improve FT-003 | Feature-level hub for guest cart persistence, authenticated merge, source soft-delete, and verification. |
+| Cart Runtime Architecture | architecture | [.memory-bank/architecture/cart-runtime.md](architecture/cart-runtime.md) | active | /spec-improve FT-003 | FT-003 modules, boundaries, source of truth, components, consumed-source behavior, runtime/deployment, and synchronous event model. |
+| Cart API And Data Contract | contract | [.memory-bank/contracts/cart-api-data-contract.md](contracts/cart-api-data-contract.md) | active | /spec-improve FT-003 | Reused Store REST routes, merge endpoint, consumed-source behavior, payloads, errors, and idempotency. |
+| Cart Access And Security | security_contract | [.memory-bank/contracts/cart-access-security.md](contracts/cart-access-security.md) | active | /spec-improve FT-003 | Cart credentials, access matrix, ownership guards, consumed-source access, privacy, and safety. |
+| Cart Merge Data | data | [.memory-bank/domains/cart-merge-data.md](domains/cart-merge-data.md) | active | /spec-improve FT-003 | Medusa cart ownership, merge-journal persistence, source soft-delete/restore, and migration rules. |
+| Cart Ownership And Merge State | state | [.memory-bank/states/cart-ownership-merge.md](states/cart-ownership-merge.md) | active | /spec-improve FT-003 | Cart ownership/merge states, consumed-source terminal state, transitions, guards, retry, and recovery. |
 | FT-011 Windows Native Local Development | feature_design | [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](tech-specs/FT-011-windows-native-local-development.md) | active | /prd-to-tasks FT-011 | Feature-local Windows-native local runtime, project scaffold, database initialization, env templates, and smoke verification design. |
 | Boundary Map | boundary_hints | [.memory-bank/contracts/boundary-map.md](contracts/boundary-map.md) | active | /spec-init | Responsibility and scope boundary notes. |
 | Lifecycle Map | lifecycle_hints | [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) | active | /spec-init | Initial lifecycle hints retained for traceability. |
@@ -40,7 +46,7 @@ source_of_truth:
 | feature_design | .memory-bank/tech-specs/FT-<NNN>-<slug>.md | /prd-to-tasks; /spec-improve for repair | Feature-local specs only when needed before or during task decomposition. |
 
 ## Broken / Missing Links
-- None known as of 2026-06-19.
+- None known as of 2026-07-02.
 
 ## Update Rules
 - Keep this file as index/registry only: names, paths, statuses, owners, scopes, and broken links.

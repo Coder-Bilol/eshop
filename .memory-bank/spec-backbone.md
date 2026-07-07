@@ -2,7 +2,7 @@
 description: Pre-PRD spec framing and global SDD backbone state.
 status: active
 owner: spec-design
-last_updated: 2026-06-23
+last_updated: 2026-07-07
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-index.md
@@ -29,7 +29,7 @@ source_of_truth:
 - Fiscalization/receipt obligations before production launch: non-blocking for MVP implementation because fiscalization is out of scope; blocks production launch if legal/payment review requires receipts.
 - Exact Medusa v2 extension points, status mapping, and stock reservation mechanics: non-blocking for global backbone; must be resolved during FT-007, FT-008, and FT-009 feature-level design in `/prd-to-tasks` or standalone `/spec-improve` repair.
 - Email provider/configuration: non-blocking for global backbone; must be resolved before FT-010 implementation.
-- Remote server deployment target: not designed in this pass; future Docker-on-remote-server deploy work is T3 and requires explicit follow-up design.
+- Remote server deployment target: operational runbook exists in [DEPLOYMENT.md](../DEPLOYMENT.md) for AlmaLinux VPS, Docker Compose application containers, and host-level Caddy automatic HTTPS; actual production deploy work remains T3.
 
 ## Backbone Area Matrix
 | Area | Status | Authoritative source | Notes |
@@ -48,7 +48,7 @@ source_of_truth:
 | agent_io_contracts | not_applicable | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | not_applicable - product has no runtime AI/agent/chat I/O boundary. |
 | security_safety | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/invariants.md](invariants.md); [.memory-bank/workflows/tier-policy.md](workflows/tier-policy.md) | Auth, payment, order, inventory, deploy, and compliance-sensitive work route high tier. |
 | testing_strategy | authoritative | [.memory-bank/testing/index.md](testing/index.md); [.memory-bank/workflows/tier-policy.md](workflows/tier-policy.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Unit/integration/e2e and T2/T3 verification requirements are linked. |
-| deployment | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/features/FT-011-windows-native-local-development.md](features/FT-011-windows-native-local-development.md) | Windows-native local development is designed; Docker is reserved for future remote server deploy work, which remains out of this pass and T3. |
+| deployment | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/features/FT-011-windows-native-local-development.md](features/FT-011-windows-native-local-development.md); [DEPLOYMENT.md](../DEPLOYMENT.md) | Windows-native local development is designed; remote VPS deployment runbook uses Docker Compose application containers and host-level Caddy. Production deploy work remains T3. |
 | risks | authoritative | [.memory-bank/prd.md](prd.md); [.memory-bank/analysis/product-brief.md](analysis/product-brief.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Non-blocking global risks are routed to feature-local design or production follow-up. |
 | open_questions | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); this file | Open questions are scoped and do not block global backbone completion. |
 

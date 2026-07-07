@@ -1,0 +1,285 @@
+{
+  "id": "TASK-020",
+  "title": "Implement compensatable cart merge lifecycle",
+  "status": "done",
+  "wave": "W2",
+  "feature": "FT-003",
+  "reqs": ["REQ-008"],
+  "depends_on": ["TASK-019"],
+  "touched_files": [
+    "apps/backend/package.json",
+    "apps/backend/src/workflows/merge-customer-cart.ts",
+    "apps/backend/src/modules/cart-merge/**",
+    "apps/backend/src/scripts/smoke-cart-merge-lifecycle.ts",
+    "apps/backend/test/run-integration.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "cart merge lifecycle integration",
+      "command": "npm --workspace apps/backend run test:integration -- cart-merge-lifecycle",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "No-target mode transfers the source to the actor and keeps it active.",
+    "Existing-target mode applies absolute quantities under sorted locks, then soft-deletes the source before journal completion.",
+    "Injected failure after source soft-delete restores the source before reversing target mutations.",
+    "Stock or mutation failure leaves both carts usable and the journal non-completed.",
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: FAIL",
+      "verified_at": "2026-07-04",
+      "mode": "manual",
+      "recommended_status": "failed",
+      "bug": ".memory-bank/bugs/TASK-020-core-cart-workflow-bypass.md",
+      "evidence": [
+        ".protocols/TASK-020/verification.md",
+        ".tasks/TASK-020/TASK-020-S-execute-final-report-code-01.md",
+        ".tasks/TASK-020/TASK-020-S-verify-final-report-code-01.md",
+        ".tasks/TASK-020/execute-cart-merge-lifecycle.md",
+        ".tasks/TASK-020/execute-scope-audit.md",
+        ".tasks/TASK-020/rollback-recovery.md"
+      ],
+      "summary": "The required packet and deterministic lifecycle gates passed, but functional verification failed against the linked SDD contract. Target line updates/additions and ownership transfer call Cart Module mutations directly, and new target lines copy source price snapshots. The authoritative cart-runtime spec and TASK-020 constraints require Medusa core cart workflows for these mutations. Current evidence does not prove target/customer pricing, tax, promotion, and refresh behavior remains correct."
+    },
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-07",
+      "mode": "manual",
+      "recommended_status": "planned_pending_red_verify_human_checkpoint",
+      "supersedes": "2026-07-04 VERDICT: FAIL",
+      "resolved_bug": ".memory-bank/bugs/TASK-020-core-cart-workflow-bypass.md",
+      "evidence": [
+        ".protocols/TASK-020/verification.md",
+        ".tasks/TASK-020/TASK-020-S-verify-final-report-code-02.md",
+        ".tasks/TASK-020/execute-cart-merge-lifecycle.md",
+        ".tasks/TASK-020/execute-typecheck.md",
+        ".tasks/TASK-020/execute-mb-lint.md",
+        ".tasks/TASK-020/execute-scope-audit.md",
+        ".tasks/TASK-020/rollback-recovery.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/backend run test:integration -- cart-merge-lifecycle",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/backend run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "The core-workflow remediation satisfies the linked SDD mutation boundary: ownership transfer uses Medusa core workflow, target line mutation uses add-to-cart plus forced refresh, direct Cart Module mutation is limited to source soft-delete/restore, and integration evidence covers exact quantities, pricing snapshot isolation, totals, taxes, promotions, journal ordering, compensation, retry, and stock-conflict behavior. T3 closure remains pending per-task /red-verify semantic-pass and HUMAN_CHECKPOINT: done."
+    },
+    {
+      "stage": "red-verify",
+      "verdict": "SEMANTIC_VERDICT: semantic-fail",
+      "verified_at": "2026-07-07",
+      "mode": "manual",
+      "recommended_status": "failed",
+      "bug": ".memory-bank/bugs/TASK-020-duplicate-target-variant-lines.md",
+      "evidence": [
+        ".protocols/TASK-020/red-verification.md",
+        ".tasks/TASK-020/TASK-020-S-RED-VERIFY-final-report-docs-01.md",
+        "apps/backend/src/cart-merge/plan.ts",
+        "apps/backend/src/workflows/merge-customer-cart.ts",
+        ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+        ".memory-bank/domains/cart-merge-data.md"
+      ],
+      "summary": "Adversarial semantic verification found a cross-task contract mismatch. TASK-019 planning and linked SDD specs aggregate source and target lines by variant_id, but TASK-020 runtime rejects target carts containing more than one line for the planned target variant. A valid planned same-variant target state can therefore fail before merge instead of committing exact summed quantities or compensating, so TASK-020 is not T3 closure-eligible."
+    },
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-07",
+      "mode": "manual",
+      "recommended_status": "planned_pending_red_verify_human_checkpoint",
+      "bug": ".memory-bank/bugs/TASK-020-duplicate-target-variant-lines.md",
+      "evidence": [
+        ".protocols/TASK-020/verification.md",
+        ".tasks/TASK-020/TASK-020-S-verify-final-report-code-03.md",
+        ".tasks/TASK-020/execute-cart-merge-lifecycle.md",
+        ".tasks/TASK-020/execute-typecheck.md",
+        ".tasks/TASK-020/execute-mb-lint.md",
+        ".tasks/TASK-020/execute-scope-audit.md",
+        ".tasks/TASK-020/rollback-recovery.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/backend run test:integration -- cart-merge-lifecycle",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/backend run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Functional verification passed after duplicate target variant-line remediation. TASK-020 now validates target quantities by aggregate Product Variant ID, preserves planned anchor-line identity, keeps target mutation in Medusa add-to-cart plus forced refresh workflows, and lifecycle evidence includes targetDuplicateVariantLinesMerged: true. T3 closure remains pending repeated per-task /red-verify semantic-pass and HUMAN_CHECKPOINT: done."
+    },
+    {
+      "stage": "red-verify",
+      "verdict": "SEMANTIC_VERDICT: semantic-pass",
+      "verified_at": "2026-07-07",
+      "mode": "manual",
+      "recommended_status": "planned_pending_human_checkpoint",
+      "supersedes": "2026-07-07 SEMANTIC_VERDICT: semantic-fail",
+      "resolved_bug": ".memory-bank/bugs/TASK-020-duplicate-target-variant-lines.md",
+      "evidence": [
+        ".protocols/TASK-020/red-verification.md",
+        ".tasks/TASK-020/TASK-020-S-RED-VERIFY-final-report-docs-02.md",
+        ".protocols/TASK-020/verification.md",
+        ".tasks/TASK-020/TASK-020-S-verify-final-report-code-03.md",
+        ".tasks/TASK-020/execute-cart-merge-lifecycle.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/backend run test:integration -- cart-merge-lifecycle",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/backend run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Adversarial semantic verification passed after duplicate target variant-line remediation. TASK-019 planning, linked SDD aggregation semantics, and TASK-020 lifecycle now align: duplicate target same-variant lines are accepted as aggregate target quantity, compensated, and merged to the exact final quantity through Medusa core workflows. At red-verification time TASK-020 remained not done because HUMAN_CHECKPOINT: done was still pending."
+    },
+    {
+      "stage": "mb-sync",
+      "verdict": "TASK_STATUS: done",
+      "synced_at": "2026-07-07",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-07",
+      "closure_decision": "Manual T3 closure explicitly requested by the user after /verify PASS and per-task /red-verify semantic-pass.",
+      "markers": [
+        "HUMAN_CHECKPOINT: done",
+        "ROLLBACK_RECOVERY_NOTE: present"
+      ],
+      "evidence": [
+        ".tasks/TASK-020/TASK-020-S-mb-sync-final-report-docs-01.md",
+        ".protocols/TASK-020/verification.md",
+        ".tasks/TASK-020/TASK-020-S-verify-final-report-code-03.md",
+        ".protocols/TASK-020/red-verification.md",
+        ".tasks/TASK-020/TASK-020-S-RED-VERIFY-final-report-docs-02.md",
+        ".tasks/TASK-020/rollback-recovery.md"
+      ],
+      "commands": [
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "GENERAL closed TASK-020 in manual mode after confirming the required T3 gates: full protocol evidence, required packet/spec gates, repeated functional /verify PASS, repeated per-task /red-verify semantic-pass, ROLLBACK_RECOVERY_NOTE: present, and explicit HUMAN_CHECKPOINT: done. No dependent task was promoted during mb-sync."
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Transfer and existing-target lifecycle integration output.",
+    "Source soft-delete, target quantity, and journal-ordering evidence.",
+    "Injected restore/compensation and stock-conflict evidence.",
+    "T3 human checkpoint and rollback/recovery note before closure."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/cart-runtime.md",
+    ".memory-bank/domains/cart-merge-data.md",
+    ".memory-bank/states/cart-ownership-merge.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use supported Medusa core workflows plus Cart Module softDeleteCarts/restoreCarts.",
+    "Never hard-delete or clear the source cart.",
+    "Return no success before target, source disposition, and journal state are durable."
+  ],
+  "invariants": [
+    "Failure cannot lose or duplicate source or target quantities.",
+    "Journal completed implies existing-target source is soft-deleted.",
+    "Compensation restores source before target reversal."
+  ],
+  "verification_targets": [
+    ".memory-bank/architecture/cart-runtime.md#cart-merge-workflow",
+    ".memory-bank/domains/cart-merge-data.md#source-cart-disposition",
+    ".memory-bank/states/cart-ownership-merge.md#recovery"
+  ],
+  "purpose": "Implement the no-data-loss mutation lifecycle independently from HTTP authentication concerns.",
+  "success_outcome": "A planned merge either commits exact target quantities with the source consumed or restores both carts to their pre-merge state.",
+  "anti_goals": [
+    "Do not expose the Store merge route.",
+    "Do not hard-delete or empty the source.",
+    "Do not implement OAuth, checkout, order, reservation, or payment."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-020.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/package.json",
+      "apps/backend/src/workflows/merge-customer-cart.ts",
+      "apps/backend/src/modules/cart-merge/**",
+      "apps/backend/src/scripts/smoke-cart-merge-lifecycle.ts",
+      "apps/backend/test/run-integration.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "HTTP/auth route implementation",
+      "hard deletion or clearing of source cart data",
+      "Medusa Core source/table modification",
+      "production data"
+    ],
+    "stop_conditions": [
+      "Supported Cart Module soft-delete/restore cannot provide reversible source disposition.",
+      "A failure path can leave untracked partial target mutations.",
+      "Journal completion cannot be ordered after source soft-delete."
+    ]
+  }
+}

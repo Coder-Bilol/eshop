@@ -152,6 +152,48 @@
       "items": {
         "type": "string"
       }
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "success_outcome": {
+      "type": "string"
+    },
+    "anti_goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "runtime_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "packet_required": {
+          "type": "boolean"
+        },
+        "packet_ref": {
+          "type": "string"
+        },
+        "allowed_write_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "forbidden_scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stop_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   }
 }

@@ -1,0 +1,113 @@
+{
+  "id": "TASK-026",
+  "title": "Add browser cart persistence and merge acceptance",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-003",
+  "reqs": ["REQ-006", "REQ-007", "REQ-008"],
+  "depends_on": ["TASK-023", "TASK-024", "TASK-025"],
+  "touched_files": [
+    "apps/storefront/package.json",
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "Windows-native local runtime smoke",
+      "command": "npm run smoke:local",
+      "required": true
+    },
+    {
+      "name": "storefront cart browser acceptance",
+      "command": "npm --workspace apps/storefront run test:e2e -- cart",
+      "required": true
+    },
+    {
+      "name": "workspace typecheck",
+      "command": "npm run typecheck",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Real browser starts from a valid product-detail variant, creates a guest cart, updates/removes lines, and restores it after reload/new context.",
+    "Synthetic authenticated context merges into an existing customer cart and atomically switches to the backend-selected target.",
+    "Repeated handoff keeps exact quantities and stale consumed-source Store access returns not found before authenticated replay recovers the target.",
+    "REQ-006 through REQ-008 are evidenced without live OAuth or later checkout/order scope.",
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-003.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Windows-native runtime log.",
+    "Playwright trace/screenshots for guest persistence, mutations, merge, replay, and consumed-source state.",
+    "Workspace typecheck and Memory Bank lint output.",
+    "T3 human checkpoint and rollback/recovery note before closure."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/tasks/plans/IMPL-FT-003.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/contracts/cart-api-data-contract.md",
+    ".memory-bank/contracts/cart-access-security.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use real local Medusa/PostgreSQL with synthetic authenticated fixtures.",
+    "Do not use live Google/VK providers, production secrets, or production data.",
+    "Keep checkout, order, inventory reservation, and payment outside the flow."
+  ],
+  "invariants": [
+    "Browser storage contains only the opaque cart reference.",
+    "Rendered merge success uses the backend-selected target.",
+    "Replay cannot duplicate quantity and stale source cannot remain an active second cart."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#verification-targets",
+    ".memory-bank/contracts/cart-api-data-contract.md#consumed-source-behavior",
+    ".memory-bank/testing/index.md#e2e-tests",
+    ".memory-bank/requirements.md"
+  ],
+  "purpose": "Provide buyer-visible acceptance evidence for guest cart persistence and the post-auth merge handoff.",
+  "success_outcome": "REQ-006 through REQ-008 pass in a real browser against local Medusa/PostgreSQL with exact merged quantities and no reusable consumed source.",
+  "anti_goals": [
+    "Do not treat browser evidence as sole proof of ownership or compensation.",
+    "Do not use live OAuth providers or production data.",
+    "Do not absorb checkout, order, inventory reservation, or payment."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-026.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/package.json",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "backend production behavior",
+      "live OAuth providers or credentials",
+      "production data",
+      "checkout, order, inventory reservation, or payment"
+    ],
+    "stop_conditions": [
+      "Browser flow cannot run against real local Medusa/PostgreSQL.",
+      "Authenticated fixture cannot prove backend-selected target.",
+      "Required evidence would depend on live provider or production mutation."
+    ]
+  }
+}
