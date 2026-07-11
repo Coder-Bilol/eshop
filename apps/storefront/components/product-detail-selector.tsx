@@ -1,20 +1,33 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useCart } from "./cart-provider";
 import { formatCatalogMoney, formatCatalogValue } from "../lib/catalog";
 import {
   buildCartActionHandoff,
   resolveVariantSelection,
-  type CartActionHandoff,
   type ProductDetail,
   type VariantSelectionResult,
 } from "../lib/product-detail";
 
 type Selection = Record<string, string>;
+type CartActionState =
+  | {
+      status: "added";
+      variantSku: string;
+      cartId: string;
+      quantity: number;
+    }
+  | {
+      status: "failed";
+      variantSku: string;
+      reason: string;
+    };
 
 export function ProductDetailSelector({ product }: { product: ProductDetail }) {
   const [selection, setSelection] = useState<Selection>({});
-  const [handoff, setHandoff] = useState<CartActionHandoff | null>(null);
+  const [cartAction, setCartAction] = useState<CartActionState | null>(null);
+  const { state: cartState, addItem } = useCart();
   const selectionResult = useMemo(
     () => resolveVariantSelection(product, selection),
     [product, selection]
@@ -25,17 +38,39 @@ export function ProductDetailSelector({ product }: { product: ProductDetail }) {
       ...current,
       [name]: value,
     }));
-    setHandoff(null);
+    setCartAction(null);
   }
 
-  function submitSelection() {
+  async function submitSelection() {
     const payload = buildCartActionHandoff(product.handle, selectionResult);
     if (payload) {
-      setHandoff(payload);
+      const nextState = await addItem({
+        variantId: payload.selected_variant_id,
+        quantity: payload.quantity,
+      });
+
+      if (nextState.status === "ready" && nextState.cart) {
+        setCartAction({
+          status: "added",
+          variantSku: payload.selected_variant_sku,
+          cartId: nextState.cart.id,
+          quantity: payload.quantity,
+        });
+        return;
+      }
+
+      setCartAction({
+        status: "failed",
+        variantSku: payload.selected_variant_sku,
+        reason:
+          nextState.error?.message ||
+          "The cart service did not confirm the add-to-cart request.",
+      });
     }
   }
 
   const selectedPrice = selectionResult.selectedVariant?.price;
+  const addInProgress = cartState.status === "loading" && cartState.operation === "add";
 
   return (
     <section className="variantSelector" aria-labelledby="variant-selector-title">
@@ -85,25 +120,41 @@ export function ProductDetailSelector({ product }: { product: ProductDetail }) {
         <button
           type="button"
           className="addToCartButton"
-          disabled={!selectionResult.canAddToCart}
-          onClick={submitSelection}
+          disabled={!selectionResult.canAddToCart || addInProgress}
+          onClick={() => void submitSelection()}
         >
-          Add to cart
+          {addInProgress ? "Adding..." : "Add to cart"}
         </button>
         <p>Quantity: 1</p>
       </div>
 
-      {handoff ? (
+      {cartAction?.status === "added" ? (
+        <section
+          className="selectionState selectionState-valid"
+          role="status"
+          data-handoff-state="cart-action-added"
+          data-cart-id={cartAction.cartId}
+        >
+          <strong>Added to cart</strong>
+          <p>
+            {cartAction.variantSku}, quantity {cartAction.quantity}, was
+            confirmed by the backend cart.
+          </p>
+          <a className="productDetailLink" href="/cart">
+            View cart
+          </a>
+        </section>
+      ) : null}
+
+      {cartAction?.status === "failed" ? (
         <section
           className="handoffFailure"
           role="status"
-          data-handoff-state="cart-action-unavailable"
-          data-selected-variant-id={handoff.selected_variant_id}
+          data-handoff-state="cart-action-failed"
         >
           <strong>Cart is temporarily unavailable</strong>
           <p>
-            {handoff.selected_variant_sku}, quantity {handoff.quantity}, was not
-            added. Try again later.
+            {cartAction.variantSku} was not added. {cartAction.reason}
           </p>
         </section>
       ) : null}

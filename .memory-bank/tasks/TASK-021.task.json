@@ -1,7 +1,7 @@
 {
   "id": "TASK-021",
   "title": "Expose authenticated cart merge API",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-003",
   "reqs": ["REQ-008"],
@@ -38,7 +38,108 @@
     "Foreign-owned source is denied without data disclosure and incompatible/stock/in-progress failures use stable codes.",
     "Completed replay validates journal customer before source retrieval and returns the recorded target when the source is soft-deleted.",
     "Concurrent requests converge on one journal result or bounded cart_merge_in_progress response.",
-    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence."
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-08",
+      "mode": "manual",
+      "recommended_status": "planned_pending_red_verify_human_checkpoint",
+      "evidence": [
+        ".protocols/TASK-021/verification.md",
+        ".tasks/TASK-021/TASK-021-S-verify-final-report-code-01.md",
+        ".tasks/TASK-021/execute-cart-merge-api.md",
+        ".tasks/TASK-021/execute-typecheck.md",
+        ".tasks/TASK-021/execute-mb-lint.md",
+        ".tasks/TASK-021/execute-scope-audit.md",
+        ".tasks/TASK-021/rollback-recovery.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/backend run test:integration -- cart-merge-api",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/backend run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Manual T3 functional verification passed. The required packet is ready and hash-matched; linked FT-003 API/security/state specs are present; the authenticated merge API integration proves middleware registration, auth-required behavior, empty-body validation, ownership transfer, existing-target merge, journal-first replay without duplicate quantities, replay denial for another customer, pending-journal in-progress response, and stock-conflict no-mutation behavior. Backend typecheck, Memory Bank lint, strict doctor, and scope/security scans passed. T3 closure remains pending per-task /red-verify semantic-pass and HUMAN_CHECKPOINT: done."
+    },
+    {
+      "stage": "red-verify",
+      "verdict": "SEMANTIC_VERDICT: semantic-pass",
+      "verified_at": "2026-07-08",
+      "mode": "manual",
+      "recommended_status": "planned_pending_human_checkpoint",
+      "evidence": [
+        ".protocols/TASK-021/red-verification.md",
+        ".tasks/TASK-021/TASK-021-S-RED-VERIFY-final-report-docs-01.md",
+        ".protocols/TASK-021/verification.md",
+        ".tasks/TASK-021/TASK-021-S-verify-final-report-code-01.md",
+        ".tasks/TASK-021/execute-cart-merge-api.md",
+        ".tasks/TASK-021/rollback-recovery.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/backend run test:integration -- cart-merge-api",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/backend run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Adversarial semantic verification passed. TASK-021 preserves the linked FT-003 API/security/state contracts: actor identity is auth-context derived, source cart identity is path-derived, client destination/customer authority is rejected, completed replay is journal-first and customer-checked, replay does not duplicate quantities, pending journal and stock conflict produce stable responses, and runtime route files do not directly mutate cart lines or source disposition. At red-verification time TASK-021 remained not done because HUMAN_CHECKPOINT: done was still pending."
+    },
+    {
+      "stage": "mb-sync",
+      "verdict": "TASK_STATUS: done",
+      "synced_at": "2026-07-09",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-09",
+      "closure_decision": "Manual T3 closure explicitly approved by the user after /verify PASS and per-task /red-verify semantic-pass.",
+      "markers": [
+        "HUMAN_CHECKPOINT: done",
+        "ROLLBACK_RECOVERY_NOTE: present"
+      ],
+      "evidence": [
+        ".tasks/TASK-021/TASK-021-S-mb-sync-final-report-docs-01.md",
+        ".protocols/TASK-021/verification.md",
+        ".tasks/TASK-021/TASK-021-S-verify-final-report-code-01.md",
+        ".protocols/TASK-021/red-verification.md",
+        ".tasks/TASK-021/TASK-021-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-021/rollback-recovery.md"
+      ],
+      "commands": [
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "GENERAL closed TASK-021 in manual mode after confirming the required T3 gates: full protocol evidence, required packet/spec gates, functional /verify PASS, per-task /red-verify semantic-pass, ROLLBACK_RECOVERY_NOTE: present, and explicit HUMAN_CHECKPOINT: done. No dependent task was promoted during mb-sync."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-003.md",

@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-025-R1",
   "task_id": "TASK-025",
   "created_at": "2026-07-03T22:17:14+03:00",
-  "source_task_hash": "sha256:58513cc49a62bb115803f41260ef62c24ed6f20fde964a7c20ffca4d0e288fe8",
+  "source_task_hash": "sha256:2a4be8217f94873e75e4c5b73b8b22349baa4a7f61b5adc66be14880b7c81e6d",
   "status": "ready",
   "tier": "T3",
   "purpose": "Provide independent server-side acceptance evidence for the complete data and security boundary.",

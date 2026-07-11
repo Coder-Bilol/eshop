@@ -19,6 +19,7 @@
     "smoke:cart-merge-plan": "medusa exec ./src/scripts/smoke-cart-merge-plan.ts",
     "smoke:cart-merge-lifecycle": "medusa exec ./src/scripts/smoke-cart-merge-lifecycle.ts",
     "smoke:cart-merge-api": "medusa exec ./src/scripts/smoke-cart-merge-api.ts",
+    "smoke:cart-merge-acceptance": "medusa exec ./src/scripts/smoke-cart-merge-acceptance.ts",
     "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },

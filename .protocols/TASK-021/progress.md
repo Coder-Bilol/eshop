@@ -39,11 +39,16 @@ Auth remains in middleware through:
 - Memory Bank lint after evidence/changelog writes: PASS, 106 files.
 - TASK-020 lifecycle regression: PASS.
 - Scope audit: PASS.
+- Independent `/verify`: PASS on 2026-07-08.
+- Per-task `/red-verify`: semantic-pass on 2026-07-08.
+- Manual closure: done on 2026-07-09 by GENERAL.
 
 ## Not Performed By `/execute`
 
-- `/verify TASK-021`: not run.
-- `/red-verify TASK-021`: not run.
+- `/verify TASK-021`: completed after `/execute`; `VERDICT: PASS`.
+- `/red-verify TASK-021`: completed after `/verify`; `SEMANTIC_VERDICT:
+  semantic-pass`.
 - T3 closure: not performed.
-- `TASK-021.status`: not changed.
-- `/mb-sync`: not run.
+- T3 closure: completed after explicit user approval.
+- `TASK-021.status`: `done`.
+- `/mb-sync`: completed in manual mode.

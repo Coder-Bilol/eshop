@@ -8,10 +8,10 @@ status: complete
 
 - `/execute TASK-021`: complete.
 - Local execute gates: PASS.
-- Task status: `planned`.
-- Independent `/verify`: not run by this handoff.
-- Per-task `/red-verify`: not run by this handoff.
-- T3 closure: not performed.
+- Task status: `done`.
+- Independent `/verify`: PASS on 2026-07-08.
+- Per-task `/red-verify`: semantic-pass on 2026-07-08.
+- T3 closure: completed on 2026-07-09 by GENERAL.
 
 ## Delivered
 
@@ -50,15 +50,23 @@ status: complete
 - `.tasks/TASK-021/execute-scope-audit.md`
 - `.tasks/TASK-021/rollback-recovery.md`
 - `.tasks/TASK-021/TASK-021-S-execute-final-report-code-01.md`
+- `.tasks/TASK-021/TASK-021-S-verify-final-report-code-01.md`
+- `.tasks/TASK-021/TASK-021-S-RED-VERIFY-final-report-docs-01.md`
+- `.tasks/TASK-021/TASK-021-S-mb-sync-final-report-docs-01.md`
 
 ## T3 Closure State
 
-HUMAN_CHECKPOINT: pending
+HUMAN_CHECKPOINT: done
 
 ROLLBACK_RECOVERY_NOTE: present
 
-- `/verify TASK-021` is required next.
-- Per-task `/red-verify TASK-021` is required before T3 closure.
-- Explicit human checkpoint is required before setting task status to `done`.
-- `/mb-sync` should be run only after successful verification/closure decision.
+- `/verify TASK-021`: PASS.
+- Per-task `/red-verify TASK-021`: semantic-pass.
+- Manual closure owner: `GENERAL`.
+- Closed at: `2026-07-09`.
 
+## MB-SYNC Notes
+
+- `TASK-021.status` is `done`.
+- No dependent task was promoted.
+- TASK-022 readiness remains a separate scheduler/manual decision.

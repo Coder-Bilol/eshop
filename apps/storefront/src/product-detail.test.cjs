@@ -335,11 +335,19 @@ function verifyProductDetailUiStates() {
     "unavailable_variant",
     "valid",
     "no_variants",
-    "cart-action-unavailable",
+    "cart-action-added",
+    "cart-action-failed",
   ]) {
     assert.match(componentSource, new RegExp(state));
   }
 
+  assert.match(componentSource, /useCart\(\)/);
+  assert.match(componentSource, /payload\.selected_variant_id/);
+  assert.match(componentSource, /addItem\(\{/);
+  assert.match(
+    componentSource,
+    /disabled=\{!selectionResult\.canAddToCart \|\| addInProgress\}/
+  );
   assert.match(pageSource, /product_detail_not_found/);
   assert.match(pageSource, /product_detail_unpublished/);
   assert.match(loadingSource, /Loading product details/);

@@ -3,6 +3,9 @@ const path = require("node:path");
 const suites = {
   catalog: path.join(__dirname, "catalog-ui.test.cjs"),
   "cart-client": path.join(__dirname, "cart-client.test.cjs"),
+  "cart-merge": path.join(__dirname, "cart-merge.test.cjs"),
+  "cart-state": path.join(__dirname, "cart-state.test.cjs"),
+  "cart-view": path.join(__dirname, "cart-view.test.cjs"),
   "product-detail": path.join(__dirname, "product-detail.test.cjs"),
 };
 

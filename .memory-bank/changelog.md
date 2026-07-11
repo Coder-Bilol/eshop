@@ -4,6 +4,220 @@ status: active
 ---
 # Changelog
 
+## [2026-07-11] VPS deployment foundation
+- Confirmed actual VPS capacity after reboot: AlmaLinux 9.8 on `1 vCPU`, about
+  `1.7 GiB` RAM, `30 GB` disk with about `23 GB` free, and kernel
+  `5.14.0-687.20.1.el9_8.x86_64`; this supersedes the earlier planned 2 vCPU /
+  2 GB snapshot.
+- Added deployment user `eshop`: key-only SSH through a local private key,
+  password and keyboard-interactive login disabled only for that user, and
+  Docker-group access. Root SSH configuration was not changed.
+- Added persistent 1.5 GiB `/swapfile-eshop` alongside the existing 512 MiB
+  swapfile, providing 2.0 GiB total swap.
+- Installed and verified Docker Engine 29.6.1, Docker Compose v5.3.1, and Caddy
+  2.11.4. Docker is enabled; Caddy remains inactive until domains, Caddyfile,
+  and firewall rules are ready.
+- Created `/opt/eshop` and `/opt/eshop/secrets` for the deployment user. The
+  repository checkout path is `/opt/eshop/app` so secrets do not conflict with
+  Git checkout.
+- Restructured: [DEPLOYMENT.md](../DEPLOYMENT.md) is the deployment handoff;
+  [DEPLOYMENT_process.md](../DEPLOYMENT_process.md) preserves preparation
+  history, the legacy plan archive, and remaining deployment work.
+
+## [2026-07-11] TASK-026 browser cart acceptance execute
+- Added: explicit storefront `cart` E2E suite over the real local
+  Medusa/PostgreSQL runtime and Playwright browser.
+- Covered: product-detail guest cart creation, reference-only browser storage,
+  absolute quantity update, line removal, reload/new-context restore, synthetic
+  local customer auth, authenticated merge into a backend-selected existing
+  customer cart, consumed-source Store not-found behavior, and completed replay
+  without duplicate quantity.
+- Updated: storefront package scripts now include `test:e2e:cart` as a narrow
+  alias for the cart acceptance suite.
+- Status: `/execute` implementation is in progress; TASK-026 remains pending
+  local gates, independent `/verify`, per-task `/red-verify`, and T3 closure
+  markers.
+
+## [2026-07-11] TASK-023 manual closure sync
+- Closed: `TASK-023` is now `done` after explicit manual instruction from the
+  user to check the task state and do it if not done.
+- Confirmed: existing `/verify TASK-023` is `VERDICT: PASS`; fresh closure gates
+  passed for cart-view tests, product-detail regression, storefront typecheck,
+  Memory Bank lint, and strict doctor.
+- Synced: task record, closure protocol/report, command evidence, required packet
+  hash, and changelog.
+- Not required: per-task `/red-verify` and T3 markers are not required for this
+  T2 task closure.
+- Not promoted: no dependent task was advanced during this sync; FT-003 remains
+  planned until TASK-026 and feature-level semantic verification are complete.
+
+## [2026-07-10] TASK-025 manual closure sync
+- Closed: `TASK-025` is now `done` after explicit manual closure approval from
+  the user.
+- Confirmed: `/verify TASK-025` is `VERDICT: PASS` and per-task
+  `/red-verify TASK-025` is `SEMANTIC_VERDICT: semantic-pass`.
+- Recorded T3 markers: `HUMAN_CHECKPOINT: done` and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Synced: task record, protocol/evidence links, required packet hash, and
+  changelog.
+- Not promoted: no dependent task was advanced during `/mb-sync`; FT-003 and
+  REQ-008 remain `planned` until downstream TASK-026 and feature-level semantic
+  verification are complete.
+
+## [2026-07-10] TASK-025 backend cart merge acceptance execute
+- Added: backend `cart-merge-acceptance` integration suite over real
+  Medusa/PostgreSQL route, workflow, module, cart, and customer boundaries.
+- Covered: transfer with incompatible target isolation, deterministic
+  existing-target selection, same-variant summing, foreign ownership denial,
+  stock conflict no-mutation, journal-first replay, in-progress concurrency
+  response, consumed-source not-found behavior, and injected post-soft-delete
+  recovery.
+- Verified locally during `/execute`: backend cart-merge acceptance suite,
+  backend typecheck, and Memory Bank lint pass.
+- Status: `/execute` implementation handoff is complete; TASK-025 remains
+  `planned` pending independent `/verify`, per-task `/red-verify`, and T3
+  closure markers.
+
+## [2026-07-10] TASK-024 manual closure sync
+- Closed: `TASK-024` is now `done` after explicit manual closure instruction from
+  the user.
+- Confirmed: `/verify TASK-024` is `VERDICT: PASS` and per-task
+  `/red-verify TASK-024` is `SEMANTIC_VERDICT: semantic-pass`.
+- Recorded T3 markers: `HUMAN_CHECKPOINT: done` and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Synced: task record, protocol/evidence links, required packet hash, and
+  changelog.
+- Not promoted: no dependent task was advanced during `/mb-sync`; FT-003 and
+  REQ-008 remain `planned` until downstream TASK-025/TASK-026 and feature-level
+  semantic verification are complete.
+
+## [2026-07-09] TASK-024 post-auth cart merge handoff execute
+- Added: storefront `cart-merge` handoff client for authenticated
+  `POST /store/carts/{source_cart_id}/merge` with `credentials: include`, an
+  empty request body, and no client-chosen destination/customer identity.
+- Updated: cart provider now exposes a provider-agnostic
+  `mergeAfterAuthentication` method for FT-004 to invoke after auth without
+  adding OAuth provider logic.
+- Added: focused cart-merge tests for request shape, backend-selected target
+  adoption, replay, failure/source-reference preservation, and provider
+  boundary scope.
+- Verified locally during `/execute`: focused cart-merge tests, storefront
+  typecheck, and Memory Bank lint pass.
+- Status: `/execute` implementation handoff is complete; TASK-024 remains
+  `planned` pending independent `/verify`, per-task `/red-verify`, and T3
+  closure markers.
+
+## [2026-07-09] VPS deployment runbook KISS image tags
+- Updated: [DEPLOYMENT.md](../DEPLOYMENT.md) now uses stable `production`
+  image tags for backend/storefront instead of a manually edited
+  `ESHOP_VERSION`/`compose.env` flow.
+- Updated: VPS resource snapshot now reflects 2 vCPU / 2 GB RAM and keeps
+  swap/disk as values to re-check after the tariff change.
+- Synced: system architecture deployment assumptions now record the stable
+  `production` tag policy and leave only the external PostgreSQL backup target
+  as an open VPS deployment question.
+
+## [2026-07-09] TASK-023 product detail and cart UI execute
+- Added: root cart provider wiring, `/cart` route, and a buyer-visible cart view
+  for backend-returned items/totals, restore, absolute quantity update, remove,
+  stale reference recovery, validation, conflict, and backend failure states.
+- Updated: product detail now calls guest-cart add with the validated Medusa
+  Product Variant ID from the FT-002 handoff while preserving blocked selection
+  guards.
+- Added: focused cart-view source/component contract tests and product-detail
+  regression checks.
+- Verified locally during `/execute`: focused cart-view tests, product-detail
+  regression, storefront typecheck, Memory Bank lint, full storefront unit
+  regression, and strict doctor pass.
+- Status: `/execute` implementation handoff is complete; TASK-023 remains
+  `ready` pending independent `/verify` and closure by the appropriate owner.
+
+## [2026-07-09] TASK-022 manual closure sync
+- Closed: `TASK-022` is now `done` after explicit manual closure instruction
+  from the user.
+- Confirmed: `/verify TASK-022` is `VERDICT: PASS` and per-task
+  `/red-verify TASK-022` is `SEMANTIC_VERDICT: semantic-pass`.
+- Opened: `TASK-023` is now `ready` for `/execute`; its only dependency
+  `TASK-022` is closed and its required packet is ready/hash-matched.
+- Synced: task records, protocol/evidence links, packet hashes, and changelog.
+- Not promoted: FT-003, REQ-006, and REQ-007 remain `planned`; feature-level
+  completion still requires downstream tasks and `/red-verify --feature FT-003`.
+
+## [2026-07-09] TASK-022 red-verification
+- Result: per-task `/red-verify TASK-022` returned
+  `SEMANTIC_VERDICT: semantic-pass`.
+- Confirmed: guest-cart state remains a bounded frontend state boundary over the
+  TASK-018 Store client/reference adapter; backend responses remain truth,
+  browser storage stays reference-only, stale references clear without
+  reconstruction, and backend failures remain retryable.
+- Scope: no cart page, product-detail rendering, authenticated merge, OAuth,
+  backend, checkout, order, inventory, or payment scope was added.
+- Not closed: `TASK-022` remains `planned`; this optional T2 per-task
+  semantic-pass does not replace the later feature-level
+  `/red-verify --feature FT-003` after all FT-003 tasks.
+
+## [2026-07-09] TASK-022 independent verification
+- Verified: manual `/verify TASK-022` passed for guest-cart state
+  orchestration.
+- Evidence: focused `cart-state` tests and full storefront unit regression pass
+  for lazy create, restore, reference-only persistence, backend-response
+  adoption, stale clear, absolute update/remove, validation, conflict, backend
+  failure, and loading states.
+- Gates: storefront typecheck, Memory Bank lint, strict doctor, and packet hash
+  checks passed.
+- Not closed: `TASK-022` remains `planned`; per-task `/red-verify TASK-022` is
+  running next because it was explicitly requested, while feature-level
+  `/red-verify --feature FT-003` remains a later gate after all FT-003 tasks.
+
+## [2026-07-09] TASK-022 guest cart state execute
+- Added: storefront guest-cart state orchestration over the TASK-018 Store cart
+  client and reference adapter.
+- Added: a thin cart provider boundary for later UI integration without cart
+  page/product-detail rendering.
+- Added: focused cart-state tests covering lazy create, restore, reference-only
+  persistence, absolute update/remove adoption, stale clear, validation,
+  conflict, backend failure, and loading states.
+- Verified locally during `/execute`: focused cart-state tests, storefront
+  typecheck, Memory Bank lint, full storefront unit regression, and strict
+  doctor pass.
+- Status: `/execute` implementation handoff is complete; TASK-022 remains
+  `planned` pending independent `/verify` and closure by the appropriate owner.
+
+## [2026-07-09] TASK-021 manual closure sync
+- Closed: `TASK-021` is now `done` after explicit manual closure approval from
+  the user.
+- Confirmed: `/verify TASK-021` is `VERDICT: PASS`, per-task
+  `/red-verify TASK-021` is `SEMANTIC_VERDICT: semantic-pass`, and T3 markers
+  are present: `HUMAN_CHECKPOINT: done` and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Synced: task record, protocol state, packet hash, and changelog.
+- Not promoted: no dependent task was advanced during `/mb-sync`; TASK-022
+  readiness remains a separate scheduler/manual decision.
+
+## [2026-07-08] TASK-021 red-verification
+- Result: per-task `/red-verify TASK-021` returned
+  `SEMANTIC_VERDICT: semantic-pass`.
+- Confirmed: authenticated merge API preserves actor-derived identity,
+  path-derived source identity, strict empty-body authority rejection,
+  journal-first customer-checked replay, stable in-progress/stock-conflict
+  responses, and route-level delegation to TASK-019/TASK-020.
+- Gates: cart merge API integration, backend typecheck, Memory Bank lint,
+  strict doctor, packet hash, and scope/security scans passed.
+- Not closed: TASK-021 remains `planned`; T3 closure still requires exact
+  `HUMAN_CHECKPOINT: done` under an explicit closure owner.
+
+## [2026-07-08] TASK-021 independent verification
+- Verified: manual `/verify TASK-021` passed for the authenticated cart merge
+  API boundary.
+- Evidence: `cart-merge-api` integration passed against Medusa/PostgreSQL and
+  proved auth-required behavior, empty-body validation, transfer, merge,
+  journal-first replay, replay no-duplication, replay foreign-customer denial,
+  in-progress response, and stock-conflict stability.
+- Gates: backend typecheck, Memory Bank lint, strict doctor, packet hash, and
+  scope/security scans passed.
+- Not closed: TASK-021 remains `planned`; T3 closure still requires per-task
+  `/red-verify TASK-021` semantic-pass and `HUMAN_CHECKPOINT: done`.
+
 ## [2026-07-07] TASK-021 authenticated cart merge API execute
 - Added authenticated `POST /store/carts/:id/merge` Store API route backed by
   TASK-019 planning and TASK-020 lifecycle workflow.

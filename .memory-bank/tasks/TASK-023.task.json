@@ -1,7 +1,7 @@
 {
   "id": "TASK-023",
   "title": "Connect product detail and guest cart UI",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-003",
   "reqs": ["REQ-006", "REQ-007"],
@@ -43,7 +43,96 @@
     "A valid Medusa Product Variant ID from product detail reaches guest-cart add without weakening selection guards.",
     "Cart page renders backend items/totals and supports absolute quantity update and remove.",
     "Loading, empty, stale, validation, stock conflict, and backend failure states are visible and recoverable.",
-    "Reload renders the retrieved backend cart rather than cached line data."
+    "Reload renders the retrieved backend cart rather than cached line data.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-09",
+      "mode": "manual",
+      "recommended_status": "closure_eligible_pending_scheduler_or_explicit_closure_decision",
+      "evidence": [
+        ".protocols/TASK-023/verification.md",
+        ".tasks/TASK-023/TASK-023-S-verify-final-report-code-01.md",
+        ".tasks/TASK-023/verify-command-output.md",
+        ".tasks/TASK-023/verify-packet-spec-scope-audit.md",
+        ".tasks/TASK-023/execute-cart-view-tests.md",
+        ".tasks/TASK-023/execute-product-detail-regression.md",
+        ".tasks/TASK-023/execute-typecheck.md",
+        ".tasks/TASK-023/execute-mb-lint.md",
+        ".tasks/TASK-023/execute-storefront-regression.md",
+        ".tasks/TASK-023/execute-mb-doctor.md",
+        ".tasks/TASK-023/execute-scope-audit.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/storefront run test -- cart-view",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run test -- product-detail",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run test",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Manual T2 functional verification passed. The required packet was ready and hash-matched before verification; linked FT-003 UX/API/runtime specs were read; fresh cart-view/product-detail tests, storefront typecheck, Memory Bank lint, strict doctor, and full storefront regression passed. Product detail sends the FT-002 valid Medusa Product Variant ID into guest-cart add; /cart renders backend cart truth, supports absolute update/remove, exposes loading/empty/stale/validation/stock-conflict/backend-failure states, and reload restores via backend reference without browser-authoritative cart data. Task status remains unchanged pending scheduler or explicit closure decision; FT-003 feature completion still requires feature-level /red-verify --feature FT-003."
+    },
+    {
+      "stage": "mb-sync",
+      "verdict": "TASK_STATUS: done",
+      "synced_at": "2026-07-11",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-11",
+      "closure_decision": "Manual T2 closure explicitly requested by the user after existing /verify PASS evidence.",
+      "evidence": [
+        ".protocols/TASK-023/closure.md",
+        ".tasks/TASK-023/TASK-023-S-mb-sync-final-report-docs-01.md",
+        ".tasks/TASK-023/mb-sync-command-output.md",
+        ".protocols/TASK-023/verification.md",
+        ".tasks/TASK-023/TASK-023-S-verify-final-report-code-01.md",
+        ".tasks/TASK-023/verify-command-output.md",
+        ".tasks/TASK-023/verify-packet-spec-scope-audit.md",
+        ".tasks/TASK-023/TASK-023-S-execute-final-report-code-01.md"
+      ],
+      "commands": [
+        {
+          "command": "npm --workspace apps/storefront run test -- cart-view",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run test -- product-detail",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "GENERAL closed TASK-023 in manual mode after explicit user instruction. Required T2 gates are satisfied: full protocol evidence, required packet/spec gates, /verify PASS, and fresh closure checks pass. No per-task /red-verify or T3 markers are required for this T2 task. FT-003 remains planned because downstream TASK-026 and feature-level semantic verification are not closed."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-003.md",

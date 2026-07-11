@@ -1,7 +1,7 @@
 {
   "id": "TASK-022",
   "title": "Implement guest cart state orchestration",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-003",
   "reqs": ["REQ-006", "REQ-007"],
@@ -35,7 +35,48 @@
     "First valid add lazily creates a cart and persists only the returned opaque ID.",
     "Retrieve/add/absolute-update/remove state always adopts the backend cart response.",
     "Reload restores by opaque reference, while malformed or not-found references are cleared without reconstructing cart contents.",
-    "Loading, empty, validation, stock conflict, and backend failure states remain deterministic and recoverable."
+    "Loading, empty, validation, stock conflict, and backend failure states remain deterministic and recoverable.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-09",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-09",
+      "closure_decision": "Manual closure explicitly requested by the user after /verify PASS and per-task /red-verify semantic-pass.",
+      "evidence": [
+        ".protocols/TASK-022/verification.md",
+        ".tasks/TASK-022/TASK-022-S-verify-final-report-code-01.md",
+        ".protocols/TASK-022/red-verification.md",
+        ".tasks/TASK-022/TASK-022-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-022/TASK-022-S-mb-sync-final-report-docs-01.md",
+        ".tasks/TASK-022/TASK-022-S-execute-final-report-code-01.md",
+        ".tasks/TASK-022/execute-cart-state-tests.md",
+        ".tasks/TASK-022/execute-typecheck.md",
+        ".tasks/TASK-022/execute-mb-lint.md",
+        ".tasks/TASK-022/execute-storefront-regression.md",
+        ".tasks/TASK-022/execute-mb-doctor.md",
+        ".tasks/TASK-022/execute-scope-audit.md"
+      ],
+      "summary": "Manual T2 functional verification passed and GENERAL closed TASK-022 after explicit user instruction. The required packet was ready and hash-matched; fresh cart-state tests, full storefront test regression, storefront typecheck, Memory Bank lint, strict doctor, and per-task red-verification passed. The state controller lazily creates/restores/mutates backend-owned carts, persists only eshop.cart.v1 opaque cart IDs, clears malformed/stale references, preserves backend failures for retry, uses absolute quantities, and stays within frontend cart-state/provider scope. FT-003 feature completion still requires later feature-level red verification."
+    },
+    {
+      "stage": "red-verify",
+      "verdict": "SEMANTIC_VERDICT: semantic-pass",
+      "verified_at": "2026-07-09",
+      "mode": "manual",
+      "scope": "per-task",
+      "evidence": [
+        ".protocols/TASK-022/red-verification.md",
+        ".tasks/TASK-022/TASK-022-S-RED-VERIFY-final-report-docs-01.md",
+        ".protocols/TASK-022/verification.md",
+        ".tasks/TASK-022/TASK-022-S-verify-final-report-code-01.md",
+        ".tasks/TASK-022/execute-cart-state-tests.md",
+        ".tasks/TASK-022/execute-storefront-regression.md",
+        ".tasks/TASK-022/execute-scope-audit.md"
+      ],
+      "summary": "Per-task adversarial semantic verification passed. The implementation fits TASK-022's bounded purpose as a deterministic guest-cart state boundary over the TASK-018 Store client/reference adapter: backend cart responses remain truth, browser storage stays reference-only, stale references clear without reconstruction, backend failures remain retryable, absolute quantity updates are preserved, and no cart page, product-detail, authenticated merge, OAuth, backend, checkout, order, inventory, or payment scope was added. This optional T2 per-task semantic-pass does not replace later feature-level /red-verify --feature FT-003 after all FT-003 tasks are implemented."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-003.md",

@@ -10,6 +10,7 @@ const suites = {
   "cart-merge-plan": "./src/scripts/smoke-cart-merge-plan.ts",
   "cart-merge-lifecycle": "./src/scripts/smoke-cart-merge-lifecycle.ts",
   "cart-merge-api": "./src/scripts/smoke-cart-merge-api.ts",
+  "cart-merge-acceptance": "./src/scripts/smoke-cart-merge-acceptance.ts",
 };
 
 function main() {

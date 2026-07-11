@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import { CartProvider } from "../components/cart-provider";
 
 export const metadata = {
   title: "Eshop",
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <body>
+        <CartProvider restoreOnMount={false}>{children}</CartProvider>
+      </body>
     </html>
   );
 }

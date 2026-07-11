@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-022-R2",
   "task_id": "TASK-022",
   "created_at": "2026-07-03T22:17:14+03:00",
-  "source_task_hash": "sha256:6e5c85f8a3645e258b100ccf304c0f8b35b8b84200b9b588993d227c9619f567",
+  "source_task_hash": "sha256:5db85146e71d6aa88d79f0f7db01ca8c588383336b164a1217912e33538640d7",
   "status": "ready",
   "tier": "T2",
   "purpose": "Provide one deterministic guest-cart state boundary before rendering and post-auth integration.",

@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "node src/test-runner.cjs",
     "test:e2e": "node e2e/run-real-medusa-e2e.cjs",
+    "test:e2e:cart": "node e2e/run-real-medusa-e2e.cjs cart",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
