@@ -1,7 +1,7 @@
 {
   "id": "TASK-027",
   "title": "Configure Medusa OAuth providers and session policy",
-  "status": "ready",
+  "status": "blocked",
   "wave": "W1",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011", "REQ-012"],
@@ -23,7 +23,17 @@
     "Customer actor permits only google and vkid while admin user retains emailpass.",
     "Google and VK provider configuration is backend-only and exact callback URLs are environment-driven.",
     "Session cookie, CORS, TTL, and local-versus-HTTPS secure policy match the auth security contract.",
-    "Missing enabled-provider secrets fail startup safely without printing values."
+    "Missing enabled-provider secrets fail startup safely without printing values.",
+    {
+      "scheduler_decision": "blocked",
+      "reason": "Installed Medusa 2.16 Google provider accepts a request callback_url ahead of configured callbackUrl; configuration-only scope cannot satisfy the backend-controlled callback security contract.",
+      "evidence": [
+        ".tasks/TASK-027/TASK-027-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-027/preflight-security-conflict.md",
+        ".protocols/TASK-027/handoff.md"
+      ],
+      "required_action": "Approve preserving the strict callback contract and expand TASK-027 to the existing apps/backend/src/api/middlewares.ts guard boundary, then refresh the packet and rerun execute."
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": [

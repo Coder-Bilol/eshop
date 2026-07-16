@@ -4,6 +4,31 @@ status: active
 ---
 # Changelog
 
+## [2026-07-16] First deployment image-build blocker
+- Cloned: production repository checkout `/opt/eshop/app` at commit `33b8fad`.
+- Verified: DNS, SSH, production env-file permissions, Compose topology, and
+  local typecheck/build gates.
+- Blocked: the first backend Docker image build exceeded the current VPS
+  capacity; a retry coincided with a confirmed host reboot before any image,
+  container, volume, migration, seed, or production data was created.
+- Changed: [DEPLOYMENT.md](../DEPLOYMENT.md) now prohibits application image
+  builds on the current 1 vCPU / 1.7 GiB VPS and requires externally built
+  `linux/amd64` archives loaded with `docker load` until a registry is selected.
+- Pending: complete a Docker-capable external build host. Local Docker Desktop
+  remains unavailable because its WSL backend requires an update and the
+  attempted Hyper-V installer switch did not change the active backend.
+
+## [2026-07-16] TASK-027 scheduler halt on OAuth callback boundary
+- Blocked: `TASK-027` after Implementer preflight and independent Explorer evidence
+  confirmed that Medusa 2.16 accepts caller-provided `callback_url` ahead of the
+  configured Google callback URL.
+- Preserved: the backend-controlled exact callback security contract; no runtime
+  code, secrets, provider configuration, or forbidden scope was changed.
+- Required: operator approval to extend `TASK-027` to the existing
+  `apps/backend/src/api/middlewares.ts` guard boundary, refresh its Execution
+  Packet, and resume scheduler-mode `/autopilot`.
+- Terminal run state: `HALT_CLARIFICATION_REQUIRED`.
+
 ## [2026-07-16] FT-005 manual SDD review remediation
 - Decoupled: wishlist capability now requires successful backend current-customer
   retrieval and remains available during `merge_blocked`; cart merge continues to
