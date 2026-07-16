@@ -28,7 +28,7 @@ Preparation finished on 2026-07-11:
 | Docker Compose | `v5.3.1` |
 | Caddy | `2.11.4`, installed but disabled/inactive |
 | Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | not deployed |
+| Application | repository cloned at `33b8fad`; images and containers not deployed |
 
 The server remains small. Do not build production images on it and do not run
 multiple application replicas. Increasing the VPS to at least 2 vCPU / 2 GB RAM
@@ -253,16 +253,27 @@ Local verification on 2026-07-16:
 - Docker image build was not run because the local Docker daemon was not active
   (`dockerDesktopLinuxEngine` pipe unavailable).
 
-Deployment policy update on 2026-07-16:
+Initial deployment attempt on 2026-07-16:
 
 - Local development and local verification run without Docker.
-- Docker Desktop is not required on the local Windows machine.
 - Production deployment runs through Docker Compose on the VPS.
-- Until a registry is selected, backend and storefront images are built on the
-  VPS from `/opt/eshop/app`.
-- Server-side image builds must be sequential with `COMPOSE_PARALLEL_LIMIT=1`.
+- The repository was cloned into `/opt/eshop/app` at commit `33b8fad`.
+- A sequential backend image build spent more than 35 minutes in `npm ci`; a
+  second explicit attempt caused the SSH connection to drop and the VPS uptime
+  confirmed a host reboot during the build.
+- The unprivileged deployment user cannot read the previous boot kernel journal,
+  so OOM versus provider watchdog could not be distinguished.
+- After reboot, Docker and Git were healthy. No application image, container,
+  PostgreSQL volume, migration, seed, or production data had been created.
+- Application image builds are now prohibited on the current 1 vCPU / 1.7 GiB
+  VPS. Build `linux/amd64` images on an external Docker-capable host and transfer
+  archives for `docker load`, or introduce a registry later.
+- The local Windows Docker Desktop could not start because its WSL backend
+  requires an update. An attempted installer switch to Hyper-V did not change
+  the active backend; completing that switch requires local Windows
+  administration and likely a reboot.
 
-The committed Compose file uses local server-built image names:
+The committed Compose file uses locally loaded image names:
 
 ```text
 eshop-backend:production
@@ -320,7 +331,7 @@ Known remaining env gaps and fake placeholders:
 ### Product and repository readiness
 
 1. Complete the unfinished product features and their required tests.
-2. Verify production Docker image builds on the VPS, in CI, or on a build host.
+2. Verify production Docker image builds in CI or on an external build host.
 3. Verify backend, storefront, and PostgreSQL health checks from real containers.
 4. Verify containers do not run dev servers.
 5. Verify backend and storefront only bind to `127.0.0.1`.
@@ -335,12 +346,12 @@ Known remaining env gaps and fake placeholders:
 2. Optional: select a container registry for future image delivery.
 3. Optional: configure registry credentials for the image publisher.
 4. Configure `eshop` access to the Git repository.
-5. Keep the local server-built `production` backend and storefront image tags,
+5. Keep the locally loaded `production` backend and storefront image tags,
    or define registry-backed stable tags later.
-6. Define rollback as checkout of the previous known-good commit/tag and
-   sequential image rebuild unless a registry is introduced later.
+6. Preserve previous known-good image archives for rollback unless a registry is
+   introduced later.
 7. Ensure image builds target `linux/amd64`.
-8. Avoid parallel image builds on the VPS.
+8. Do not build application images on the current VPS.
 
 ### Domains and proxy
 
