@@ -2,7 +2,7 @@
 description: Requirements (REQ IDs) and traceability matrix for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-06-30
+last_updated: 2026-07-13
 source_of_truth:
   - .memory-bank/prd.md
 ---
@@ -64,9 +64,9 @@ source_of_truth:
 | REQ-003 | EP-001 | FT-001 | integration/e2e: filters/search | verified |
 | REQ-004 | EP-001 | FT-002 | unit/integration: variant model | verified |
 | REQ-005 | EP-001 | FT-002 | e2e: variant add-to-cart | verified |
-| REQ-006 | EP-002 | FT-003 | e2e: guest cart update | planned |
-| REQ-007 | EP-002 | FT-003 | e2e: cart persistence | planned |
-| REQ-008 | EP-002 | FT-003 | unit/integration: cart merge | planned |
+| REQ-006 | EP-002 | FT-003 | e2e: guest cart update | verified |
+| REQ-007 | EP-002 | FT-003 | e2e: cart persistence | verified |
+| REQ-008 | EP-002 | FT-003 | unit/integration: cart merge | verified |
 | REQ-009 | EP-002 | FT-005 | e2e: authenticated wishlist | planned |
 | REQ-010 | EP-002 | FT-004 | integration/e2e: Google OAuth | planned |
 | REQ-011 | EP-002 | FT-004 | integration/e2e: VK ID | planned |

@@ -15,6 +15,7 @@ import {
   createStockLocationsWorkflow,
   linkSalesChannelsToApiKeyWorkflow,
   linkSalesChannelsToStockLocationWorkflow,
+  linkProductsToSalesChannelWorkflow,
   updateProductsWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows";
@@ -70,6 +71,7 @@ export default async function seedCatalog({ container }: ExecArgs) {
     ContainerRegistrationKeys.QUERY
   ) as unknown as GraphQuery;
   const salesChannelService = container.resolve(Modules.SALES_CHANNEL);
+  const regionService = container.resolve(Modules.REGION);
   const storeService = container.resolve(Modules.STORE);
   const fulfillmentService = container.resolve(Modules.FULFILLMENT);
 
@@ -92,11 +94,25 @@ export default async function seedCatalog({ container }: ExecArgs) {
     salesChannel = result[0];
   }
 
-  if (store.default_sales_channel_id !== salesChannel.id) {
+  const [moscowRegion] = await regionService.listRegions({
+    name: "Москва",
+    currency_code: "rub",
+  });
+  if (!moscowRegion) {
+    throw new Error("Local Medusa seed requires the Москва RUB region.");
+  }
+
+  if (
+    store.default_sales_channel_id !== salesChannel.id ||
+    store.default_region_id !== moscowRegion.id
+  ) {
     await updateStoresWorkflow(container).run({
       input: {
         selector: { id: store.id },
-        update: { default_sales_channel_id: salesChannel.id },
+        update: {
+          default_sales_channel_id: salesChannel.id,
+          default_region_id: moscowRegion.id,
+        },
       },
     });
   }
@@ -328,7 +344,7 @@ async function ensureProducts(
 ) {
   const { data: existing } = await query.graph({
     entity: "product",
-    fields: ["id", "handle", "images.url"],
+    fields: ["id", "handle", "images.url", "sales_channels.id"],
     filters: { handle: products.map((product) => product.handle) },
   });
   const existingHandles = new Set(existing.map((product) => product.handle));
@@ -382,6 +398,23 @@ async function ensureProducts(
             })),
           };
         }),
+      },
+    });
+  }
+
+  const existingProductIdsMissingChannel = existing
+    .filter(
+      (product) =>
+        !(product.sales_channels || []).some(
+          (channel: { id: string }) => channel.id === salesChannelId
+        )
+    )
+    .map((product) => String(product.id));
+  if (existingProductIdsMissingChannel.length > 0) {
+    await linkProductsToSalesChannelWorkflow(container).run({
+      input: {
+        id: salesChannelId,
+        add: existingProductIdsMissingChannel,
       },
     });
   }

@@ -31,6 +31,7 @@ const {
 
 async function run() {
   await verifyStoreCartRoutes();
+  await verifyDefaultRegionResolution();
   await verifyStableErrorsAndValidation();
   await verifyReferenceOnlyPersistence();
   await verifyStaleReferenceRecovery();
@@ -42,7 +43,8 @@ async function run() {
         status: "ok",
         dataSource: "installed-medusa-store-cart-contract-shaped-fixtures",
         assertions: [
-          "create, retrieve, add, absolute update, and remove use installed Medusa Store routes",
+          "lazy create resolves the configured Москва RUB Store region before create, retrieve, add, absolute update, and remove",
+          "missing or ambiguous default region fails recoverably instead of choosing another region",
           "every Store cart request includes the publishable API key",
           "transport and HTTP failures map to stable CartClientError codes",
           "the eshop.cart.v1 envelope contains only version and opaque cart_id",
@@ -67,6 +69,14 @@ async function verifyStoreCartRoutes() {
   ];
   const fetchImplementation = async (url, init) => {
     calls.push({ url: String(url), init });
+    if (new URL(url).pathname === "/store/regions") {
+      return jsonResponse({
+        regions: [
+          { id: "reg_tver", name: "Тверь", currency_code: "rub" },
+          { id: "reg_moscow", name: "Москва", currency_code: "rub" },
+        ],
+      });
+    }
     if (init.method === "DELETE") {
       return jsonResponse({
         id: "line_1",
@@ -80,14 +90,12 @@ async function verifyStoreCartRoutes() {
   const client = createStoreCartClient({
     baseUrl: "http://backend.test/",
     publishableApiKey: "pk_test_cart",
+    salesChannelId: "sc_default",
     fetchImplementation,
   });
 
   assert.equal(
-    (await client.createCart({
-      region_id: "reg_1",
-      sales_channel_id: "sc_1",
-    })).id,
+    (await client.createCart()).id,
     "cart_created"
   );
   assert.equal((await client.retrieveCart("cart_created")).id, "cart_created");
@@ -109,6 +117,7 @@ async function verifyStoreCartRoutes() {
   assert.deepEqual(
     calls.map((call) => [call.init.method, new URL(call.url).pathname]),
     [
+      ["GET", "/store/regions"],
       ["POST", "/store/carts"],
       ["GET", "/store/carts/cart_created"],
       ["POST", "/store/carts/cart_created/line-items"],
@@ -123,16 +132,73 @@ async function verifyStoreCartRoutes() {
     );
     assert.equal(call.init.cache, "no-store");
   }
-  assert.deepEqual(JSON.parse(calls[0].init.body), {
-    region_id: "reg_1",
-    sales_channel_id: "sc_1",
+  assert.deepEqual(JSON.parse(calls[1].init.body), {
+    currency_code: "rub",
+    region_id: "reg_moscow",
+    sales_channel_id: "sc_default",
   });
-  assert.deepEqual(JSON.parse(calls[2].init.body), {
+  assert.deepEqual(JSON.parse(calls[3].init.body), {
     variant_id: "variant_1",
     quantity: 1,
   });
-  assert.deepEqual(JSON.parse(calls[3].init.body), { quantity: 4 });
-  assert.equal(calls[3].init.body.includes("increment"), false);
+  assert.deepEqual(JSON.parse(calls[4].init.body), { quantity: 4 });
+  assert.equal(calls[4].init.body.includes("increment"), false);
+}
+
+async function verifyDefaultRegionResolution() {
+  for (const regions of [
+    [],
+    [
+      { id: "reg_moscow_1", name: "Москва", currency_code: "rub" },
+      { id: "reg_moscow_2", name: "Москва", currency_code: "rub" },
+    ],
+  ]) {
+    const client = createStoreCartClient({
+      publishableApiKey: "pk_test_cart",
+      salesChannelId: "sc_default",
+      fetchImplementation: async () => jsonResponse({ regions }),
+    });
+    await assert.rejects(
+      () => client.createCart(),
+      (error) =>
+        error instanceof CartClientError &&
+        error.code === "cart_validation_failed" &&
+        error.status === 400
+    );
+  }
+
+  const calls = [];
+  const explicitRegionClient = createStoreCartClient({
+    publishableApiKey: "pk_test_cart",
+    fetchImplementation: async (url, init) => {
+      calls.push({ url: String(url), init });
+      return jsonResponse({ cart: cart("cart_explicit", []) });
+    },
+  });
+  await explicitRegionClient.createCart({
+    region_id: "reg_explicit",
+    sales_channel_id: "sc_1",
+  });
+  assert.deepEqual(calls.map((call) => new URL(call.url).pathname), ["/store/carts"]);
+  assert.deepEqual(JSON.parse(calls[0].init.body), {
+    region_id: "reg_explicit",
+    sales_channel_id: "sc_1",
+  });
+
+  const missingChannelClient = createStoreCartClient({
+    publishableApiKey: "pk_test_cart",
+    fetchImplementation: async () =>
+      jsonResponse({
+        regions: [{ id: "reg_moscow", name: "Москва", currency_code: "rub" }],
+      }),
+  });
+  await assert.rejects(
+    () => missingChannelClient.createCart(),
+    (error) =>
+      error instanceof CartClientError &&
+      error.code === "cart_validation_failed" &&
+      error.status === 400
+  );
 }
 
 async function verifyStableErrorsAndValidation() {

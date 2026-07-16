@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-026-R1",
   "task_id": "TASK-026",
   "created_at": "2026-07-03T22:17:14+03:00",
-  "source_task_hash": "sha256:43499dd036b468c0dc3eec7474de9d08d7e2c11732cdb9fac1b68e08fb65919b",
+  "source_task_hash": "sha256:212297d9ca2cef3d1db4b2df35516f70f17eb2df5586f035ed79b71709599d9c",
   "status": "ready",
   "tier": "T3",
   "purpose": "Provide buyer-visible acceptance evidence for guest cart persistence and the post-auth merge handoff.",
@@ -34,6 +34,11 @@
     "allowed_write_scope": [
       "apps/storefront/package.json",
       "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      "apps/storefront/components/cart-provider.tsx",
+      "apps/storefront/lib/cart.ts",
+      "apps/storefront/src/cart-client.test.cjs",
+      "apps/storefront/.env.example",
+      "apps/backend/src/scripts/seed-catalog.ts",
       ".memory-bank/changelog.md"
     ],
     "forbidden_scope": [

@@ -34,6 +34,12 @@ export type StoreCreateCartInput = {
   sales_channel_id?: string;
 };
 
+type StoreRegion = {
+  id: string;
+  name?: string;
+  currency_code?: string;
+};
+
 export type CartClientErrorCode =
   | "cart_invalid_request"
   | "cart_auth_required"
@@ -95,10 +101,13 @@ export type StoreCartClient = {
 export type StoreCartClientOptions = {
   baseUrl?: string;
   publishableApiKey?: string;
+  salesChannelId?: string;
   fetchImplementation?: typeof fetch;
 };
 
 const DEFAULT_BACKEND_URL = "http://localhost:9000";
+const DEFAULT_CART_REGION_NAME = "Москва";
+const DEFAULT_CART_CURRENCY_CODE = "rub";
 
 export function createStoreCartClient(
   options: StoreCartClientOptions = {}
@@ -112,6 +121,11 @@ export function createStoreCartClient(
   const publishableApiKey = (
     options.publishableApiKey ||
     process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ||
+    ""
+  ).trim();
+  const salesChannelId = (
+    options.salesChannelId ||
+    process.env.NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID ||
     ""
   ).trim();
   const fetchImplementation = options.fetchImplementation || globalThis.fetch;
@@ -179,8 +193,12 @@ export function createStoreCartClient(
   }
 
   return {
-    createCart(input = {}) {
-      return requestCart("POST", "/store/carts", input);
+    async createCart(input = {}) {
+      return requestCart(
+        "POST",
+        "/store/carts",
+        await resolveCreateCartInput(input)
+      );
     },
 
     retrieveCart(cartId) {
@@ -217,6 +235,66 @@ export function createStoreCartClient(
       );
     },
   };
+
+  async function resolveCreateCartInput(input: StoreCreateCartInput) {
+    if (input.region_id) {
+      return input;
+    }
+
+    let response: Response;
+    try {
+      response = await fetchImplementation(`${baseUrl}/store/regions`, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          accept: "application/json",
+          "x-publishable-api-key": publishableApiKey,
+        },
+      });
+    } catch {
+      throw new CartClientError(
+        "cart_network_error",
+        "The cart service could not be reached."
+      );
+    }
+
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new CartClientError(
+        errorCodeForStatus(response.status),
+        errorMessageForStatus(response.status),
+        response.status
+      );
+    }
+
+    const regions = readRegions(payload).filter(
+      (region) =>
+        region.name === DEFAULT_CART_REGION_NAME &&
+        region.currency_code?.toLowerCase() === DEFAULT_CART_CURRENCY_CODE
+    );
+    if (regions.length !== 1) {
+      throw new CartClientError(
+        "cart_validation_failed",
+        "The default cart region is unavailable.",
+        400
+      );
+    }
+    if (!salesChannelId) {
+      throw new CartClientError(
+        "cart_validation_failed",
+        "The default sales channel is unavailable.",
+        400
+      );
+    }
+
+    return {
+      ...input,
+      region_id: regions[0].id,
+      currency_code: DEFAULT_CART_CURRENCY_CODE,
+      sales_channel_id: salesChannelId,
+    };
+  }
+
 }
 
 export function readCartReference(
@@ -349,6 +427,25 @@ function readCartFromResponse(
   }
 
   return cart as StoreCart;
+}
+
+function readRegions(payload: unknown): StoreRegion[] {
+  if (!isRecord(payload) || !Array.isArray(payload.regions)) {
+    throw new CartClientError(
+      "cart_invalid_response",
+      "The cart service returned an invalid response.",
+      502
+    );
+  }
+
+  return payload.regions.filter(
+    (region): region is StoreRegion =>
+      isRecord(region) &&
+      typeof region.id === "string" &&
+      region.id.trim().length > 0 &&
+      typeof region.name === "string" &&
+      typeof region.currency_code === "string"
+  );
 }
 
 function pathId(value: string) {

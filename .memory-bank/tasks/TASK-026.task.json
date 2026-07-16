@@ -1,7 +1,7 @@
 {
   "id": "TASK-026",
   "title": "Add browser cart persistence and merge acceptance",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-003",
   "reqs": ["REQ-006", "REQ-007", "REQ-008"],
@@ -9,6 +9,11 @@
   "touched_files": [
     "apps/storefront/package.json",
     "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    "apps/storefront/components/cart-provider.tsx",
+    "apps/storefront/lib/cart.ts",
+    "apps/storefront/src/cart-client.test.cjs",
+    "apps/storefront/.env.example",
+    "apps/backend/src/scripts/seed-catalog.ts",
     ".memory-bank/changelog.md"
   ],
   "tier": "T3",
@@ -39,7 +44,153 @@
     "Synthetic authenticated context merges into an existing customer cart and atomically switches to the backend-selected target.",
     "Repeated handoff keeps exact quantities and stale consumed-source Store access returns not found before authenticated replay recovers the target.",
     "REQ-006 through REQ-008 are evidenced without live OAuth or later checkout/order scope.",
-    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence."
+    "T3 closure includes /verify PASS, per-task semantic-pass, human checkpoint, and rollback/recovery evidence.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: FAIL",
+      "verified_at": "2026-07-12",
+      "mode": "manual",
+      "recommended_status": "failed",
+      "bug": ".memory-bank/bugs/TASK-026-browser-merge-handoff-bypass.md",
+      "evidence": [
+        ".protocols/TASK-026/verification.md",
+        ".tasks/TASK-026/TASK-026-S-verify-final-report-code-01.md",
+        ".tasks/TASK-026/verify-command-output.md",
+        ".tasks/TASK-026/verify-handoff-boundary-audit.md",
+        ".tasks/TASK-026/execute-cart-e2e.md",
+        ".tasks/TASK-026/execute-smoke-local.md",
+        ".tasks/TASK-026/execute-typecheck.md",
+        ".tasks/TASK-026/execute-mb-lint.md"
+      ],
+      "commands": [
+        {
+          "command": "npm run smoke:local",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run test:e2e -- cart",
+          "result": "PASS"
+        },
+        {
+          "command": "npm run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Manual T3 functional verification failed despite fresh technical gates passing. The browser suite proves guest cart create/update/remove/reload/new-context recovery and raw browser calls to the local Medusa merge route, but it bypasses the storefront post-auth handoff by manually fetching the merge API and writing the target cart reference. It does not execute CartProvider.mergeAfterAuthentication() or mergeAuthenticatedCartReference(), so it cannot prove the required validated atomic target adoption and provider state restore. TASK-026 is not closure-eligible; see .memory-bank/bugs/TASK-026-browser-merge-handoff-bypass.md."
+    },
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-07-12",
+      "mode": "manual",
+      "recommended_status": "planned_pending_red_verify_human_checkpoint_rollback_recovery",
+      "supersedes": "2026-07-12 VERDICT: FAIL",
+      "resolved_bug": ".memory-bank/bugs/TASK-026-browser-merge-handoff-bypass.md",
+      "evidence": [
+        ".protocols/TASK-026/verification.md",
+        ".tasks/TASK-026/TASK-026-S-verify-final-report-code-02.md",
+        ".tasks/TASK-026/verify-command-output.md",
+        ".tasks/TASK-026/verify-handoff-boundary-audit.md",
+        ".tasks/TASK-026/playwright/real-medusa-trace.zip",
+        ".tasks/TASK-026/playwright/cart-auth-merge.png",
+        ".tasks/TASK-026/playwright/cart-replay.png",
+        ".tasks/TASK-026/execute-smoke-local.md",
+        ".tasks/TASK-026/execute-typecheck.md",
+        ".tasks/TASK-026/execute-mb-lint.md"
+      ],
+      "commands": [
+        {
+          "command": "npm run smoke:local",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run test:e2e -- cart",
+          "result": "PASS"
+        },
+        {
+          "command": "npm run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Manual T3 re-verification passed after the browser acceptance remediation. The user-approved E2E-only provider trigger invokes the actual CartProvider.mergeAfterAuthentication() handoff with synthetic local bearer auth at the E2E merge boundary. Fresh browser evidence proves product-detail guest create/update/remove/reload/new-context persistence, backend-selected target adoption, restored provider state, consumed-source Store not-found, and stale-context already_merged replay with exact quantity and no duplication. The prior handoff-bypass bug is resolved. Task status remains unchanged; T3 closure still requires per-task /red-verify semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+    },
+    {
+      "stage": "red-verify",
+      "verdict": "SEMANTIC_VERDICT: semantic-pass",
+      "verified_at": "2026-07-12",
+      "mode": "manual",
+      "scope": "per-task",
+      "recommended_status": "planned_pending_human_checkpoint_rollback_recovery",
+      "evidence": [
+        ".protocols/TASK-026/red-verification.md",
+        ".tasks/TASK-026/TASK-026-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-026/red-verify-command-output.md",
+        ".protocols/TASK-026/verification.md",
+        ".tasks/TASK-026/TASK-026-S-verify-final-report-code-02.md",
+        ".tasks/TASK-026/verify-handoff-boundary-audit.md",
+        ".tasks/TASK-026/playwright/real-medusa-trace.zip"
+      ],
+      "commands": [
+        {
+          "command": "npm run smoke:local",
+          "result": "PASS"
+        },
+        {
+          "command": "npm --workspace apps/storefront run test:e2e -- cart",
+          "result": "PASS"
+        },
+        {
+          "command": "npm run typecheck",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        }
+      ],
+      "summary": "Per-task T3 adversarial semantic verification passed. The former browser acceptance false-success was remediated: the E2E runner invokes the existing CartProvider.mergeAfterAuthentication() handoff through a user-approved E2E-only trigger, observes validated backend-selected target/reference/provider state, and repeats the same path from a stale consumed-source context without duplicate quantity. The synthetic bearer wrapper is limited to E2E merge fetches; no live OAuth, production credentials/data, provider UI, backend merge behavior, checkout, order, inventory reservation, or payment scope was added. T3 closure still requires explicit human checkpoint and rollback/recovery marker evidence before status can be done."
+    },
+    {
+      "stage": "mb-sync",
+      "verdict": "TASK_STATUS: done",
+      "synced_at": "2026-07-12",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-07-12",
+      "closure_decision": "Manual T3 closure explicitly authorized by the user after repeated /verify PASS and per-task /red-verify semantic-pass.",
+      "markers": [
+        "HUMAN_CHECKPOINT: done",
+        "ROLLBACK_RECOVERY_NOTE: present"
+      ],
+      "evidence": [
+        ".protocols/TASK-026/closure.md",
+        ".tasks/TASK-026/TASK-026-S-mb-sync-final-report-docs-01.md",
+        ".protocols/TASK-026/verification.md",
+        ".protocols/TASK-026/red-verification.md",
+        ".tasks/TASK-026/TASK-026-S-verify-final-report-code-02.md",
+        ".tasks/TASK-026/TASK-026-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-026/playwright/real-medusa-trace.zip"
+      ],
+      "commands": [
+        {
+          "command": "node scripts/mb-lint.mjs",
+          "result": "PASS"
+        },
+        {
+          "command": "node scripts/mb-doctor.mjs --strict",
+          "result": "PASS"
+        }
+      ],
+      "summary": "GENERAL closed TASK-026 in manual mode after explicit user approval. Required T3 gates are satisfied: full protocol evidence, required packet/spec gates, latest /verify PASS, per-task /red-verify semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present. FT-003 and REQ-006 through REQ-008 remain pending feature-level /red-verify --feature FT-003."
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-003.md",
@@ -96,6 +247,11 @@
     "allowed_write_scope": [
       "apps/storefront/package.json",
       "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      "apps/storefront/components/cart-provider.tsx",
+      "apps/storefront/lib/cart.ts",
+      "apps/storefront/src/cart-client.test.cjs",
+      "apps/storefront/.env.example",
+      "apps/backend/src/scripts/seed-catalog.ts",
       ".memory-bank/changelog.md"
     ],
     "forbidden_scope": [

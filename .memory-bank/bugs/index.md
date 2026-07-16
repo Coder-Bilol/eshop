@@ -4,6 +4,8 @@ status: active
 ---
 # Bugs
 
+- [FT-003 backend acceptance fixture reproducibility](FT-003-backend-acceptance-fixture-reproducibility.md): resolved source-runtime acceptance blocker.
+- [TASK-026 browser merge handoff bypass](TASK-026-browser-merge-handoff-bypass.md): resolved browser acceptance false-success blocker.
 - [TASK-020 duplicate target variant lines](TASK-020-duplicate-target-variant-lines.md): resolved semantic blocker for same-variant target aggregation.
 - [TASK-020 core cart workflow bypass](TASK-020-core-cart-workflow-bypass.md): resolved target/customer cart correctness blocker.
 - [FT-011 storefront startup](FT-011-storefront-dev-startup-turbopack.md): archived Windows-native storefront startup issue.

@@ -58,6 +58,10 @@ async function main() {
       LOCAL_STOREFRONT_URL: storefrontUrl,
       NEXT_PUBLIC_MEDUSA_BACKEND_URL: backendUrl,
       NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: publishableKey,
+      NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID: seedSummary.sales_channel_id,
+      NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.includes("cart")
+        ? "true"
+        : "false",
       PORT: String(backendPort),
       AUTH_CORS: corsOrigins(),
       STORE_CORS: corsOrigins(),
@@ -324,6 +328,7 @@ async function verifyProductDetail(page, publishableKey) {
 
 async function verifyCart(page, browser, publishableKey, cartContext) {
   logStep("verifying cart browser acceptance through Medusa Store API");
+  await installE2eMergeBearerHook(page);
   const product = await readProductDetail(
     "steel-telescopic-curtain-rod",
     publishableKey
@@ -371,6 +376,8 @@ async function verifyCart(page, browser, publishableKey, cartContext) {
   await visible(page.locator(`[data-cart-id="${sourceCartId}"]`));
   await assertCartQuantity(page, sourceCartId, selectedVariant.id, 2, publishableKey);
 
+  const staleStorageState = await page.context().storageState();
+
   const storageState = await page.context().storageState();
   const secondContext = await browser.newContext({ storageState });
   try {
@@ -405,19 +412,16 @@ async function verifyCart(page, browser, publishableKey, cartContext) {
   assert.equal(targetBeforeMerge.customer_id, auth.customerId);
   assert.equal(quantityForVariant(targetBeforeMerge, selectedVariant.id), 3);
 
-  const merge = await mergeCartInBrowser(
-    page,
-    sourceCartId,
-    publishableKey,
-    auth.bearerToken
-  );
-  assert.equal(merge.status, 200);
-  assert.equal(merge.body.merge.outcome, "merged");
-  assert.equal(merge.body.merge.replayed, false);
-  assert.equal(merge.body.merge.target_cart_id, targetBeforeMerge.id);
-  assert.equal(quantityForVariant(merge.body.cart, selectedVariant.id), 5);
-  await writeBrowserCartReference(page, merge.body.merge.target_cart_id);
-  await assertReferenceEnvelope(page, merge.body.merge.target_cart_id);
+  await setE2eMergeBearer(page, auth.bearerToken);
+  await waitForE2eMergeHandoff(page);
+  const merge = await triggerStorefrontMergeHandoff(page);
+  assert.equal(merge.sourceCartId, sourceCartId);
+  assert.equal(merge.outcome, "merged");
+  assert.equal(merge.replayed, false);
+  assert.equal(merge.targetCartId, targetBeforeMerge.id);
+  assert.equal(merge.stateCartId, targetBeforeMerge.id);
+  assert.equal(merge.stateStatus, "ready");
+  await assertReferenceEnvelope(page, merge.targetCartId);
   await page.goto(`${storefrontUrl}/cart`);
   await visible(page.locator(`[data-cart-id="${targetBeforeMerge.id}"]`));
   await assertCartQuantity(page, targetBeforeMerge.id, selectedVariant.id, 5, publishableKey);
@@ -433,25 +437,36 @@ async function verifyCart(page, browser, publishableKey, cartContext) {
   });
   assert.equal(staleSource.status, 404);
 
-  const replay = await mergeCartInBrowser(
-    page,
-    sourceCartId,
-    publishableKey,
-    auth.bearerToken
-  );
-  assert.equal(replay.status, 200);
-  assert.equal(replay.body.merge.outcome, "already_merged");
-  assert.equal(replay.body.merge.replayed, true);
-  assert.equal(replay.body.merge.target_cart_id, targetBeforeMerge.id);
-  assert.equal(quantityForVariant(replay.body.cart, selectedVariant.id), 5);
-  await writeBrowserCartReference(page, replay.body.merge.target_cart_id);
-  await page.goto(`${storefrontUrl}/cart`);
-  await visible(page.locator(`[data-cart-id="${targetBeforeMerge.id}"]`));
-  await assertCartQuantity(page, targetBeforeMerge.id, selectedVariant.id, 5, publishableKey);
-  await page.screenshot({
-    path: path.join(outputDir, "cart-replay.png"),
-    fullPage: true,
-  });
+  const staleContext = await browser.newContext({ storageState: staleStorageState });
+  try {
+    await installE2eMergeBearerHook(staleContext, auth.bearerToken);
+    const stalePage = await staleContext.newPage();
+    await stalePage.goto(`${storefrontUrl}/products/${product.handle}`);
+    await waitForE2eMergeHandoff(stalePage);
+    const replay = await triggerStorefrontMergeHandoff(stalePage);
+    assert.equal(replay.sourceCartId, sourceCartId);
+    assert.equal(replay.outcome, "already_merged");
+    assert.equal(replay.replayed, true);
+    assert.equal(replay.targetCartId, targetBeforeMerge.id);
+    assert.equal(replay.stateCartId, targetBeforeMerge.id);
+    assert.equal(replay.stateStatus, "ready");
+    await assertReferenceEnvelope(stalePage, targetBeforeMerge.id);
+    await stalePage.goto(`${storefrontUrl}/cart`);
+    await visible(stalePage.locator(`[data-cart-id="${targetBeforeMerge.id}"]`));
+    await assertCartQuantity(
+      stalePage,
+      targetBeforeMerge.id,
+      selectedVariant.id,
+      5,
+      publishableKey
+    );
+    await stalePage.screenshot({
+      path: path.join(outputDir, "cart-replay.png"),
+      fullPage: true,
+    });
+  } finally {
+    await staleContext.close().catch(() => {});
+  }
 
   return {
     status: "ok",
@@ -463,10 +478,10 @@ async function verifyCart(page, browser, publishableKey, cartContext) {
     mergedQuantity: 5,
     replayedQuantity: 5,
     consumedSourceStoreStatus: staleSource.status,
-    mergeOutcome: merge.body.merge.outcome,
-    replayOutcome: replay.body.merge.outcome,
+    mergeOutcome: merge.outcome,
+    replayOutcome: "already_merged",
     browserStorage: "reference-only",
-    auth: "synthetic-medusa-emailpass-bearer",
+    auth: "synthetic-medusa-emailpass-bearer-through-provider-handoff",
   };
 }
 
@@ -509,8 +524,10 @@ async function resolveCartContext(publishableKey, seedSummary) {
   assert.equal(response.ok, true, `regions returned HTTP ${response.status}`);
   const payload = await response.json();
   const region = (payload.regions || []).find(
-    (candidate) => String(candidate.currency_code || "").toLowerCase() === "rub"
-  ) || payload.regions?.[0];
+    (candidate) =>
+      candidate.name === "Москва" &&
+      String(candidate.currency_code || "").toLowerCase() === "rub"
+  );
   assert.match(region?.id || "", /^reg_/);
   assert.match(seedSummary?.sales_channel_id || "", /^sc_/);
   return {
@@ -692,16 +709,6 @@ async function createAuthenticatedTargetCart(
   return withLine.body.cart;
 }
 
-async function mergeCartInBrowser(page, sourceCartId, publishableKey, bearerToken) {
-  return browserStoreRequest(page, {
-    path: `/store/carts/${encodeURIComponent(sourceCartId)}/merge`,
-    method: "POST",
-    publishableKey,
-    token: bearerToken,
-    body: {},
-  });
-}
-
 async function browserStoreRequest(
   page,
   { path: requestPath, method, publishableKey, token, body }
@@ -743,13 +750,86 @@ async function assertReferenceEnvelope(page, cartId) {
   assert.equal(reference.cart_id, cartId);
 }
 
-async function writeBrowserCartReference(page, cartId) {
-  await page.evaluate(
-    ({ key, cartId }) => {
-      window.localStorage.setItem(key, JSON.stringify({ version: 1, cart_id: cartId }));
+async function installE2eMergeBearerHook(target, bearerToken = "") {
+  await target.addInitScript(
+    ({ initialBearerToken }) => {
+      const originalFetch = window.fetch.bind(window);
+      let mergeBearerToken = initialBearerToken;
+
+      window.__eshopE2eSetMergeBearer = (token) => {
+        mergeBearerToken = token;
+      };
+      window.fetch = (input, init = {}) => {
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : String(input);
+        if (!mergeBearerToken || !/\/store\/carts\/[^/]+\/merge$/.test(url)) {
+          return originalFetch(input, init);
+        }
+
+        const headers = new Headers(
+          init.headers || (input instanceof Request ? input.headers : undefined)
+        );
+        headers.set("authorization", `Bearer ${mergeBearerToken}`);
+        return originalFetch(input, { ...init, headers });
+      };
     },
-    { key: cartReferenceKey, cartId }
+    { initialBearerToken: bearerToken }
   );
+}
+
+async function setE2eMergeBearer(page, bearerToken) {
+  const set = await page.evaluate((token) => {
+    if (typeof window.__eshopE2eSetMergeBearer !== "function") {
+      return false;
+    }
+    window.__eshopE2eSetMergeBearer(token);
+    return true;
+  }, bearerToken);
+  assert.equal(set, true, "E2E merge bearer hook is unavailable");
+}
+
+async function waitForE2eMergeHandoff(page) {
+  await page.waitForFunction(
+    () => window.__eshopE2eCartHandoffReady === true,
+    undefined,
+    { timeout: 20_000 }
+  );
+}
+
+async function triggerStorefrontMergeHandoff(page) {
+  return page.evaluate(async () => {
+    const eventName = "eshop:e2e:merge-after-authentication";
+    const completeEvent = `${eventName}:complete`;
+    const failedEvent = `${eventName}:failed`;
+
+    return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        reject(new Error("Timed out waiting for storefront merge handoff."));
+      }, 20_000);
+      const complete = (event) => {
+        cleanup();
+        resolve(event.detail);
+      };
+      const failed = (event) => {
+        cleanup();
+        reject(new Error(event.detail?.message || "Storefront merge handoff failed."));
+      };
+      const cleanup = () => {
+        window.clearTimeout(timeout);
+        window.removeEventListener(completeEvent, complete);
+        window.removeEventListener(failedEvent, failed);
+      };
+
+      window.addEventListener(completeEvent, complete, { once: true });
+      window.addEventListener(failedEvent, failed, { once: true });
+      window.dispatchEvent(new CustomEvent(eventName));
+    });
+  });
 }
 
 function requiredVariant(product, sku) {

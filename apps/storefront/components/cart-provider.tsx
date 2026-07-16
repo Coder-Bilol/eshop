@@ -54,6 +54,13 @@ type CartProviderProps = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
+const E2E_MERGE_EVENT = "eshop:e2e:merge-after-authentication";
+const E2E_MERGE_COMPLETE_EVENT = `${E2E_MERGE_EVENT}:complete`;
+const E2E_MERGE_FAILED_EVENT = `${E2E_MERGE_EVENT}:failed`;
+
+type E2eCartHandoffWindow = Window & {
+  __eshopE2eCartHandoffReady?: boolean;
+};
 
 export function CartProvider({
   children,
@@ -101,6 +108,47 @@ export function CartProvider({
     },
     [controller, resolvedMergeClient, storage]
   );
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_E2E_CART_HANDOFF !== "true") {
+      return;
+    }
+
+    const e2eWindow = window as E2eCartHandoffWindow;
+    const mergeForE2e = async () => {
+      try {
+        const next = await mergeAfterAuthentication();
+        window.dispatchEvent(
+          new CustomEvent(E2E_MERGE_COMPLETE_EVENT, {
+            detail: {
+              sourceCartId: next.result?.merge.source_cart_id ?? null,
+              targetCartId: next.result?.merge.target_cart_id ?? null,
+              outcome: next.result?.merge.outcome ?? null,
+              replayed: next.result?.merge.replayed ?? null,
+              stateCartId: next.state.cart?.id ?? null,
+              stateStatus: next.state.status,
+            },
+          })
+        );
+      } catch (error) {
+        window.dispatchEvent(
+          new CustomEvent(E2E_MERGE_FAILED_EVENT, {
+            detail: {
+              message: error instanceof Error ? error.message : "Cart merge failed.",
+            },
+          })
+        );
+      }
+    };
+
+    window.addEventListener(E2E_MERGE_EVENT, mergeForE2e);
+    e2eWindow.__eshopE2eCartHandoffReady = true;
+
+    return () => {
+      window.removeEventListener(E2E_MERGE_EVENT, mergeForE2e);
+      delete e2eWindow.__eshopE2eCartHandoffReady;
+    };
+  }, [mergeAfterAuthentication]);
 
   const value = useMemo(
     () => ({

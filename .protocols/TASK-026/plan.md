@@ -16,6 +16,10 @@ status: active
 - Allowed write scope:
   - `apps/storefront/package.json`
   - `apps/storefront/e2e/run-real-medusa-e2e.cjs`
+  - `apps/storefront/lib/cart.ts`
+  - `apps/storefront/src/cart-client.test.cjs`
+  - `apps/storefront/.env.example`
+  - `apps/backend/src/scripts/seed-catalog.ts`
   - `.memory-bank/changelog.md`
 - Forbidden scope:
   - backend production behavior
@@ -50,6 +54,24 @@ status: active
    consumed-source ordinary Store not-found behavior.
 5. Register a narrow package script alias for the cart E2E suite.
 6. Record evidence and hand off to `/verify TASK-026` without changing task status.
+
+## Approved Scope Extension
+
+- The user explicitly authorized continuation after the blocked handoff.
+- The extension is limited to `apps/storefront/lib/cart.ts` and its existing
+  focused `cart-client` test.
+- The user selected `Москва` as the Medusa Store default region. The extension
+  includes only the local Medusa catalog seed update that writes
+  `default_region_id` alongside the existing default sales channel.
+- The user approved a narrow E2E-only trigger in
+  `apps/storefront/components/cart-provider.tsx` so Playwright can invoke the
+  actual `mergeAfterAuthentication()` handoff without adding provider login UI.
+- No cart client region heuristic, new cart API, merge behavior, OAuth, checkout,
+  order, inventory reservation, or payment behavior is permitted.
+- `NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID` is public runtime configuration, sourced
+  from local seed output for E2E and from storefront environment configuration
+  for ordinary runtime. It is not customer identity or an authority selected by
+  browser state.
 
 ## Intended Local Gates
 

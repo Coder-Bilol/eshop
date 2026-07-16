@@ -1,7 +1,7 @@
 ---
 description: Feature FT-003 - guest cart persistence and merge.
 status: draft
-lifecycle: planned
+lifecycle: verified
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md
@@ -98,3 +98,15 @@ spec_design_links:
   and retry paths have executable evidence.
 - FT-003 does not claim OAuth provider login, checkout, inventory reservation,
   order, or payment completion.
+
+## Verification Status
+
+- Historical feature-level `/red-verify --feature FT-003` returned
+  `SEMANTIC_VERDICT: semantic-concern` on 2026-07-13 because source-runtime
+  canonical fixture evidence was not reproducible.
+- Remediation now passes seed -> product-detail smoke -> backend acceptance in
+  order, and the feature red-verification retry returned
+  `SEMANTIC_VERDICT: semantic-pass`. See
+  [.tasks/FT-003/FT-003-S-RED-VERIFY-final-report-docs-02.md](../../.tasks/FT-003/FT-003-S-RED-VERIFY-final-report-docs-02.md).
+- FT-003 lifecycle is `verified` after explicit manual closure by the user on
+  2026-07-13; REQ-006 through REQ-008 have matching verified RTM evidence.

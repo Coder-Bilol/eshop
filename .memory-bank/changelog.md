@@ -4,6 +4,98 @@ status: active
 ---
 # Changelog
 
+## [2026-07-13] FT-003 manual closure sync
+- Closed: FT-003 lifecycle is `verified` after direct user authorization and
+  feature-level `SEMANTIC_VERDICT: semantic-pass`.
+- Synced: REQ-006 guest cart updates, REQ-007 browser persistence, and REQ-008
+  authenticated same-variant merge are `verified` in the RTM.
+- Confirmed: all indexed FT-003 tasks are `done`; the source-runtime acceptance
+  fixture blocker is archived as resolved.
+- Unchanged: EP-002 remains `planned` because FT-004 OAuth and FT-005 wishlist
+  work is not complete.
+
+## [2026-07-13] FT-003 feature red-verification retry
+- Result: feature-level `/red-verify --feature FT-003` retry returned
+  `SEMANTIC_VERDICT: semantic-pass`.
+- Confirmed: canonical seed, source product-detail smoke, and real backend
+  cart-merge acceptance now pass in sequence; real browser provider-handoff E2E
+  remains passing.
+- Resolved: historical source-runtime fixture reproducibility blocker is archived
+  after supported product-to-sales-channel reconciliation.
+- Not promoted: feature/requirement lifecycle remains under explicit closure and
+  sync ownership.
+
+## [2026-07-13] FT-003 backend acceptance fixture remediation
+- Fixed: canonical seed now idempotently links already-existing canonical
+  products to the selected default sales channel.
+- Root cause: source `medusa exec` smoke and acceptance scripts queried that
+  channel, while existing canonical products remained linked only to a previous
+  channel after an idempotent seed run.
+- Verified: `seed:medusa:catalog`, `smoke:product-detail`, and
+  `test:integration -- cart-merge-acceptance` pass in sequence against local
+  Medusa/PostgreSQL without manual repair.
+- Follow-up: repeat feature-level `/red-verify --feature FT-003` before
+  promoting FT-003 or REQ-006 through REQ-008.
+
+## [2026-07-13] FT-003 feature red-verification
+- Result: `/red-verify --feature FT-003` returned
+  `SEMANTIC_VERDICT: semantic-concern`.
+- Confirmed: the real compiled Medusa/PostgreSQL browser flow passes guest
+  create/update/remove, persistence, actual provider-handoff merge,
+  consumed-source `404`, and stale-context replay without duplicate quantity.
+- Found: after successful canonical local seed, source-runtime product-detail
+  smoke and required `cart-merge-acceptance` cannot find a sellable canonical
+  fixture. The independent backend acceptance gate is therefore not
+  reproducible.
+- Recorded: [.memory-bank/bugs/FT-003-backend-acceptance-fixture-reproducibility.md](bugs/FT-003-backend-acceptance-fixture-reproducibility.md).
+- Not promoted: FT-003 and REQ-006 through REQ-008 remain `planned` pending
+  remediation and a repeated feature-level semantic pass.
+
+## [2026-07-12] TASK-026 verification blocker
+- Verified: Windows-native smoke, real Medusa/PostgreSQL Playwright cart suite,
+  workspace typecheck, and Memory Bank lint all pass.
+- Found: the Playwright merge step bypasses the storefront post-auth handoff by
+  directly calling the merge route and manually writing the target cart
+  reference.
+- Recorded: `.memory-bank/bugs/TASK-026-browser-merge-handoff-bypass.md`.
+- Status: `/verify TASK-026` is `VERDICT: FAIL`; task closure is not eligible
+  until browser acceptance exercises the actual storefront handoff.
+
+## [2026-07-12] TASK-026 browser handoff remediation
+- Approved: the user authorized a minimal E2E-only trigger in `CartProvider`.
+- Updated: Playwright now invokes the actual `mergeAfterAuthentication()`
+  handoff with a synthetic local bearer fixture, and repeats replay from a stale
+  browser context that still holds the consumed-source reference.
+- Scope: no provider login UI, live OAuth, production data, backend merge
+  behavior, checkout, order, inventory reservation, or payment behavior added.
+- Verified: re-run browser acceptance now exercises the actual provider handoff
+  for both merge and stale-context replay; Windows-native smoke, workspace
+  typecheck, and Memory Bank lint pass.
+- Status: the earlier `/verify` blocker is resolved; TASK-026 now has functional
+  `/verify PASS` pending T3 per-task semantic verification and closure markers.
+
+## [2026-07-12] TASK-026 red-verification
+- Result: per-task `/red-verify TASK-026` returned
+  `SEMANTIC_VERDICT: semantic-pass`.
+- Confirmed: browser acceptance invokes the actual provider handoff, synthetic
+  bearer auth is E2E-only, stale-context replay adopts the recorded target with
+  no duplicate quantity, and no production/OAuth/checkout/order/payment scope
+  was introduced.
+- Not closed: TASK-026 remains `planned` pending an explicit T3 closure owner
+  and required human/rollback markers.
+
+## [2026-07-12] TASK-026 manual closure sync
+- Closed: `TASK-026` is now `done` after explicit manual closure approval from
+  the user.
+- Confirmed: latest `/verify TASK-026` is `VERDICT: PASS` and per-task
+  `/red-verify TASK-026` is `SEMANTIC_VERDICT: semantic-pass`.
+- Recorded T3 markers: `HUMAN_CHECKPOINT: done` and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Synced: task record, protocol/evidence links, required packet hash, and
+  changelog.
+- Not promoted: no dependent task was advanced during `/mb-sync`; FT-003 and
+  REQ-006 through REQ-008 remain pending feature-level semantic verification.
+
 ## [2026-07-11] VPS deployment foundation
 - Confirmed actual VPS capacity after reboot: AlmaLinux 9.8 on `1 vCPU`, about
   `1.7 GiB` RAM, `30 GB` disk with about `23 GB` free, and kernel
@@ -34,9 +126,15 @@ status: active
   without duplicate quantity.
 - Updated: storefront package scripts now include `test:e2e:cart` as a narrow
   alias for the cart acceptance suite.
-- Status: `/execute` implementation is in progress; TASK-026 remains pending
-  local gates, independent `/verify`, per-task `/red-verify`, and T3 closure
-  markers.
+- Updated: user-selected Москва/RUB first-cart policy and configured public sales
+  channel context now let production product-detail add create a Medusa guest
+  cart without browser-authoritative cart data.
+- Verified: real browser acceptance covers guest cart creation, update/remove,
+  reload/new-context persistence, exact authenticated merge, consumed-source
+  Store not-found, and replay without duplicate quantity.
+- Status: `/execute` implementation handoff is complete; TASK-026 task-record
+  status remains `planned` pending independent `/verify`, per-task
+  `/red-verify`, and T3 closure markers.
 
 ## [2026-07-11] TASK-023 manual closure sync
 - Closed: `TASK-023` is now `done` after explicit manual instruction from the
