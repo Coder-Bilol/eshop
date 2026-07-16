@@ -2,7 +2,7 @@
 description: Global system architecture backbone for the MVP internet shop.
 status: active
 owner: spec-design
-last_updated: 2026-07-09
+last_updated: 2026-07-16
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -179,9 +179,9 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 ## Deployment Assumptions
 
 - The only designed local runtime path in this backbone is Windows 10 native development with local Node.js/npm processes and local PostgreSQL.
-- Docker remains excluded from local development.
+- Docker remains excluded from local development and local verification; Docker Desktop is not required on the local Windows machine.
 - Remote server deployment runbook lives in [DEPLOYMENT.md](../../DEPLOYMENT.md): AlmaLinux VPS, Docker Compose application containers, PostgreSQL container, and host-level Caddy reverse proxy with automatic HTTPS.
-- VPS deployment uses stable `production` image tags for backend and storefront in `compose.production.yml`; operators do not edit a version env file during normal deployment.
+- VPS deployment uses Docker Compose on the server. Until a registry is introduced, backend and storefront images are built sequentially on the VPS with stable local `production` image tags.
 - Any remote deploy, Docker server deployment, live payment mutation, production migration, or production secret handling must be scoped as T3 with explicit operator approval and rollback/recovery notes.
 
 ## Risks

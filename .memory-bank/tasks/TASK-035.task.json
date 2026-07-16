@@ -1,0 +1,49 @@
+{
+  "id": "TASK-035",
+  "title": "Add Wishlist Module persistence",
+  "status": "ready",
+  "wave": "W1",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-015"],
+  "touched_files": [
+    "apps/backend/medusa-config.ts",
+    "apps/backend/src/modules/wishlist/index.ts",
+    "apps/backend/src/modules/wishlist/service.ts",
+    "apps/backend/src/modules/wishlist/models/wishlist-item.ts",
+    "apps/backend/src/modules/wishlist/migrations/**",
+    "apps/backend/src/scripts/smoke-wishlist-persistence.ts",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "wishlist migration", "command": "npm --workspace apps/backend run db:migrate:medusa", "required": true},
+    {"name": "wishlist persistence integration", "command": "npm --workspace apps/backend run test:integration -- wishlist-persistence", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Wishlist Module is registered without modifying Medusa Core/Product/Customer tables.",
+    "Migration creates wishlist item persistence with unique customer_id/product_id constraint and customer-list index.",
+    "Real PostgreSQL create/read/delete and fresh-process read succeed.",
+    "Concurrent duplicate create converges on one durable record or a recoverable unique conflict."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Generated migration and schema/index inspection.", "Real PostgreSQL persistence/restart/concurrency output.", "Backend typecheck and Memory Bank lint output."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/domains/wishlist-data.md", ".memory-bank/architecture/system-architecture.md"],
+  "constraints": ["Use one custom Medusa module/model and generated migration.", "Store only customer_id and product_id plus standard timestamps.", "Do not add cross-module database foreign keys or duplicate customer/product data."],
+  "invariants": ["At most one row exists per customer/product pair.", "PostgreSQL is durable source of wishlist truth.", "No production or real customer data is used in migration smoke."],
+  "verification_targets": [".memory-bank/domains/wishlist-data.md#record", ".memory-bank/domains/wishlist-data.md#constraints-and-indexes", ".memory-bank/domains/wishlist-data.md#migration-and-recovery"],
+  "purpose": "Create the minimal durable wishlist storage boundary required by all later behavior.",
+  "success_outcome": "Wishlist items persist uniquely by customer/product through the supported Medusa module and PostgreSQL path.",
+  "anti_goals": ["Do not implement API routes, auth, workflows, or storefront UI.", "Do not link directly to core tables with database foreign keys.", "Do not add cleanup jobs or events."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-035.packet.json",
+    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/src/modules/wishlist/index.ts", "apps/backend/src/modules/wishlist/service.ts", "apps/backend/src/modules/wishlist/models/wishlist-item.ts", "apps/backend/src/modules/wishlist/migrations/**", "apps/backend/src/scripts/smoke-wishlist-persistence.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["Medusa Core/Product/Customer table modifications", "API/auth", "storefront", "cleanup jobs/events", "production data"],
+    "stop_conditions": ["Composite uniqueness cannot be represented in a supported Medusa model/migration.", "Persistence smoke cannot exercise real local PostgreSQL.", "Implementation requires direct core table mutation."]
+  }
+}

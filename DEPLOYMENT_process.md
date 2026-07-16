@@ -73,6 +73,17 @@ ssh -i C:\Users\ADMIN\.ssh\eshop_vps_ed25519 eshop@<SERVER_IP>
 The checkout uses `/opt/eshop/app`. The separate path prevents the existing
 `/opt/eshop/secrets` directory from making `git clone` fail.
 
+GitHub repository checkout rule:
+
+```bash
+git clone <REPOSITORY_URL> /opt/eshop/app
+cd /opt/eshop/app
+```
+
+Do not clone the repository into `/opt/eshop`. That parent directory is the
+deployment root and contains non-Git runtime paths such as `/opt/eshop/secrets`
+and `/opt/eshop/backups`.
+
 ## Completed Preparation Timeline
 
 ### 1. Initial inspection
@@ -220,42 +231,125 @@ docker compose version
 No repository checkout, production secret file, Compose project, container,
 database volume, registry credential, or Caddy configuration has been created.
 
+## Repository Deployment Artifacts Checkpoint
+
+Repository-side deployment artifacts were added on 2026-07-16:
+
+| Artifact | Current state |
+|---|---|
+| `.dockerignore` | added; excludes env files, local build outputs, Memory Bank/task artifacts, and local runtime data |
+| `apps/backend/Dockerfile` | added; multi-stage Node 24.11.0 image, runs `medusa build`, starts production Medusa server |
+| `apps/storefront/Dockerfile` | added; multi-stage Node 24.11.0 image, uses Next standalone output, removes accidental standalone `.env` |
+| `compose.production.yml` | added; PostgreSQL, backend, and storefront services with loopback app ports, named PostgreSQL volume, health checks, build-time storefront public configuration, and no Redis |
+| `apps/storefront/next.config.ts` | updated with `output: "standalone"` for production image runtime |
+
+Local verification on 2026-07-16:
+
+- `docker compose -f compose.production.yml config --no-interpolate`: passed.
+- `npm --workspace apps/storefront run typecheck`: passed.
+- `npm --workspace apps/backend run typecheck`: passed.
+- `npm --workspace apps/storefront run build`: passed.
+- `npm --workspace apps/backend run build`: passed in about 142 seconds.
+- Docker image build was not run because the local Docker daemon was not active
+  (`dockerDesktopLinuxEngine` pipe unavailable).
+
+Deployment policy update on 2026-07-16:
+
+- Local development and local verification run without Docker.
+- Docker Desktop is not required on the local Windows machine.
+- Production deployment runs through Docker Compose on the VPS.
+- Until a registry is selected, backend and storefront images are built on the
+  VPS from `/opt/eshop/app`.
+- Server-side image builds must be sequential with `COMPOSE_PARALLEL_LIMIT=1`.
+
+The committed Compose file uses local server-built image names:
+
+```text
+eshop-backend:production
+eshop-storefront:production
+```
+
+If a registry is selected later, replace those two image lines once with the
+selected stable registry tags, for example:
+
+```text
+<REGISTRY>/eshop-backend:production
+<REGISTRY>/eshop-storefront:production
+```
+
+## Production Environment Files Checkpoint
+
+Production env files were created on the VPS on 2026-07-16 under
+`/opt/eshop/secrets`.
+
+Created files:
+
+| File | Mode | Owner | Current state |
+|---|---|---|---|
+| `/opt/eshop/secrets/postgres.env` | `600` | `eshop:eshop` | created with generated PostgreSQL password |
+| `/opt/eshop/secrets/backend.env` | `600` | `eshop:eshop` | created with generated internal secrets and explicit fake integration placeholders |
+| `/opt/eshop/secrets/storefront.env` | `600` | `eshop:eshop` | created with production domain values and explicit fake public Medusa placeholders |
+
+Configured values without exposing secrets:
+
+- `postgres.env`: `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`.
+- `backend.env`: `NODE_ENV`, `PORT`, `DATABASE_URL`, `STORE_CORS`,
+  `ADMIN_CORS`, `AUTH_CORS`, `JWT_SECRET`, `COOKIE_SECRET`, `NODE_OPTIONS`,
+  `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `VK_ID_CLIENT_ID`,
+  `VK_ID_CLIENT_SECRET`, `YOOKASSA_MODE`, `YOOKASSA_SHOP_ID`,
+  `YOOKASSA_SECRET_KEY`, `YOOKASSA_WEBHOOK_SECRET`, `EMAIL_PROVIDER`,
+  `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`.
+- `storefront.env`: `NODE_ENV`, `PORT`, `NEXT_PUBLIC_MEDUSA_BACKEND_URL`,
+  `NEXT_PUBLIC_STOREFRONT_URL`, `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`,
+  `NODE_OPTIONS`, `NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID`.
+
+Known remaining env gaps and fake placeholders:
+
+- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` and
+  `NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID` are explicit fake placeholders and must
+  be replaced with real Medusa values before a production-ready storefront image
+  is built.
+- The existing idempotent catalog seed emits both public values, but on a clean
+  database it requires the `Москва` / `RUB` Medusa region to be configured first.
+- Google OAuth, VK ID, YooKassa, and SMTP variables are present as explicit
+  fake placeholders containing `fake`, `NOT_REAL`, or `not-real`. Replace them
+  before enabling the corresponding production feature.
+
 ## What Remains Before A Successful Deployment
 
 ### Product and repository readiness
 
 1. Complete the unfinished product features and their required tests.
-2. Add `.dockerignore`.
-3. Add `apps/backend/Dockerfile`.
-4. Add `apps/storefront/Dockerfile`.
-5. Add `compose.production.yml`.
-6. Verify production builds locally or in CI.
-7. Verify backend, storefront, and PostgreSQL health checks.
-8. Verify containers do not run dev servers.
-9. Verify backend and storefront only bind to `127.0.0.1`.
-10. Verify PostgreSQL has no `ports` section.
-11. Verify a named volume owns PostgreSQL data.
-12. Verify secrets are excluded from images and Git.
-13. Verify no Redis service or `REDIS_URL` is introduced without a design change.
+2. Verify production Docker image builds on the VPS, in CI, or on a build host.
+3. Verify backend, storefront, and PostgreSQL health checks from real containers.
+4. Verify containers do not run dev servers.
+5. Verify backend and storefront only bind to `127.0.0.1`.
+6. Verify PostgreSQL has no `ports` section.
+7. Verify a named volume owns PostgreSQL data.
+8. Verify secrets are excluded from images and Git.
+9. Verify no Redis service or `REDIS_URL` is introduced without a design change.
 
 ### Delivery decisions
 
 1. Select the production branch or release tag.
-2. Select a container registry.
-3. Configure registry credentials for the image publisher.
+2. Optional: select a container registry for future image delivery.
+3. Optional: configure registry credentials for the image publisher.
 4. Configure `eshop` access to the Git repository.
-5. Define the stable `production` backend and storefront image tags.
-6. Define the image rollback procedure in the selected registry.
+5. Keep the local server-built `production` backend and storefront image tags,
+   or define registry-backed stable tags later.
+6. Define rollback as checkout of the previous known-good commit/tag and
+   sequential image rebuild unless a registry is introduced later.
 7. Ensure image builds target `linux/amd64`.
-8. Avoid normal image builds on the VPS.
+8. Avoid parallel image builds on the VPS.
 
 ### Domains and proxy
 
-1. Select the storefront domain.
-2. Select the backend/Admin domain.
-3. Create DNS `A` records pointing both domains at the VPS.
-4. Wait for DNS propagation before Caddy activation.
-5. Create `/etc/caddy/Caddyfile` with final domains.
+1. Use `eshop.natureonzoom.win` as the current public domain.
+2. Keep Cloudflare proxy status as `DNS only` for direct Caddy TLS.
+3. Wait for DNS propagation before Caddy activation.
+4. Create `/etc/caddy/Caddyfile` with the single-domain route from
+   [DEPLOYMENT.md](DEPLOYMENT.md).
+5. Route backend paths to Medusa and all other paths to storefront.
 6. Validate the Caddyfile.
 7. Open firewall services `http` and `https`.
 8. Decide whether Cockpit remains required before removing its firewall service.
@@ -264,18 +358,13 @@ database volume, registry credential, or Caddy configuration has been created.
 
 ### Production secrets
 
-1. Generate an independent PostgreSQL password.
-2. Generate `JWT_SECRET`.
-3. Generate `COOKIE_SECRET`.
-4. Create `postgres.env` under `/opt/eshop/secrets`.
-5. Create `backend.env` under `/opt/eshop/secrets`.
-6. Create `storefront.env` under `/opt/eshop/secrets`.
-7. Set each secret file mode to `600`.
-8. Set production CORS values to final HTTPS domains.
-9. Add OAuth settings only when OAuth is production-ready.
-10. Add YooKassa credentials and webhook settings only when payment is ready.
-11. Add SMTP settings only when notifications are ready.
-12. Rebuild the storefront image after changing `NEXT_PUBLIC_*` settings.
+1. Replace fake storefront Medusa placeholders with real publishable key and
+   sales channel ID before production-ready storefront image build.
+2. Replace fake OAuth settings only when OAuth is production-ready.
+3. Replace fake YooKassa credentials and webhook settings only when payment is
+   ready.
+4. Replace fake SMTP settings only when notifications are ready.
+5. Rebuild the storefront image after changing `NEXT_PUBLIC_*` settings.
 
 ### Database and backup readiness
 

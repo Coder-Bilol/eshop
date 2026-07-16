@@ -4,6 +4,112 @@ status: active
 ---
 # Changelog
 
+## [2026-07-16] FT-005 manual SDD review remediation
+- Decoupled: wishlist capability now requires successful backend current-customer
+  retrieval and remains available during `merge_blocked`; cart merge continues to
+  gate checkout only.
+- Defined: one exact minimal `WishlistProductProjection` shared by list/add, using
+  Product ID for durable identity and handle only for navigation.
+- Clarified: visibility requires existing `published` product, current sales
+  channel, and active category; out-of-stock remains visible/unavailable, while all
+  hidden cases use the same non-disclosing `404 wishlist_product_not_found`.
+- Corrected: acceptance artifacts may show synthetic product IDs/names and wishlist
+  contents, but never real PII, production data, cookies, bearer values, OAuth
+  tokens, session IDs, or secrets.
+- Preserved: production storefront authentication remains session-cookie only;
+  synthetic bearer is limited to the existing local harness through standard
+  Medusa middleware.
+- Refreshed: TASK-037 through TASK-042 and their R2 Execution Packets. TASK-035 and
+  TASK-036 are unchanged; FT-005 `spec_design_status` remains `complete`.
+
+## [2026-07-16] GitHub checkout path clarified
+- Updated: [DEPLOYMENT.md](../DEPLOYMENT.md) and
+  [DEPLOYMENT_process.md](../DEPLOYMENT_process.md) now explicitly require
+  cloning the GitHub repository into `/opt/eshop/app`, not `/opt/eshop`, so
+  deployment-owned `/opt/eshop/secrets` and `/opt/eshop/backups` stay outside
+  the repository checkout.
+
+## [2026-07-16] Production env placeholders completed
+- Updated: VPS `backend.env` now includes explicit fake placeholders for Google
+  OAuth, VK ID, YooKassa, and SMTP keys while preserving generated internal
+  secrets.
+- Updated: VPS `storefront.env` now includes explicit fake placeholders for
+  Medusa publishable key and sales channel ID.
+- Synced: [DEPLOYMENT.md](../DEPLOYMENT.md) and
+  [DEPLOYMENT_process.md](../DEPLOYMENT_process.md) now document that values
+  containing `fake`, `NOT_REAL`, or `not-real` must be replaced before enabling
+  corresponding production features.
+
+## [2026-07-16] Production env files created
+- Created: VPS production env files under `/opt/eshop/secrets`:
+  `postgres.env`, `backend.env`, and `storefront.env`, each owned by
+  `eshop:eshop` with mode `600`.
+- Generated: PostgreSQL password, `JWT_SECRET`, and `COOKIE_SECRET` without
+  recording secret values in repository docs or chat output.
+- Recorded: `storefront.env` still contains a publishable-key placeholder;
+  Google OAuth, VK ID, YooKassa, and SMTP variables remain absent until their
+  features and credentials are production-ready.
+- Synced: [DEPLOYMENT_process.md](../DEPLOYMENT_process.md) now reflects the
+  production env checkpoint and remaining env gaps.
+
+## [2026-07-16] FT-005 feature design and task decomposition
+- Completed: feature-level SDD for authenticated product favorites, PostgreSQL
+  ownership/uniqueness, Store API idempotency/security, unavailable-product
+  behavior, storefront state, and guest non-persistence.
+- Added: FT-005 feature hub, wishlist data spec, wishlist API/security contract,
+  planning protocol, and implementation plan.
+- Planned: TASK-035 through TASK-042 across module persistence, additive product
+  IDs, workflows/projection, authenticated API, storefront state/UI, and real
+  backend/browser acceptance.
+- Packets: canonical ready packets created for all eight tasks; TASK-035 and
+  TASK-036 are initially `ready`, while downstream tasks remain `planned`.
+- Unchanged: REQ-009 and FT-005 remain planned until implementation and
+  tier-required verification complete.
+
+## [2026-07-16] Server-build deployment policy
+- Updated: [DEPLOYMENT.md](../DEPLOYMENT.md) now states that local development
+  and verification run without Docker, while production deployment uses Docker
+  Compose on the VPS.
+- Changed: first deployment, update, and rollback procedures now build backend
+  and storefront images sequentially on the VPS until a registry is introduced.
+- Updated: production configuration uses the single Cloudflare DNS name
+  `eshop.natureonzoom.win`; Caddy routes backend paths to Medusa and all other
+  requests to the storefront.
+- Synced: [DEPLOYMENT_process.md](../DEPLOYMENT_process.md) and system
+  architecture deployment assumptions with the server-build policy.
+
+## [2026-07-16] Cloudflare DNS checkpoint
+- Updated: [DEPLOYMENT.md](../DEPLOYMENT.md) records the Cloudflare `A` record
+  for `eshop.natureonzoom.win` pointing to `79.133.183.183` with proxy status
+  `DNS only` and TTL `Auto`.
+
+## [2026-07-16] Deployment artifacts baseline
+- Added: `.dockerignore`, backend/storefront Dockerfiles, and
+  `compose.production.yml` for the KISS VPS Docker Compose deployment path.
+- Updated: storefront Next config now uses standalone output for the production
+  image runtime.
+- Synced: `DEPLOYMENT.md` and `DEPLOYMENT_process.md` now record the repository
+  deployment artifact checkpoint and the one-time registry image-name replacement
+  still required before first registry-based deployment.
+- Verified locally: Compose config, backend/storefront typecheck, storefront
+  production build, backend Medusa production build. Docker image build was not
+  run because the local Docker daemon was unavailable.
+
+## [2026-07-16] FT-004 feature design and task decomposition
+- Completed: feature-level SDD for Google OAuth, VK ID, Medusa customer sessions,
+  callback/redirect security, identity collision policy, post-auth cart handoff,
+  checkout gate, logout, abuse controls, and provider-double verification.
+- Added: FT-004 feature hub, auth runtime architecture, auth/session security
+  contract, customer auth/session lifecycle, and implementation plan.
+- Planned: T3 TASK-027 through TASK-034 across configuration, VK provider,
+  callback/session, storefront state/UI, checkout gate, backend persistence
+  acceptance, and real-browser acceptance.
+- Packets: canonical ready packets created for TASK-027 through TASK-034; only
+  TASK-027 is initially `ready`, while dependent tasks remain `planned`.
+- Unchanged: REQ-010 through REQ-012 and FT-004 remain planned until implementation
+  and tier-required verification complete. Live Google/VK credentials are a human
+  UAT input and are never required by automated tests.
+
 ## [2026-07-13] FT-003 manual closure sync
 - Closed: FT-003 lifecycle is `verified` after direct user authorization and
   feature-level `SEMANTIC_VERDICT: semantic-pass`.

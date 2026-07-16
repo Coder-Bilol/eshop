@@ -1,0 +1,45 @@
+{
+  "id": "TASK-041",
+  "title": "Verify wishlist backend ownership and persistence",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-038"],
+  "touched_files": [
+    "apps/backend/src/scripts/smoke-wishlist-acceptance.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "wishlist backend acceptance", "command": "npm --workspace apps/backend run test:integration -- wishlist-acceptance", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "local runtime smoke", "command": "npm run smoke:local", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Real Medusa/PostgreSQL flow persists favorite across fresh process query and removes it through Store API.",
+    "Two authenticated customers remain isolated for list/add/remove under product ID reuse.",
+    "Duplicate/concurrent add, repeated remove, guest denial, malformed input, exact item shape, and backend failure match contract.",
+    "Missing, unpublished, channel-invisible, and inactive-category add use the same 404 and list omission; out-of-stock remains visible/unavailable."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Real Medusa/PostgreSQL persistence/restart output using synthetic identifiers/content where useful.", "Two-customer ownership and concurrency assertions without real PII or credential values.", "Exact projection, unified hidden 404, visibility restoration, and out-of-stock assertions.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md"],
+  "constraints": ["Exercise real Medusa module/routes/local PostgreSQL and synthetic customers/products.", "Synthetic product names/IDs and wishlist contents may appear in evidence when needed; real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets may not.", "Use supported product publication/sales-channel/category/stock changes and restore fixtures.", "Do not modify production wishlist behavior to make acceptance pass."],
+  "invariants": ["No cross-customer list/remove visibility.", "One durable row per customer/product under concurrency.", "All hidden visibility causes are non-observable through the same 404.", "Product lifecycle visibility never deletes or corrupts other favorites; out-of-stock remains visible."],
+  "verification_targets": [".memory-bank/domains/wishlist-data.md#verification-targets", ".memory-bank/contracts/wishlist-api-security.md#verification-rules", ".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#verification-targets"],
+  "purpose": "Prove wishlist persistence and authorization against real backend boundaries before browser acceptance.",
+  "success_outcome": "Backend acceptance demonstrates durable, customer-isolated, idempotent wishlist behavior with correct product lifecycle projection.",
+  "anti_goals": ["Do not use real PII, production data, credentials, tokens, or session identifiers.", "Do not replace real PostgreSQL/module/API boundaries with mocks.", "Do not add new wishlist behavior."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-041.packet.json",
+    "allowed_write_scope": ["apps/backend/src/scripts/smoke-wishlist-acceptance.ts", "apps/backend/test/run-integration.cjs", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production wishlist/auth/catalog behavior", "storefront", "live OAuth/providers", "production data", "new feature behavior"],
+    "stop_conditions": ["Acceptance cannot exercise real Wishlist Module/PostgreSQL/Store routes.", "Tests require real PII, production data, live provider credentials, cookies, bearer values, OAuth tokens, session IDs, or secrets in evidence.", "A discovered implementation defect requires edits outside acceptance scope."]
+  }
+}

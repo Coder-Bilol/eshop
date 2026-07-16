@@ -10,5 +10,9 @@ status: active
   product detail, variant selection, availability, and cart handoff.
 - [.memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md](FT-003-guest-cart-persistence-merge.md):
   guest cart persistence and authenticated merge design hub.
+- [.memory-bank/tech-specs/FT-004-oauth-login-before-payment.md](FT-004-oauth-login-before-payment.md):
+  Google/VK ID login, Medusa session, cart handoff, and checkout gate design hub.
+- [.memory-bank/tech-specs/FT-005-authenticated-wishlist.md](FT-005-authenticated-wishlist.md):
+  authenticated product favorites, PostgreSQL ownership, API, and storefront UX.
 - [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](FT-011-windows-native-local-development.md):
   Windows-native local runtime and project scaffold.

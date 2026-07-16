@@ -1,0 +1,51 @@
+{
+  "id": "TASK-036",
+  "title": "Expose opaque product IDs in storefront contracts",
+  "status": "ready",
+  "wave": "W1",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-014", "TASK-016"],
+  "touched_files": [
+    "apps/backend/src/catalog/query.ts",
+    "apps/backend/src/catalog/product-detail.ts",
+    "apps/backend/src/scripts/smoke-catalog.ts",
+    "apps/backend/src/scripts/smoke-product-detail.ts",
+    "apps/storefront/lib/catalog.ts",
+    "apps/storefront/lib/product-detail.ts",
+    "apps/storefront/src/catalog-ui.test.cjs",
+    "apps/storefront/src/product-detail.test.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "wishlist product ID contract", "command": "npm --workspace apps/backend run test:integration -- wishlist-product-id", "required": true},
+    {"name": "catalog smoke", "command": "npm --workspace apps/backend run smoke:catalog", "required": true},
+    {"name": "product detail smoke", "command": "npm --workspace apps/backend run smoke:product-detail", "required": true},
+    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Catalog and product-detail responses add the canonical opaque Medusa product id.",
+    "Storefront CatalogProduct and ProductDetail types accept and preserve product id.",
+    "Existing catalog/search/filter/product-detail/variant behavior remains unchanged.",
+    "No client derives product identity from handle, variant ID, title, or SKU."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Additive backend contract assertions for both endpoints.", "Catalog and product-detail regression smoke output.", "Workspace typecheck and Memory Bank lint output."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/api-guidelines.md"],
+  "constraints": ["Change is additive to existing catalog/detail contracts.", "Expose only opaque canonical product ID, not internal query details.", "Preserve all FT-001/FT-002 behavior and response fields."],
+  "invariants": ["Wishlist product identity is Medusa Product ID.", "Handle remains navigation, not durable favorite identity.", "Variant IDs remain variant selection/cart identity only."],
+  "verification_targets": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#storefront-contract", ".memory-bank/domains/wishlist-data.md#read-projection", ".memory-bank/contracts/api-guidelines.md#naming-and-shape"],
+  "purpose": "Provide the opaque product identity required by wishlist mutations without replacing current catalog/detail contracts.",
+  "success_outcome": "Both product surfaces expose canonical product IDs and retain all existing catalog/detail semantics.",
+  "anti_goals": ["Do not implement wishlist persistence/API/UI.", "Do not change handles or variant identity.", "Do not expose database/query internals."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-036.packet.json",
+    "allowed_write_scope": ["apps/backend/src/catalog/query.ts", "apps/backend/src/catalog/product-detail.ts", "apps/backend/src/scripts/smoke-catalog.ts", "apps/backend/src/scripts/smoke-product-detail.ts", "apps/storefront/lib/catalog.ts", "apps/storefront/lib/product-detail.ts", "apps/storefront/src/catalog-ui.test.cjs", "apps/storefront/src/product-detail.test.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["wishlist storage/routes/UI", "catalog filter/search redesign", "variant/cart behavior", "Medusa Core"],
+    "stop_conditions": ["Canonical product ID is unavailable through existing query results.", "Additive field causes a breaking catalog/detail contract change.", "Implementation requires client-derived identity from handle/SKU/title."]
+  }
+}

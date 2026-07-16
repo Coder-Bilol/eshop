@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-042-R2",
+  "task_id": "TASK-042",
+  "created_at": "2026-07-16T16:00:00+03:00",
+  "source_task_hash": "sha256:e7ed1bf2cc90a777b98e66f93af7271c404f2cef50644d802919ec23df69ec43",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Prove the complete buyer-visible authenticated wishlist in a real browser without live providers or production data.",
+  "success_outcome": "Catalog/detail/wishlist UI preserves durable customer-isolated favorites, handles product/session changes, and creates no guest/browser persistence.",
+  "anti_goals": ["Do not use real PII, production data, credentials, tokens, or session identifiers.", "Do not alter production wishlist/auth/catalog behavior from acceptance code.", "Do not add variant favorites, sharing, or recommendations."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-042.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/testing/index.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production wishlist/auth/catalog behavior", "live OAuth/providers", "production data", "new feature behavior", "variant favorites/sharing/recommendations"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/storefront run test:e2e -- wishlist", "npm --workspace apps/storefront run test", "npm run typecheck", "npm run build", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Authenticated add/view/remove/reload works across catalog/detail/wishlist.", "Second customer and guest remain isolated; merge_blocked still permits wishlist while checkout stays blocked.", "Four hidden causes, out-of-stock, logout, and session expiry produce correct UI and policy-compliant artifacts."],
+    "evidence_required": ["Playwright trace/report; synthetic product IDs/names and wishlist contents are allowed visual proof.", "Two-customer/guest/merge-blocked/product/session assertions.", "Scan excluding real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets; regression/build and T3 closure evidence."]
+  },
+  "stop_conditions": ["E2E cannot exercise real storefront/Medusa/PostgreSQL boundaries.", "Auth harness bypasses standard Medusa ownership semantics or requires a new production bearer path.", "Evidence would require real PII, production data, cookies, bearer values, OAuth tokens, session IDs, or secrets."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-042/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+}

@@ -1,0 +1,45 @@
+{
+  "id": "TASK-042",
+  "title": "Verify browser authenticated wishlist flow",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-034", "TASK-040", "TASK-041"],
+  "touched_files": [
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    "apps/storefront/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "browser wishlist acceptance", "command": "npm --workspace apps/storefront run test:e2e -- wishlist", "required": true},
+    {"name": "storefront regression", "command": "npm --workspace apps/storefront run test", "required": true},
+    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
+    {"name": "workspace build", "command": "npm run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Real browser authenticated session adds from catalog/detail, shows on wishlist/reload, and removes across all views.",
+    "Second customer sees no first-customer favorite and cannot affect it; guest click routes to login without persistence.",
+    "Missing/unpublished/channel-invisible/inactive-category products are omitted, restored products reappear, and out-of-stock remains visible/unavailable.",
+    "Wishlist remains usable with a valid current customer during merge_blocked while checkout remains blocked; logout/session expiry clears UI state and browser storage."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Playwright trace/report for add/view/remove/reload across catalog/detail/wishlist; synthetic product IDs/names and synthetic wishlist contents are allowed as visual proof.", "Two-customer, guest non-persistence, and merge_blocked-independence assertions.", "Product visibility/out-of-stock and logout/session-expiry assertions plus scan excluding real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/testing/index.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/testing/index.md"],
+  "constraints": ["Use real browser, storefront, Medusa, Wishlist Module, PostgreSQL, and synthetic authenticated sessions/content.", "Use existing FT-004 production session boundary or its existing local harness; add no production bearer mechanism.", "Synthetic wishlist content may appear in acceptance artifacts; real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets may not."],
+  "invariants": ["Guests persist no favorite state.", "Customer isolation remains observable across separate sessions.", "Valid current-customer capability permits wishlist during merge_blocked while checkout remains blocked.", "Browser state clears on logout/session expiry while backend durable ownership remains correct."],
+  "verification_targets": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#verification-targets", ".memory-bank/contracts/wishlist-api-security.md#access-matrix", ".memory-bank/domains/wishlist-data.md#read-projection"],
+  "purpose": "Prove the complete buyer-visible authenticated wishlist in a real browser without live providers or production data.",
+  "success_outcome": "Catalog/detail/wishlist UI preserves durable customer-isolated favorites, handles product/session changes, and creates no guest/browser persistence.",
+  "anti_goals": ["Do not use real PII, production data, credentials, tokens, or session identifiers.", "Do not alter production wishlist/auth/catalog behavior from acceptance code.", "Do not add variant favorites, sharing, or recommendations."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-042.packet.json",
+    "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production wishlist/auth/catalog behavior", "live OAuth/providers", "production data", "new feature behavior", "variant favorites/sharing/recommendations"],
+    "stop_conditions": ["E2E cannot exercise real storefront/Medusa/PostgreSQL boundaries.", "Auth harness bypasses standard Medusa ownership semantics or requires a new production bearer path.", "Evidence would require real PII, production data, cookies, bearer values, OAuth tokens, session IDs, or secrets."]
+  }
+}

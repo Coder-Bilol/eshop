@@ -1,0 +1,56 @@
+{
+  "id": "TASK-034",
+  "title": "Verify browser OAuth cart and checkout flow",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011", "REQ-012"],
+  "depends_on": ["TASK-031", "TASK-032", "TASK-033"],
+  "touched_files": [
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    "apps/storefront/e2e/auth-provider-double.cjs",
+    "apps/storefront/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "browser auth acceptance", "command": "npm --workspace apps/storefront run test:e2e -- auth", "required": true},
+    {"name": "storefront regression", "command": "npm --workspace apps/storefront run test", "required": true},
+    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
+    {"name": "workspace build", "command": "npm run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Real browser completes Google and VK provider-double redirects into signed session and current customer state.",
+    "Guest cart merges through the existing handoff before checkout; merge conflict blocks and retry recovers without losing source/session.",
+    "Guest/payment gate, safe return path, callback URL cleanup, cancel/failure/replay, session expiry, and logout cleanup are buyer-visible and deterministic.",
+    "Browser storage, URL, console, network evidence, screenshots, and reports contain no token, secret, session ID, raw provider payload, customer email, or production data."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Playwright trace/report for both provider-double paths and checkout gate.", "Cart merge success/conflict/retry and logout assertions.", "Artifact privacy/secret scan plus full storefront regression/build output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/cart-access-security.md", ".memory-bank/testing/index.md"],
+  "constraints": ["Use real browser, storefront, Medusa, PostgreSQL, and local provider doubles.", "Use existing FT-003 cart merge endpoint and state handoff.", "Do not use live Google/VK accounts, production secrets, or production data."],
+  "invariants": ["Only authenticated_ready reaches checkout continuation.", "Callback and return navigation never become open redirects.", "Logout clears session and local cart reference while preserving durable backend records."],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md#verification-targets",
+    ".memory-bank/states/customer-auth-session.md#checkout-gate",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#verification-targets"
+  ],
+  "purpose": "Prove the complete buyer-visible login-before-payment and cart-continuity behavior in a real browser without live providers.",
+  "success_outcome": "Google/VK provider-double flows establish session, merge cart, enforce checkout gate, recover safely, and log out without credential or PII leakage.",
+  "anti_goals": ["Do not use live provider accounts or production data.", "Do not alter backend auth/cart behavior from acceptance code.", "Do not implement checkout fields, orders, inventory, or payments."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-034.packet.json",
+    "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/e2e/auth-provider-double.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production auth/cart behavior", "live providers or credentials", "production data", "checkout fields", "orders/inventory/payments"],
+    "stop_conditions": ["E2E cannot use real Medusa/PostgreSQL and browser boundaries.", "Provider double bypasses the production callback/session path.", "Artifacts cannot be produced without exposing secrets, tokens, session IDs, or PII."]
+  }
+}

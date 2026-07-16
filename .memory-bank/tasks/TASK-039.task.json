@@ -1,0 +1,49 @@
+{
+  "id": "TASK-039",
+  "title": "Implement storefront wishlist state",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-030", "TASK-038"],
+  "touched_files": [
+    "apps/storefront/lib/wishlist.ts",
+    "apps/storefront/lib/wishlist-state.ts",
+    "apps/storefront/components/wishlist-provider.tsx",
+    "apps/storefront/app/layout.tsx",
+    "apps/storefront/src/wishlist-client.test.cjs",
+    "apps/storefront/src/wishlist-state.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "wishlist client tests", "command": "npm --workspace apps/storefront run test -- wishlist-client", "required": true},
+    {"name": "wishlist state tests", "command": "npm --workspace apps/storefront run test -- wishlist-state", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Wishlist loads whenever backend current-customer retrieval succeeds using the session, including merge_blocked checkout state.",
+    "Add/remove adopt backend response truth, disable duplicate product mutation while pending, and recover on error.",
+    "Logout/session expiry clears all in-memory wishlist/customer association and guest state never calls mutations.",
+    "No wishlist product IDs, items, customer IDs, or pending intent are written to local/session storage."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Wishlist client/state test output.", "Current-customer capability, merge_blocked independence, pending/error, logout/session-expiry assertions.", "Browser storage non-persistence assertions.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/auth-session-security.md"],
+  "constraints": ["Use successful FT-004 current-customer retrieval and session credentials; do not gate wishlist on cart merge or checkout readiness.", "Keep wishlist data in memory only; backend response is authoritative.", "Do not implement UI markup beyond provider boundary."],
+  "invariants": ["Guest/current-customer 401 performs no wishlist persistence.", "merge_blocked may block checkout but never disables wishlist while current customer remains valid.", "Logout/session expiry clears in-memory wishlist immediately after confirmed auth transition.", "A mutation cannot change another product's pending/error state."],
+  "verification_targets": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#storefront-contract", ".memory-bank/contracts/wishlist-api-security.md#credential-and-ownership-rules", ".memory-bank/states/customer-auth-session.md#failure-and-retry-rules"],
+  "purpose": "Provide one deterministic session-aware wishlist state boundary for all buyer-facing controls and pages.",
+  "success_outcome": "Valid-current-customer wishlist state loads and mutates backend truth independently of cart merge, while guest/logout/session-expiry retain no favorite data or browser persistence.",
+  "anti_goals": ["Do not implement wishlist page/card markup.", "Do not persist favorites or pending intent in browser storage.", "Do not change backend API/auth behavior."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-039.packet.json",
+    "allowed_write_scope": ["apps/storefront/lib/wishlist.ts", "apps/storefront/lib/wishlist-state.ts", "apps/storefront/components/wishlist-provider.tsx", "apps/storefront/app/layout.tsx", "apps/storefront/src/wishlist-client.test.cjs", "apps/storefront/src/wishlist-state.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend API/auth", "wishlist page/catalog/detail markup", "browser persistence", "guest favorite merge", "orders/payments"],
+    "stop_conditions": ["FT-004 cannot provide a truthful current-customer success/401 capability signal.", "Wishlist would become coupled to cart-merge or checkout readiness.", "Backend contract cannot return authoritative mutation state.", "Implementation requires browser-persisted wishlist data."]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "TASK-029",
+  "title": "Complete OAuth callback into customer session",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011"],
+  "depends_on": ["TASK-027", "TASK-028"],
+  "touched_files": [
+    "apps/backend/src/auth/complete-customer-auth.ts",
+    "apps/backend/src/auth/rate-limit.ts",
+    "apps/backend/src/api/auth/customer/[provider]/complete/route.ts",
+    "apps/backend/src/api/middlewares.ts",
+    "apps/backend/src/scripts/smoke-auth-completion.ts",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "auth completion integration", "command": "npm --workspace apps/backend run test:integration -- auth-completion", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Validated provider identity resolves or creates exactly one PostgreSQL-backed Medusa customer and establishes customer session.",
+    "Repeat provider identity reuses customer; same-email different-provider collision creates no link or session.",
+    "Callback redirects only to configured storefront completion path and strips provider query/token data.",
+    "Start/completion rate limits are bounded and sanitized; failure leaves no partial session/customer linkage."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Medusa/PostgreSQL account/session integration output.", "Collision, duplicate callback, redirect, rate-limit, and partial-failure assertions.", "Sanitized log/error inspection.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/architecture/auth-runtime.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/constitution.md"],
+  "constraints": ["Use Medusa customer-account workflow and Auth/Customer modules; no direct core table writes.", "Establish session server-side before fixed redirect.", "Rate limiter stores only bounded hashed client keys and coarse counters."],
+  "invariants": ["Email equality never auto-links providers.", "No callback/provider token survives completion.", "One provider identity resolves at most one customer actor."],
+  "verification_targets": [
+    ".memory-bank/contracts/auth-session-security.md#identity-and-account-rules",
+    ".memory-bank/contracts/auth-session-security.md#abuse-controls",
+    ".memory-bank/states/customer-auth-session.md#allowed-transitions"
+  ],
+  "purpose": "Convert validated Google/VK identities into one durable Medusa customer and safe storefront session.",
+  "success_outcome": "Backend callback completion is replay-safe, collision-safe, session-establishing, rate-limited, and fixed-redirect only.",
+  "anti_goals": ["Do not implement storefront UI or cart merge.", "Do not auto-link accounts by email.", "Do not modify Medusa Core or write auth tables directly."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-029.packet.json",
+    "allowed_write_scope": ["apps/backend/src/auth/complete-customer-auth.ts", "apps/backend/src/auth/rate-limit.ts", "apps/backend/src/api/auth/customer/[provider]/complete/route.ts", "apps/backend/src/api/middlewares.ts", "apps/backend/src/scripts/smoke-auth-completion.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["Medusa Core", "direct core-table writes", "storefront UI", "cart merge semantics", "checkout/order/payment", "automatic email linking"],
+    "stop_conditions": ["Supported Medusa workflow cannot create/link customer without direct core writes.", "Session cannot be established without exposing a token to browser URL/storage.", "Callback destination or account collision policy is ambiguous."]
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "TASK-040",
+  "title": "Add wishlist controls and page",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-031", "TASK-039"],
+  "touched_files": [
+    "apps/storefront/components/wishlist-toggle.tsx",
+    "apps/storefront/components/wishlist-view.tsx",
+    "apps/storefront/app/wishlist/page.tsx",
+    "apps/storefront/app/page.tsx",
+    "apps/storefront/app/products/[handle]/page.tsx",
+    "apps/storefront/app/globals.css",
+    "apps/storefront/src/wishlist-ui.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "wishlist UI tests", "command": "npm --workspace apps/storefront run test -- wishlist-ui", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "storefront build", "command": "npm --workspace apps/storefront run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Catalog and product-detail render accessible product-level favorite controls using opaque product ID.",
+    "Guest control routes to login with safe current return path and creates no pending favorite intent.",
+    "Valid-current-customer control remains usable during merge_blocked, renders idle/pending/saved/error, and prevents duplicate mutation while pending.",
+    "Wishlist page renders only the exact minimal projection and handles loading/empty/products/error/remove/session-expired with current handles."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Wishlist component/page state tests including merge_blocked access.", "Guest login routing and no-intent assertions.", "Exact projection rendering, accessibility labels/disabled pending, and current-handle assertions.", "Storefront build/typecheck and Memory Bank lint output."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md"],
+  "constraints": ["Reuse existing catalog/product visual language and FT-004 login return-path behavior.", "Authorize wishlist UI by successful current-customer retrieval, not cart-merge/checkout readiness.", "Render only exact WishlistProductProjection product-level fields; do not store variant selection.", "No guest persistence or automatic post-login favorite."],
+  "invariants": ["UI uses opaque product ID for mutation and handle only for navigation.", "merge_blocked blocks checkout but not wishlist for a valid current customer.", "Guest click changes no wishlist state.", "Backend response remains rendered saved-state truth."],
+  "verification_targets": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#storefront-contract", ".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#anti-goals", ".memory-bank/contracts/wishlist-api-security.md#access-matrix"],
+  "purpose": "Expose the authenticated wishlist value through existing catalog/detail surfaces and one focused wishlist page.",
+  "success_outcome": "Buyers can discover, add, view, and remove product favorites with truthful auth/pending/error states and no guest persistence.",
+  "anti_goals": ["Do not redesign catalog/product detail.", "Do not add variant favorites, sharing, notes, folders, or recommendations.", "Do not change backend behavior."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-040.packet.json",
+    "allowed_write_scope": ["apps/storefront/components/wishlist-toggle.tsx", "apps/storefront/components/wishlist-view.tsx", "apps/storefront/app/wishlist/page.tsx", "apps/storefront/app/page.tsx", "apps/storefront/app/products/[handle]/page.tsx", "apps/storefront/app/globals.css", "apps/storefront/src/wishlist-ui.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend", "auth implementation", "catalog/product redesign", "browser persistence", "variant favorites/sharing/recommendations"],
+    "stop_conditions": ["Existing product surfaces do not expose opaque product ID from TASK-036.", "Guest login routing would require persisted favorite intent.", "UI requires fields outside exact WishlistProductProjection.", "Wishlist UI would be disabled solely because cart merge is blocked."]
+  }
+}

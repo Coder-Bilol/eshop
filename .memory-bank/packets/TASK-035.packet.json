@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-035-R1",
+  "task_id": "TASK-035",
+  "created_at": "2026-07-16T14:00:00+03:00",
+  "source_task_hash": "sha256:12cea0edb992bfd134467f3a5b69000ab68518efe5585f1595b1a260de1e7008",
+  "status": "ready",
+  "tier": "T2",
+  "purpose": "Create the minimal durable wishlist storage boundary required by all later behavior.",
+  "success_outcome": "Wishlist items persist uniquely by customer/product through the supported Medusa module and PostgreSQL path.",
+  "anti_goals": ["Do not implement API routes, auth, workflows, or storefront UI.", "Do not link directly to core tables with database foreign keys.", "Do not add cleanup jobs or events."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-035.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/architecture/system-architecture.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/src/modules/wishlist/index.ts", "apps/backend/src/modules/wishlist/service.ts", "apps/backend/src/modules/wishlist/models/wishlist-item.ts", "apps/backend/src/modules/wishlist/migrations/**", "apps/backend/src/scripts/smoke-wishlist-persistence.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["Medusa Core/Product/Customer table modifications", "API/auth", "storefront", "cleanup jobs/events", "production data"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/backend run db:migrate:medusa", "npm --workspace apps/backend run test:integration -- wishlist-persistence", "npm --workspace apps/backend run typecheck", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Custom Wishlist Module and migration avoid core table changes.", "Composite uniqueness and customer-list index exist.", "Real PostgreSQL CRUD, fresh-process read, and duplicate concurrency pass."],
+    "evidence_required": ["Migration/schema inspection.", "PostgreSQL persistence/restart/concurrency output.", "Typecheck and lint output."]
+  },
+  "stop_conditions": ["Composite uniqueness cannot be represented in a supported Medusa model/migration.", "Persistence smoke cannot exercise real local PostgreSQL.", "Implementation requires direct core table mutation."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-035/.", "Run /verify TASK-035 before closure; T2 feature completion later requires feature-level red verification."]
+}

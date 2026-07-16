@@ -1,0 +1,56 @@
+{
+  "id": "TASK-033",
+  "title": "Verify backend auth persistence and security",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011"],
+  "depends_on": ["TASK-029"],
+  "touched_files": [
+    "apps/backend/src/scripts/smoke-auth-acceptance.ts",
+    "apps/backend/test/auth-provider-double.cjs",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "backend auth acceptance", "command": "npm --workspace apps/backend run test:integration -- auth-acceptance", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "local runtime smoke", "command": "npm run smoke:local", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Real Medusa/PostgreSQL flow persists Google/VK provider identity, customer, and link across a fresh process query.",
+    "First/repeat login, duplicate callback, same-email collision, missing email, invalid/replayed/expired state, and VK PKCE mismatch have expected atomic outcomes.",
+    "Session cookie creation/destruction, CORS, callback redirect, bounded rate limit, and restart logout behavior match contracts.",
+    "Provider doubles and evidence contain no live credentials, tokens, session IDs, raw IP, customer email, or production data."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Real Medusa/PostgreSQL acceptance output with redacted synthetic identifiers.", "Restart-safe identity/customer and session-ephemeral assertions.", "Security negative-case and evidence-secret scan output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/architecture/auth-runtime.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/architecture/auth-runtime.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/testing/index.md"],
+  "constraints": ["Exercise real Medusa Auth/Customer modules and local PostgreSQL, not an in-memory identity fake.", "Use local provider doubles and synthetic identities only.", "Do not change production auth behavior to make acceptance pass."],
+  "invariants": ["Durable identity/customer linkage survives process restart.", "Session restart loss never deletes durable identity/customer/cart data.", "No failure creates a partial link, duplicate customer, or usable session."],
+  "verification_targets": [
+    ".memory-bank/architecture/auth-runtime.md#persistence-and-data-ownership",
+    ".memory-bank/contracts/auth-session-security.md#verification-rules",
+    ".memory-bank/states/customer-auth-session.md#failure-and-retry-rules"
+  ],
+  "purpose": "Prove the auth feature against its real Medusa/PostgreSQL security and persistence boundaries before browser acceptance.",
+  "success_outcome": "Backend acceptance demonstrates durable, atomic, replay-safe identity/customer behavior and ephemeral safe sessions for both providers.",
+  "anti_goals": ["Do not use live providers or production secrets/data.", "Do not replace real Medusa/PostgreSQL boundaries with mocks.", "Do not add new auth behavior outside existing tasks."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-033.packet.json",
+    "allowed_write_scope": ["apps/backend/src/scripts/smoke-auth-acceptance.ts", "apps/backend/test/auth-provider-double.cjs", "apps/backend/test/run-integration.cjs", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production auth behavior", "storefront", "live providers or credentials", "production data", "checkout/order/payment"],
+    "stop_conditions": ["Acceptance cannot exercise real Auth/Customer PostgreSQL persistence.", "Tests require live provider credentials or unredacted identity data.", "A discovered implementation defect requires edits outside acceptance scope."]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "TASK-038",
+  "title": "Expose authenticated wishlist Store API",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-029", "TASK-037"],
+  "touched_files": [
+    "apps/backend/src/api/store/wishlist/route.ts",
+    "apps/backend/src/api/store/wishlist/items/route.ts",
+    "apps/backend/src/api/store/wishlist/items/[product_id]/route.ts",
+    "apps/backend/src/api/store/wishlist/validators.ts",
+    "apps/backend/src/api/middlewares.ts",
+    "apps/backend/src/scripts/smoke-wishlist-api.ts",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "wishlist API integration", "command": "npm --workspace apps/backend run test:integration -- wishlist-api", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "GET/POST/DELETE routes require standard Medusa customer actor context; production storefront uses session cookie only.",
+    "Customer ID is derived only from auth context and never accepted from request input.",
+    "List/add use the same exact item/projection shape; all hidden product cases use indistinguishable 404 wishlist_product_not_found while out-of-stock remains visible.",
+    "Two-customer tests prove one actor cannot list or remove the other's favorite; synthetic bearer is limited to the existing local harness and adds no production mechanism."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Guest and production-style session API integration output, plus existing local harness synthetic-bearer coverage where needed.", "Two-customer ownership and non-disclosure assertions.", "Exact item shape, unified hidden 404, out-of-stock, and idempotency assertions.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/contracts/api-guidelines.md", ".memory-bank/constitution.md"],
+  "constraints": ["Use standard Medusa customer middleware and req.auth_context.actor_id; production storefront credential remains session cookie.", "Do not add production bearer configuration, storage, or client behavior; only the existing local harness may supply a synthetic bearer.", "Pass publishable-key sales channel to product visibility validation.", "Return only the exact projection, stable sanitized errors, and actor-visible data."],
+  "invariants": ["No request field can select customer owner.", "Product ID alone cannot reveal or remove another customer's record.", "Missing, unpublished, channel-invisible, and inactive-category add failures are the same 404.", "Guest requests create no wishlist state."],
+  "verification_targets": [".memory-bank/contracts/wishlist-api-security.md#http-contract", ".memory-bank/contracts/wishlist-api-security.md#access-matrix", ".memory-bank/contracts/wishlist-api-security.md#logging-and-privacy"],
+  "purpose": "Expose wishlist behavior through an authenticated, ownership-safe Store boundary.",
+  "success_outcome": "Authenticated customers can list/add/remove only their own favorites, while guest and cross-customer attempts fail without leakage.",
+  "anti_goals": ["Do not implement authentication providers/session creation or a new production bearer path.", "Do not accept customer ID or record owner from client.", "Do not implement storefront UI."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-038.packet.json",
+    "allowed_write_scope": ["apps/backend/src/api/store/wishlist/route.ts", "apps/backend/src/api/store/wishlist/items/route.ts", "apps/backend/src/api/store/wishlist/items/[product_id]/route.ts", "apps/backend/src/api/store/wishlist/validators.ts", "apps/backend/src/api/middlewares.ts", "apps/backend/src/scripts/smoke-wishlist-api.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["auth provider/session creation", "wishlist module/workflow semantics", "storefront", "customer/product core tables", "production data"],
+    "stop_conditions": ["Authenticated customer actor is unavailable through standard Medusa middleware.", "Ownership cannot be enforced without client-supplied customer ID.", "Exact item projection or unified hidden 404 cannot be preserved.", "Implementation would add a production bearer mechanism or expose cross-customer/sensitive data."]
+  }
+}

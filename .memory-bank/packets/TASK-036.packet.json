@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-036-R1",
+  "task_id": "TASK-036",
+  "created_at": "2026-07-16T14:00:00+03:00",
+  "source_task_hash": "sha256:0b64ba4fb3bb88d0444dc0ec7b4dfc7bdcb75ff8906c0fa10612706eac529109",
+  "status": "ready",
+  "tier": "T2",
+  "purpose": "Provide the opaque product identity required by wishlist mutations without replacing current catalog/detail contracts.",
+  "success_outcome": "Both product surfaces expose canonical product IDs and retain all existing catalog/detail semantics.",
+  "anti_goals": ["Do not implement wishlist persistence/API/UI.", "Do not change handles or variant identity.", "Do not expose database/query internals."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-036.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/backend/src/catalog/query.ts", "apps/backend/src/catalog/product-detail.ts", "apps/backend/src/scripts/smoke-catalog.ts", "apps/backend/src/scripts/smoke-product-detail.ts", "apps/storefront/lib/catalog.ts", "apps/storefront/lib/product-detail.ts", "apps/storefront/src/catalog-ui.test.cjs", "apps/storefront/src/product-detail.test.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["wishlist storage/routes/UI", "catalog filter/search redesign", "variant/cart behavior", "Medusa Core"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/backend run test:integration -- wishlist-product-id", "npm --workspace apps/backend run smoke:catalog", "npm --workspace apps/backend run smoke:product-detail", "npm run typecheck", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Catalog and detail add opaque canonical product ID.", "Storefront types preserve product ID.", "Existing FT-001/FT-002 behavior and smoke gates remain unchanged."],
+    "evidence_required": ["Additive contract assertions.", "Catalog/detail regression smoke.", "Typecheck and lint output."]
+  },
+  "stop_conditions": ["Canonical product ID is unavailable through existing query results.", "Additive field causes a breaking catalog/detail contract change.", "Implementation requires client-derived identity from handle/SKU/title."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-036/.", "Run /verify TASK-036 before closure; T2 feature completion later requires feature-level red verification."]
+}

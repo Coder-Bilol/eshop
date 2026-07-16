@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-032-R1",
+  "task_id": "TASK-032",
+  "created_at": "2026-07-16T12:00:00+03:00",
+  "source_task_hash": "sha256:4a55f89b22bc2f9b04f56f11b66a838814c2a37cfa810af3a5473f97ca5c546d",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Enforce the buyer-facing login-before-payment boundary without implementing later checkout/payment scope.",
+  "success_outcome": "Guests and unresolved auth/merge states cannot reach checkout continuation, while authenticated-ready customers receive a clean FT-006 handoff.",
+  "anti_goals": ["Do not implement checkout form, order, inventory, or payment.", "Do not treat client state as backend authorization.", "Do not broaden return redirects beyond internal paths."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-032.task.json",
+    "feature": ".memory-bank/features/FT-004-oauth-login-before-payment.md",
+    "specs": [".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/api-guidelines.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-004/plan.md", ".protocols/FT-004/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/storefront/app/checkout/page.tsx", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend authorization routes", "checkout data fields", "orders", "inventory", "payments", "external redirects"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/storefront run test -- checkout-auth-gate", "npm --workspace apps/storefront run typecheck", "npm --workspace apps/storefront run build", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Guest routes to login with safe /checkout return path.", "Only authenticated_ready renders bounded checkout continuation.", "Merge-blocked offers retry and frontend gate is not treated as backend authorization."],
+    "evidence_required": ["Checkout state-matrix tests.", "Return-path and merge retry assertions.", "Build, typecheck, lint, T3 human checkpoint, and recovery note."]
+  },
+  "stop_conditions": ["Checkout handoff cannot be separated from FT-006 fields or payment implementation.", "Auth lifecycle lacks a truthful authenticated_ready/merge_blocked distinction.", "Gate would rely on unvalidated browser flags instead of current customer state."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-032/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "TASK-037",
+  "title": "Implement wishlist workflows and product projection",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-035", "TASK-036"],
+  "touched_files": [
+    "apps/backend/src/wishlist/service.ts",
+    "apps/backend/src/workflows/wishlist/add-wishlist-item.ts",
+    "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts",
+    "apps/backend/src/scripts/smoke-wishlist-workflows.ts",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "wishlist workflow integration", "command": "npm --workspace apps/backend run test:integration -- wishlist-workflows", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Add validates exists plus published plus current-sales-channel plus active-category visibility and converges under duplicate/concurrent calls.",
+    "Remove filters by customer_id plus product_id and is idempotent when absent.",
+    "List and add return the same exact minimal WishlistItem and WishlistProductProjection contract.",
+    "Missing, unpublished, channel-invisible, or inactive-category products are omitted without deletion; out-of-stock remains visible with is_available false."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Workflow duplicate/concurrency/idempotency output.", "Exact projection, four hidden cases, and out-of-stock visibility assertions.", "Backend typecheck and Memory Bank lint output."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md", ".memory-bank/tasks/plans/IMPL-FT-005.md"],
+  "normative_inputs": [".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md"],
+  "constraints": ["Use Wishlist Module for records and supported Product/query boundary for current FT-001/FT-002 truth.", "Return only the exact WishlistProductProjection; do not copy CatalogProduct or ProductDetail.", "Write workflows take a server-supplied customer ID; they do not authenticate requests themselves.", "No product lifecycle hooks, cleanup worker, event, or cached product snapshot."],
+  "invariants": ["Mutation lookup always includes customer_id and product_id.", "Duplicate add yields one row and the same item shape used by list.", "Four hidden visibility cases are omitted while out-of-stock remains visible/unavailable.", "Hidden/missing product never exposes stale snapshot or fails the full list."],
+  "verification_targets": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#favorite-lifecycle", ".memory-bank/domains/wishlist-data.md#write-semantics", ".memory-bank/domains/wishlist-data.md#read-projection"],
+  "purpose": "Implement deterministic wishlist domain behavior between persistence and authenticated HTTP routes.",
+  "success_outcome": "Workflows safely add/remove one customer product and return the exact current minimal projection under retries, concurrency, visibility, and stock changes.",
+  "anti_goals": ["Do not expose Store routes or authenticate users.", "Do not cache product snapshots or add cleanup jobs.", "Do not implement storefront UI."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-037.packet.json",
+    "allowed_write_scope": ["apps/backend/src/wishlist/service.ts", "apps/backend/src/workflows/wishlist/add-wishlist-item.ts", "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts", "apps/backend/src/scripts/smoke-wishlist-workflows.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["HTTP/auth middleware", "storefront", "product lifecycle hooks", "cleanup jobs/events", "Medusa Core"],
+    "stop_conditions": ["Product publication, sales-channel, active-category, price, or availability cannot be resolved through supported query boundaries.", "Concurrent idempotency would require a distributed lock instead of database uniqueness.", "Exact projection would need a stored product snapshot or full catalog/detail copy."]
+  }
+}

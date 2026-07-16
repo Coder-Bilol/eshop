@@ -1,0 +1,71 @@
+{
+  "id": "TASK-027",
+  "title": "Configure Medusa OAuth providers and session policy",
+  "status": "ready",
+  "wave": "W1",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011", "REQ-012"],
+  "depends_on": ["TASK-003"],
+  "touched_files": [
+    "apps/backend/medusa-config.ts",
+    "apps/backend/.env.example",
+    "apps/backend/package.json",
+    "apps/backend/src/scripts/smoke-auth-config.ts",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "auth config smoke", "command": "npm --workspace apps/backend run smoke:auth-config", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Customer actor permits only google and vkid while admin user retains emailpass.",
+    "Google and VK provider configuration is backend-only and exact callback URLs are environment-driven.",
+    "Session cookie, CORS, TTL, and local-versus-HTTPS secure policy match the auth security contract.",
+    "Missing enabled-provider secrets fail startup safely without printing values."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": [
+    "Sanitized auth configuration smoke output.",
+    "Assertions for actor provider allowlists and cookie/CORS settings.",
+    "Backend typecheck and Memory Bank lint output.",
+    "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."
+  ],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/architecture/auth-runtime.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/auth-runtime.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/constitution.md"
+  ],
+  "constraints": [
+    "Use Medusa v2.16 Auth Module with built-in Google, custom vkid, and retained admin emailpass providers.",
+    "Do not expose provider secrets through NEXT_PUBLIC variables or logs.",
+    "Do not introduce Redis, Auth.js, or customer password login."
+  ],
+  "invariants": [
+    "Customer auth methods are google and vkid only; Medusa Admin emailpass remains available.",
+    "Storefront credential is a signed HttpOnly Medusa session cookie.",
+    "Authenticated CORS is explicit and never wildcard."
+  ],
+  "verification_targets": [
+    ".memory-bank/architecture/auth-runtime.md#configuration",
+    ".memory-bank/contracts/auth-session-security.md#session-and-csrf-rules",
+    ".memory-bank/contracts/auth-session-security.md#secret-and-configuration-inventory"
+  ],
+  "purpose": "Establish the secure Medusa provider and session baseline used by every FT-004 slice.",
+  "success_outcome": "Backend configuration exposes Google/VK customer auth and safe sessions without weakening Medusa Admin auth or leaking secrets.",
+  "anti_goals": ["Do not implement callback completion UI or provider exchange logic.", "Do not add customer email/password auth.", "Do not use live credentials in tests."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-027.packet.json",
+    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/.env.example", "apps/backend/package.json", "apps/backend/src/scripts/smoke-auth-config.ts", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["Medusa Core", "storefront auth UI", "VK provider implementation", "checkout/order/payment behavior", "live or production secrets"],
+    "stop_conditions": ["Medusa v2.16 provider configuration conflicts with linked specs.", "Required secrets would enter public configuration or evidence.", "Admin emailpass cannot be preserved with the customer provider allowlist."]
+  }
+}

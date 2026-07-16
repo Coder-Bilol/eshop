@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-034-R1",
+  "task_id": "TASK-034",
+  "created_at": "2026-07-16T12:00:00+03:00",
+  "source_task_hash": "sha256:f558e955d68532d43969fb932dc5ae0c7264b1379f0125eceff3e1eecd856fc4",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Prove the complete buyer-visible login-before-payment and cart-continuity behavior in a real browser without live providers.",
+  "success_outcome": "Google/VK provider-double flows establish session, merge cart, enforce checkout gate, recover safely, and log out without credential or PII leakage.",
+  "anti_goals": ["Do not use live provider accounts or production data.", "Do not alter backend auth/cart behavior from acceptance code.", "Do not implement checkout fields, orders, inventory, or payments."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-034.task.json",
+    "feature": ".memory-bank/features/FT-004-oauth-login-before-payment.md",
+    "specs": [".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md", ".memory-bank/contracts/cart-access-security.md", ".memory-bank/testing/index.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-004/plan.md", ".protocols/FT-004/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/e2e/auth-provider-double.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production auth/cart behavior", "live providers or credentials", "production data", "checkout fields", "orders/inventory/payments"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/storefront run test:e2e -- auth", "npm --workspace apps/storefront run test", "npm run typecheck", "npm run build", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Both provider-double paths establish real session and customer state.", "Cart merge precedes checkout; conflict blocks and retry recovers.", "Redirect/callback/cancel/logout/session-expiry flows pass with clean URL/storage/artifacts."],
+    "evidence_required": ["Playwright trace/report for both providers and checkout gate.", "Cart conflict/retry/logout assertions.", "Artifact privacy scan, regression/build, T3 human checkpoint, and recovery note."]
+  },
+  "stop_conditions": ["E2E cannot use real Medusa/PostgreSQL and browser boundaries.", "Provider double bypasses the production callback/session path.", "Artifacts cannot be produced without exposing secrets, tokens, session IDs, or PII."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-034/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+}

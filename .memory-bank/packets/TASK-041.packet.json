@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-041-R2",
+  "task_id": "TASK-041",
+  "created_at": "2026-07-16T16:00:00+03:00",
+  "source_task_hash": "sha256:400724b53f2428f69beadd86d94cc66b06a95c37a3b629cf77ca1d71901f536a",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Prove wishlist persistence and authorization against real backend boundaries before browser acceptance.",
+  "success_outcome": "Backend acceptance demonstrates durable, customer-isolated, idempotent wishlist behavior with correct product lifecycle projection.",
+  "anti_goals": ["Do not use real PII, production data, credentials, tokens, or session identifiers.", "Do not replace real PostgreSQL/module/API boundaries with mocks.", "Do not add new wishlist behavior."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-041.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/backend/src/scripts/smoke-wishlist-acceptance.ts", "apps/backend/test/run-integration.cjs", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production wishlist/auth/catalog behavior", "storefront", "live OAuth/providers", "production data", "new feature behavior"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/backend run test:integration -- wishlist-acceptance", "npm --workspace apps/backend run typecheck", "npm run smoke:local", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Real PostgreSQL persistence/restart and Store removal pass.", "Two-customer isolation, exact item projection, and retry/concurrency pass.", "Four hidden causes use one 404/list omission; restore re-shows and out-of-stock stays visible/unavailable."],
+    "evidence_required": ["Real backend output with synthetic identifiers/content where useful.", "Ownership/concurrency/projection/visibility assertions without prohibited sensitive values.", "Smoke, typecheck, lint, T3 human checkpoint, and recovery note."]
+  },
+  "stop_conditions": ["Acceptance cannot exercise real Wishlist Module/PostgreSQL/Store routes.", "Tests require real PII, production data, live provider credentials, cookies, bearer values, OAuth tokens, session IDs, or secrets in evidence.", "A discovered implementation defect requires edits outside acceptance scope."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-041/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+}

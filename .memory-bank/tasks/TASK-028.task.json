@@ -1,0 +1,55 @@
+{
+  "id": "TASK-028",
+  "title": "Implement VK ID Auth Module Provider",
+  "status": "planned",
+  "wave": "W1",
+  "feature": "FT-004",
+  "reqs": ["REQ-011"],
+  "depends_on": ["TASK-027"],
+  "touched_files": [
+    "apps/backend/src/modules/auth-vkid/index.ts",
+    "apps/backend/src/modules/auth-vkid/service.ts",
+    "apps/backend/src/modules/auth-vkid/types.ts",
+    "apps/backend/src/scripts/smoke-auth-vkid.ts",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "VK provider integration", "command": "npm --workspace apps/backend run test:integration -- auth-vkid", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Provider implements Medusa AbstractAuthModuleProvider under provider ID vkid.",
+    "Start creates single-use state and S256 PKCE challenge; callback requires code, state, device_id, and verifier match.",
+    "Server-side exchange maps stable VK user_id and required email without persisting provider tokens.",
+    "Cancel, malformed payload, network error, expired/replayed state, and PKCE mismatch fail with sanitized errors."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Provider-double contract test output.", "PKCE/state/device_id and token non-persistence assertions.", "Sanitized error/log inspection.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/architecture/auth-runtime.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/architecture/auth-runtime.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/invariants.md"],
+  "constraints": ["Use Authorization Code with S256 PKCE and server-side token exchange.", "Use provider user_id as entity ID and require validated email for customer handoff.", "Keep VK-specific behavior inside one Medusa Auth Module Provider."],
+  "invariants": ["Provider tokens are never persisted or logged.", "State is opaque, short-lived, and single-use.", "Raw provider failures and identity data are not returned to storefront."],
+  "verification_targets": [
+    ".memory-bank/architecture/auth-runtime.md#vk-provider-mapping",
+    ".memory-bank/contracts/auth-session-security.md#callback-and-redirect-rules",
+    ".memory-bank/states/customer-auth-session.md#failure-and-retry-rules"
+  ],
+  "purpose": "Add VK ID as a supported Medusa customer identity provider without creating a parallel auth system.",
+  "success_outcome": "VK ID start and callback produce a validated Medusa provider identity using state and PKCE while retaining no provider token.",
+  "anti_goals": ["Do not create customer/session or storefront UI in this slice.", "Do not store VK access or refresh tokens.", "Do not use live VK credentials in automated tests."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-028.packet.json",
+    "allowed_write_scope": ["apps/backend/src/modules/auth-vkid/index.ts", "apps/backend/src/modules/auth-vkid/service.ts", "apps/backend/src/modules/auth-vkid/types.ts", "apps/backend/src/scripts/smoke-auth-vkid.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["Medusa Core", "Google provider internals", "customer auto-linking", "storefront", "checkout/order/payment", "live provider credentials"],
+    "stop_conditions": ["VK API behavior cannot satisfy state and S256 PKCE requirements.", "Validated email or stable provider subject cannot be obtained.", "Implementation would persist or expose provider tokens."]
+  }
+}

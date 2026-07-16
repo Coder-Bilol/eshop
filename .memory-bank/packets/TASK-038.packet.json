@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-038-R2",
+  "task_id": "TASK-038",
+  "created_at": "2026-07-16T16:00:00+03:00",
+  "source_task_hash": "sha256:48dfc70cc7074690cd8a8b7d5291a4560928667e9b4ef559bf6c194ec093f305",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Expose wishlist behavior through an authenticated, ownership-safe Store boundary.",
+  "success_outcome": "Authenticated customers can list/add/remove only their own favorites, while guest and cross-customer attempts fail without leakage.",
+  "anti_goals": ["Do not implement authentication providers/session creation or a new production bearer path.", "Do not accept customer ID or record owner from client.", "Do not implement storefront UI."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-038.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/contracts/api-guidelines.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/backend/src/api/store/wishlist/route.ts", "apps/backend/src/api/store/wishlist/items/route.ts", "apps/backend/src/api/store/wishlist/items/[product_id]/route.ts", "apps/backend/src/api/store/wishlist/validators.ts", "apps/backend/src/api/middlewares.ts", "apps/backend/src/scripts/smoke-wishlist-api.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["auth provider/session creation", "wishlist module/workflow semantics", "storefront", "customer/product core tables", "production data"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/backend run test:integration -- wishlist-api", "npm --workspace apps/backend run typecheck", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Routes use standard customer middleware and actor-derived ownership; production storefront remains session-cookie only.", "List/add share exact item projection; four hidden cases use one non-disclosing 404 and out-of-stock remains visible.", "Guest and two-customer attempts create no state/disclosure; synthetic bearer is confined to the existing local harness."],
+    "evidence_required": ["Guest and production-style session output plus existing local synthetic-bearer harness evidence where needed.", "Exact projection, unified hidden 404, out-of-stock, and ownership assertions.", "Typecheck, lint, T3 human checkpoint, and recovery note."]
+  },
+  "stop_conditions": ["Authenticated customer actor is unavailable through standard Medusa middleware.", "Ownership cannot be enforced without client-supplied customer ID.", "Exact item projection or unified hidden 404 cannot be preserved.", "Implementation would add a production bearer mechanism or expose cross-customer/sensitive data."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-038/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+}

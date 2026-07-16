@@ -1,0 +1,55 @@
+{
+  "id": "TASK-032",
+  "title": "Gate checkout on authenticated ready state",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-004",
+  "reqs": ["REQ-012"],
+  "depends_on": ["TASK-030", "TASK-031"],
+  "touched_files": [
+    "apps/storefront/app/checkout/page.tsx",
+    "apps/storefront/components/checkout-auth-gate.tsx",
+    "apps/storefront/src/checkout-auth-gate.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "checkout auth gate tests", "command": "npm --workspace apps/storefront run test -- checkout-auth-gate", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "storefront build", "command": "npm --workspace apps/storefront run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Guest checkout stores only safe /checkout return path and routes to login.",
+    "Every state except authenticated_ready blocks checkout continuation; merge_blocked offers merge retry.",
+    "Authenticated ready consumes the return path and renders only a bounded FT-006 checkout handoff, not payment behavior.",
+    "Gate documentation/test explicitly preserves later backend customer authorization requirement."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Checkout gate state-matrix test output.", "Safe return path and merge-blocked retry assertions.", "Storefront build/typecheck output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/contracts/api-guidelines.md"],
+  "constraints": ["Only authenticated_ready may render checkout continuation.", "Create no checkout fields, order, inventory, or payment behavior.", "Frontend gate never replaces backend actor authorization."],
+  "invariants": ["Guest cannot proceed to checkout/payment continuation.", "Unresolved cart merge blocks continuation without logging customer out.", "Unsafe return path never controls navigation."],
+  "verification_targets": [
+    ".memory-bank/states/customer-auth-session.md#checkout-gate",
+    ".memory-bank/contracts/auth-session-security.md#trust-model",
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md#required-outcomes"
+  ],
+  "purpose": "Enforce the buyer-facing login-before-payment boundary without implementing later checkout/payment scope.",
+  "success_outcome": "Guests and unresolved auth/merge states cannot reach checkout continuation, while authenticated-ready customers receive a clean FT-006 handoff.",
+  "anti_goals": ["Do not implement checkout form, order, inventory, or payment.", "Do not treat client state as backend authorization.", "Do not broaden return redirects beyond internal paths."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-032.packet.json",
+    "allowed_write_scope": ["apps/storefront/app/checkout/page.tsx", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend authorization routes", "checkout data fields", "orders", "inventory", "payments", "external redirects"],
+    "stop_conditions": ["Checkout handoff cannot be separated from FT-006 fields or payment implementation.", "Auth lifecycle lacks a truthful authenticated_ready/merge_blocked distinction.", "Gate would rely on unvalidated browser flags instead of current customer state."]
+  }
+}

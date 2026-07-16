@@ -2,7 +2,7 @@
 description: Pure SDD spec registry and planned-spec index.
 status: active
 owner: spec-design
-last_updated: 2026-07-02
+last_updated: 2026-07-16
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-backbone.md
@@ -32,6 +32,13 @@ source_of_truth:
 | Cart Access And Security | security_contract | [.memory-bank/contracts/cart-access-security.md](contracts/cart-access-security.md) | active | /spec-improve FT-003 | Cart credentials, access matrix, ownership guards, consumed-source access, privacy, and safety. |
 | Cart Merge Data | data | [.memory-bank/domains/cart-merge-data.md](domains/cart-merge-data.md) | active | /spec-improve FT-003 | Medusa cart ownership, merge-journal persistence, source soft-delete/restore, and migration rules. |
 | Cart Ownership And Merge State | state | [.memory-bank/states/cart-ownership-merge.md](states/cart-ownership-merge.md) | active | /spec-improve FT-003 | Cart ownership/merge states, consumed-source terminal state, transitions, guards, retry, and recovery. |
+| FT-004 OAuth Login Before Payment | feature_design | [.memory-bank/tech-specs/FT-004-oauth-login-before-payment.md](tech-specs/FT-004-oauth-login-before-payment.md) | active | /prd-to-tasks FT-004 | Feature hub for Google/VK ID login, customer session, cart handoff, checkout gate, and verification. |
+| Authentication Runtime | architecture | [.memory-bank/architecture/auth-runtime.md](architecture/auth-runtime.md) | active | /prd-to-tasks FT-004 | Medusa Auth/Customer ownership, Google/VK provider boundaries, session runtime, and persistence. |
+| Authentication And Session Security | security_contract | [.memory-bank/contracts/auth-session-security.md](contracts/auth-session-security.md) | active | /prd-to-tasks FT-004 | Callback, redirect, session, account collision, privacy, abuse-control, and secret rules. |
+| Customer Authentication And Session State | state | [.memory-bank/states/customer-auth-session.md](states/customer-auth-session.md) | active | /prd-to-tasks FT-004 | OAuth, customer, session, cart merge, checkout gate, failure, retry, and logout lifecycle. |
+| FT-005 Authenticated Wishlist | feature_design | [.memory-bank/tech-specs/FT-005-authenticated-wishlist.md](tech-specs/FT-005-authenticated-wishlist.md) | active | /prd-to-tasks FT-005 | Product-level authenticated favorites, storefront states, unavailable-product behavior, and verification. |
+| Wishlist Data | data | [.memory-bank/domains/wishlist-data.md](domains/wishlist-data.md) | active | /prd-to-tasks FT-005 | PostgreSQL record, customer/product ownership, uniqueness, product projection, and migration rules. |
+| Wishlist API And Security | security_contract | [.memory-bank/contracts/wishlist-api-security.md](contracts/wishlist-api-security.md) | active | /prd-to-tasks FT-005 | Authenticated Store API, actor ownership, idempotency, errors, privacy, and concurrency. |
 | FT-011 Windows Native Local Development | feature_design | [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](tech-specs/FT-011-windows-native-local-development.md) | active | /prd-to-tasks FT-011 | Feature-local Windows-native local runtime, project scaffold, database initialization, env templates, and smoke verification design. |
 | Boundary Map | boundary_hints | [.memory-bank/contracts/boundary-map.md](contracts/boundary-map.md) | active | /spec-init | Responsibility and scope boundary notes. |
 | Lifecycle Map | lifecycle_hints | [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) | active | /spec-init | Initial lifecycle hints retained for traceability. |
@@ -46,7 +53,7 @@ source_of_truth:
 | feature_design | .memory-bank/tech-specs/FT-<NNN>-<slug>.md | /prd-to-tasks; /spec-improve for repair | Feature-local specs only when needed before or during task decomposition. |
 
 ## Broken / Missing Links
-- None known as of 2026-07-02.
+- None known as of 2026-07-16.
 
 ## Update Rules
 - Keep this file as index/registry only: names, paths, statuses, owners, scopes, and broken links.

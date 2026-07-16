@@ -12,3 +12,9 @@ status: active
   FT-003 REST routes, payloads, errors, and retry contract.
 - [.memory-bank/contracts/cart-access-security.md](cart-access-security.md):
   FT-003 cart ownership, credentials, access, privacy, and safety contract.
+- [.memory-bank/contracts/auth-session-security.md](auth-session-security.md):
+  FT-004 OAuth callback, session, identity, redirect, privacy, and abuse-control
+  contract.
+- [.memory-bank/contracts/wishlist-api-security.md](wishlist-api-security.md):
+  FT-005 authenticated Store API, actor ownership, idempotency, privacy, and
+  concurrency contract.

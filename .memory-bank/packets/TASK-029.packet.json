@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-029-R1",
+  "task_id": "TASK-029",
+  "created_at": "2026-07-16T12:00:00+03:00",
+  "source_task_hash": "sha256:96a1e942d5e91d2859f5f9d4cefdde39f040ddbecc72415b73a232169d7b568a",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Convert validated Google/VK identities into one durable Medusa customer and safe storefront session.",
+  "success_outcome": "Backend callback completion is replay-safe, collision-safe, session-establishing, rate-limited, and fixed-redirect only.",
+  "anti_goals": ["Do not implement storefront UI or cart merge.", "Do not auto-link accounts by email.", "Do not modify Medusa Core or write auth tables directly."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-029.task.json",
+    "feature": ".memory-bank/features/FT-004-oauth-login-before-payment.md",
+    "specs": [".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md", ".memory-bank/architecture/auth-runtime.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md"],
+    "guides": [],
+    "protocols": [".protocols/FT-004/plan.md", ".protocols/FT-004/decision-log.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/backend/src/auth/complete-customer-auth.ts", "apps/backend/src/auth/rate-limit.ts", "apps/backend/src/api/auth/customer/[provider]/complete/route.ts", "apps/backend/src/api/middlewares.ts", "apps/backend/src/scripts/smoke-auth-completion.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["Medusa Core", "direct core-table writes", "storefront UI", "cart merge semantics", "checkout/order/payment", "automatic email linking"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/backend run test:integration -- auth-completion", "npm --workspace apps/backend run typecheck", "node scripts/mb-lint.mjs"],
+    "success_checks": ["One provider identity resolves/creates one durable customer and session.", "Same-email cross-provider collision and duplicate callback leave no partial state.", "Completion uses fixed redirect, sanitized failures, and bounded hashed-key rate limiting."],
+    "evidence_required": ["Medusa/PostgreSQL completion output.", "Collision/replay/redirect/rate-limit assertions.", "Sanitized logs, typecheck, lint, T3 human checkpoint, and recovery note."]
+  },
+  "stop_conditions": ["Supported Medusa workflow cannot create/link customer without direct core writes.", "Session cannot be established without exposing a token to browser URL/storage.", "Callback destination or account collision policy is ambiguous."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-029/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+}

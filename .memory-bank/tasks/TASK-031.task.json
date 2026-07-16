@@ -1,0 +1,57 @@
+{
+  "id": "TASK-031",
+  "title": "Connect OAuth UI to post-auth cart merge",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011", "REQ-012"],
+  "depends_on": ["TASK-024", "TASK-029", "TASK-030"],
+  "touched_files": [
+    "apps/storefront/app/login/page.tsx",
+    "apps/storefront/app/auth/complete/page.tsx",
+    "apps/storefront/components/auth-login.tsx",
+    "apps/storefront/components/auth-completion.tsx",
+    "apps/storefront/src/auth-ui.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "storefront auth UI tests", "command": "npm --workspace apps/storefront run test -- auth-ui", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "storefront build", "command": "npm --workspace apps/storefront run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Login page exposes Google and VK ID with pending, cancel, safe failure, and retry states.",
+    "Completion retrieves session customer and invokes CartProvider.mergeAfterAuthentication when a guest reference exists.",
+    "Merge success/no-source reaches authenticated_ready; recoverable failure preserves session/source and blocks continuation with retry.",
+    "Completion URL and UI never expose provider code, state, token, raw error, or customer PII."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Auth UI/component test output.", "Cart merge handoff success/failure/retry assertions.", "URL/error/privacy assertions and storefront build output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/contracts/cart-access-security.md"],
+  "constraints": ["Use the existing CartProvider mergeAfterAuthentication handoff without changing backend merge semantics.", "Keep authentication valid on recoverable merge failure while blocking checkout continuation.", "Render only sanitized provider and merge errors."],
+  "invariants": ["Guest source reference changes only after validated backend merge success.", "Provider callback query/token data never reaches rendered UI.", "Only authenticated_ready may consume the return path."],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md#ux-contract",
+    ".memory-bank/states/customer-auth-session.md#allowed-transitions",
+    ".memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md#ux-contract"
+  ],
+  "purpose": "Deliver buyer-visible Google/VK login completion and preserve cart continuity through the existing secure merge boundary.",
+  "success_outcome": "Both login choices establish customer state and converge on merged/no-source readiness, with recoverable merge failure preventing silent checkout continuation.",
+  "anti_goals": ["Do not change FT-003 backend merge behavior.", "Do not add checkout fields, orders, or payments.", "Do not display provider payloads or customer PII."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-031.packet.json",
+    "allowed_write_scope": ["apps/storefront/app/login/page.tsx", "apps/storefront/app/auth/complete/page.tsx", "apps/storefront/components/auth-login.tsx", "apps/storefront/components/auth-completion.tsx", "apps/storefront/src/auth-ui.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend auth/provider code", "FT-003 merge semantics", "checkout form", "order/inventory/payment", "raw provider data or tokens"],
+    "stop_conditions": ["Existing FT-003 handoff cannot represent success/no-source/recoverable failure.", "Completion requires exposing provider query or token data to UI.", "Auth state cannot remain truthful during merge retry."]
+  }
+}

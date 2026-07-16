@@ -1,0 +1,58 @@
+{
+  "id": "TASK-030",
+  "title": "Implement storefront customer session state",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011", "REQ-012"],
+  "depends_on": ["TASK-027"],
+  "touched_files": [
+    "apps/storefront/lib/auth.ts",
+    "apps/storefront/lib/auth-state.ts",
+    "apps/storefront/components/auth-provider.tsx",
+    "apps/storefront/app/layout.tsx",
+    "apps/storefront/src/auth-client.test.cjs",
+    "apps/storefront/src/auth-state.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "storefront auth client tests", "command": "npm --workspace apps/storefront run test -- auth-client", "required": true},
+    {"name": "storefront auth state tests", "command": "npm --workspace apps/storefront run test -- auth-state", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Client starts allowlisted provider login, retrieves current customer, and logs out using credentials include.",
+    "Auth state follows the normative lifecycle and treats current-customer 401/session expiry as guest.",
+    "Safe return-path adapter accepts only one-leading-slash internal paths and consumes the versioned sessionStorage value.",
+    "Confirmed logout clears customer/auth state and local cart reference without storing JWT/provider tokens."
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Auth client/state and safe return-path test output.", "Logout and token non-storage assertions.", "Storefront typecheck and Memory Bank lint output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
+  "source_artifacts": [
+    ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tasks/plans/IMPL-FT-004.md"
+  ],
+  "normative_inputs": [".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/cart-access-security.md"],
+  "constraints": ["Use direct Medusa HTTP session APIs and credentials include; do not add JS SDK unless implementation proves it smaller.", "Persist only safe return path in sessionStorage; auth tokens are forbidden.", "Use existing CartProvider clearLocalReference on confirmed logout."],
+  "invariants": ["Client auth state never proves backend identity without current-customer success.", "Logout is not reported successful before session destruction succeeds.", "Unsafe return paths fall back to root."],
+  "verification_targets": [
+    ".memory-bank/contracts/auth-session-security.md#session-and-csrf-rules",
+    ".memory-bank/contracts/auth-session-security.md#callback-and-redirect-rules",
+    ".memory-bank/states/customer-auth-session.md#failure-and-retry-rules"
+  ],
+  "purpose": "Provide one deterministic session-backed customer state boundary for login UI and checkout gating.",
+  "success_outcome": "Storefront can start login, resolve session customer, store only safe navigation state, and log out without token or cart leakage.",
+  "anti_goals": ["Do not implement provider callback backend logic.", "Do not implement login page or checkout page markup.", "Do not persist JWTs or provider tokens."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-030.packet.json",
+    "allowed_write_scope": ["apps/storefront/lib/auth.ts", "apps/storefront/lib/auth-state.ts", "apps/storefront/components/auth-provider.tsx", "apps/storefront/app/layout.tsx", "apps/storefront/src/auth-client.test.cjs", "apps/storefront/src/auth-state.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend provider/callback code", "login/checkout page design", "cart merge semantics", "orders/payments", "browser token storage"],
+    "stop_conditions": ["Session API requires browser token persistence.", "Safe return path cannot be isolated from provider callback data.", "Logout cannot clear the existing cart reference through its public provider boundary."]
+  }
+}

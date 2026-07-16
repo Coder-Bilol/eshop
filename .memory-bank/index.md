@@ -24,15 +24,23 @@ status: active
 - [.memory-bank/spec-backbone.md](spec-backbone.md): Pre-PRD framing status and global backbone state for `/prd` and `/spec-design`.
 - [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md): Global architecture backbone and source-of-truth/module/storage/deployment guardrails.
 - [.memory-bank/architecture/cart-runtime.md](architecture/cart-runtime.md): FT-003 cart architecture, component contracts, runtime/deployment, and event model.
+- [.memory-bank/architecture/auth-runtime.md](architecture/auth-runtime.md): FT-004 Medusa Auth/Customer runtime, Google/VK providers, session, and persistence boundaries.
 - [.memory-bank/contracts/api-guidelines.md](contracts/api-guidelines.md): Shared storefront/backend HTTP API guardrails.
 - [.memory-bank/contracts/cart-api-data-contract.md](contracts/cart-api-data-contract.md): FT-003 cart REST and boundary payload contract.
 - [.memory-bank/contracts/cart-access-security.md](contracts/cart-access-security.md): FT-003 cart ownership, access, credential, and safety contract.
+- [.memory-bank/contracts/auth-session-security.md](contracts/auth-session-security.md): FT-004 callback, session, identity, redirect, privacy, and abuse-control contract.
+- [.memory-bank/contracts/wishlist-api-security.md](contracts/wishlist-api-security.md): FT-005 authenticated wishlist API, ownership, idempotency, and privacy contract.
 - [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md): Authoritative order, payment, inventory, and cart lifecycle guardrails.
 - [.memory-bank/states/cart-ownership-merge.md](states/cart-ownership-merge.md): FT-003 cart ownership and merge lifecycle.
+- [.memory-bank/states/customer-auth-session.md](states/customer-auth-session.md): FT-004 OAuth, customer session, cart handoff, checkout gate, and logout lifecycle.
+- [.memory-bank/states/index.md](states/index.md): Router for lifecycle and state specifications.
 - [.memory-bank/domains/cart-merge-data.md](domains/cart-merge-data.md): FT-003 Medusa cart and merge-journal data specification.
+- [.memory-bank/domains/wishlist-data.md](domains/wishlist-data.md): FT-005 PostgreSQL wishlist record, uniqueness, ownership, and product visibility specification.
 - [.memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md](tech-specs/FT-001-catalog-browsing-filtering-search.md): Feature-local catalog browsing/filtering/search design for FT-001.
 - [.memory-bank/tech-specs/FT-002-product-detail-variant-selection.md](tech-specs/FT-002-product-detail-variant-selection.md): Feature-local product detail and variant/SKU selection design for FT-002.
 - [.memory-bank/tech-specs/FT-003-guest-cart-persistence-merge.md](tech-specs/FT-003-guest-cart-persistence-merge.md): Feature-local guest cart persistence and authenticated merge design.
+- [.memory-bank/tech-specs/FT-004-oauth-login-before-payment.md](tech-specs/FT-004-oauth-login-before-payment.md): Feature-local Google/VK ID login, session, cart handoff, and checkout gate design.
+- [.memory-bank/tech-specs/FT-005-authenticated-wishlist.md](tech-specs/FT-005-authenticated-wishlist.md): Feature-local authenticated product favorites and storefront wishlist design.
 - [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](tech-specs/FT-011-windows-native-local-development.md): Feature-local Windows-native local development runtime and scaffold design for FT-011.
 - [.memory-bank/prd.md](prd.md): Clarified Product Requirements Document.
 - [.memory-bank/user-scenarios.md](user-scenarios.md): User scenarios and architecture implications when created by `/spec-init` or `/spec-design`.
