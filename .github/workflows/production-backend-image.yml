@@ -12,7 +12,24 @@ permissions:
   contents: read
 
 jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate scoped backend build
+        shell: bash
+        run: |
+          npm ci --workspace @eshop/backend --include=dev
+          if ! npm --workspace apps/backend run build > /tmp/backend-build.log 2>&1; then
+            message=$(tail -n 30 /tmp/backend-build.log | tr '\n' ' ' | cut -c1-4000)
+            echo "::error title=Backend build failed::$message"
+            exit 1
+          fi
+
   build:
+    needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
