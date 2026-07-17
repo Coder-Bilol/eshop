@@ -13,7 +13,6 @@ RUN npm ci --workspace @eshop/backend --include=dev
 FROM deps AS build
 COPY apps/backend apps/backend
 WORKDIR /app/apps/backend
-ENV NODE_ENV=production
 RUN npm run build
 
 FROM base AS runner
