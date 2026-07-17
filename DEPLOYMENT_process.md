@@ -273,6 +273,21 @@ Initial deployment attempt on 2026-07-16:
   the active backend; completing that switch requires local Windows
   administration and likely a reboot.
 
+External backend image build checkpoint on 2026-07-17:
+
+- GitHub Actions is the selected external `linux/amd64` build host for the first
+  backend image archive.
+- Native Linux preflight completed the scoped dependency install and
+  `medusa build`; Docker builds then showed that `medusa-config.ts` was copied
+  into `/app/apps/backend`, but the Medusa CLI could not resolve the
+  extensionless config path inside the image.
+- The backend Docker build now compiles that one config to CommonJS
+  `medusa-config.js` before `medusa build`, removing the image build's reliance
+  on runtime TypeScript loader registration.
+- No failed CI build produced a deployed image, and the VPS still has no
+  application container, PostgreSQL volume, migration, seed, or production
+  data.
+
 The committed Compose file uses locally loaded image names:
 
 ```text

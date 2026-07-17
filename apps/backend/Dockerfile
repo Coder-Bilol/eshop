@@ -14,6 +14,14 @@ FROM deps AS build
 WORKDIR /app/apps/backend
 COPY apps/backend/ ./
 RUN test -f medusa-config.ts
+RUN npx tsc medusa-config.ts \
+    --module Node16 \
+    --moduleResolution Node16 \
+    --target ES2022 \
+    --esModuleInterop \
+    --skipLibCheck \
+    --outDir /tmp/medusa-config
+RUN cp /tmp/medusa-config/medusa-config.js ./medusa-config.js
 RUN npm run build
 
 FROM base AS runner

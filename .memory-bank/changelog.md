@@ -4,6 +4,19 @@ status: active
 ---
 # Changelog
 
+## [2026-07-17] Deterministic Medusa config image build
+- Confirmed: the external Docker build contains
+  `apps/backend/medusa-config.ts`; the failure is extensionless TypeScript
+  config resolution inside the image, not a missing source COPY.
+- Changed: the backend Docker build compiles the config to CommonJS
+  `medusa-config.js` before running `medusa build`, avoiding dependence on
+  runtime TypeScript loader registration.
+- Verified locally: standalone config compilation, generated JavaScript syntax,
+  backend typecheck, and the ordinary backend Medusa build.
+- Preserved: failed CI images were not deployed; the VPS still has no
+  application containers, PostgreSQL volume, migrations, seed, or production
+  data.
+
 ## [2026-07-16] First deployment image-build blocker
 - Cloned: production repository checkout `/opt/eshop/app` at commit `33b8fad`.
 - Verified: DNS, SSH, production env-file permissions, Compose topology, and
