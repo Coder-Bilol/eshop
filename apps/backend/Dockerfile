@@ -11,8 +11,9 @@ COPY apps/storefront/package.json apps/storefront/package.json
 RUN npm ci --workspace @eshop/backend --include=dev
 
 FROM deps AS build
-COPY apps/backend apps/backend
 WORKDIR /app/apps/backend
+COPY apps/backend/ ./
+RUN test -f medusa-config.ts
 RUN npm run build
 
 FROM base AS runner
