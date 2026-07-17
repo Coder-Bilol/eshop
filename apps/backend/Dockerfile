@@ -8,7 +8,7 @@ FROM base AS deps
 COPY package.json package-lock.json ./
 COPY apps/backend/package.json apps/backend/package.json
 COPY apps/storefront/package.json apps/storefront/package.json
-RUN npm ci --workspaces --include=dev
+RUN npm ci --workspace @eshop/backend --include=dev
 
 FROM deps AS build
 COPY apps/backend apps/backend
