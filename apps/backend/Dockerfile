@@ -14,7 +14,7 @@ FROM deps AS build
 COPY tsconfig.json ./
 WORKDIR /app/apps/backend
 COPY apps/backend/ ./
-RUN NODE_OPTIONS=--max-old-space-size=1280 npm run build
+RUN NODE_OPTIONS=--max-old-space-size=2048 npm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
