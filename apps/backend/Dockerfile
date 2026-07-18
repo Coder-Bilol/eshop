@@ -5,7 +5,7 @@ WORKDIR /app
 ENV npm_config_update_notifier=false
 
 FROM base AS deps
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json tsconfig.json ./
 COPY apps/backend/package.json apps/backend/package.json
 COPY apps/storefront/package.json apps/storefront/package.json
 RUN npm ci --workspace @eshop/backend --include=dev
@@ -13,15 +13,6 @@ RUN npm ci --workspace @eshop/backend --include=dev
 FROM deps AS build
 WORKDIR /app/apps/backend
 COPY apps/backend/ ./
-RUN test -f medusa-config.ts
-RUN npx tsc medusa-config.ts \
-    --module Node16 \
-    --moduleResolution Node16 \
-    --target ES2022 \
-    --esModuleInterop \
-    --skipLibCheck \
-    --outDir /tmp/medusa-config
-RUN cp /tmp/medusa-config/medusa-config.js ./medusa-config.js
 RUN npm run build
 
 FROM base AS runner
