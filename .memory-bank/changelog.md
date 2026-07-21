@@ -20,6 +20,9 @@ status: active
 - Fixed: storefront Dockerfile now copies the repository root `tsconfig.json`,
   resolving the VPS image build failure where
   `apps/storefront/tsconfig.json` could not resolve `../../tsconfig.json`.
+- Fixed: storefront package now declares `typescript` as its own dev dependency,
+  preventing Next.js from trying to install TypeScript with Yarn during the
+  Docker image build.
 
 ## [2026-07-21] TASK-031 OAuth UI and cart handoff verified
 - Added: Google/VK login and completion UI with sanitized pending, cancel, failure,

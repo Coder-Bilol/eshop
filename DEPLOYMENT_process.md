@@ -348,9 +348,16 @@ Storefront image attempt checked on 2026-07-21:
   `apps/storefront/Dockerfile` did not copy the repository root `tsconfig.json`
   into the image build stage.
 - Repository fix: copy root `tsconfig.json` before copying `apps/storefront`.
-- After this fix is committed, pushed, and pulled into `/opt/eshop/app`, rerun
-  only the storefront `docker build`; do not start containers unless deployment
-  moves from image-build verification to runtime startup.
+- Second failure after the Dockerfile fix: Next.js found `tsconfig.json`, but
+  `typescript` was not installed in the storefront-only workspace install.
+- Root cause: `typescript` existed at the repository root and backend workspace,
+  while the Dockerfile intentionally runs
+  `npm ci --workspace @eshop/storefront --include=dev`.
+- Repository fix: add `typescript` to `apps/storefront/package.json`
+  `devDependencies` and update `package-lock.json`.
+- After these fixes are committed, pushed, and pulled into `/opt/eshop/app`,
+  rerun only the storefront `docker build`; do not start containers unless
+  deployment moves from image-build verification to runtime startup.
 
 The committed Compose file uses images built directly on the VPS:
 
