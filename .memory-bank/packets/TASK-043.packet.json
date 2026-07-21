@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-043-R5",
+  "task_id": "TASK-043",
+  "created_at": "2026-07-19T19:16:24+03:00",
+  "source_task_hash": "sha256:5b56d1bdd959a30611d9fa492f6b1166aaee512340a997e4863d839acfddf14c",
+  "status": "ready_with_gaps",
+  "tier": "T3",
+  "purpose": "Close the remaining malformed-query bypass in the OAuth start destination validator.",
+  "success_outcome": "Only structurally valid legitimate OAuth queries pass on exact approved provider paths.",
+  "anti_goals": ["Do not broaden provider origins or paths.", "Do not change backend provider exchange.", "Do not weaken prior TASK-030 fixes."],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-043.task.json",
+    "feature": ".memory-bank/features/FT-004-oauth-login-before-payment.md",
+    "specs": [".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md", ".memory-bank/contracts/auth-session-security.md"],
+    "guides": [],
+    "protocols": [".protocols/AUTONOMOUS-RUN/status.md"]
+  },
+  "scope": {
+    "allowed_write_scope": ["apps/storefront/lib/auth.ts", "apps/storefront/src/auth-client.test.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend provider implementation", "cart semantics", "checkout/order/payment", "browser token storage"]
+  },
+  "verification": {
+    "commands": ["npm --workspace apps/storefront run test -- auth-client", "npm --workspace apps/storefront run typecheck", "node scripts/mb-lint.mjs"],
+    "success_checks": ["Malformed raw query syntax and dangerous decoded keys fail closed.", "Legitimate provider OAuth queries pass.", "Prior TASK-030 behavior remains green."],
+    "evidence_required": ["Malformed query matrix.", "Provider start regression output.", "T3 checkpoint and recovery note."]
+  },
+  "stop_conditions": ["A bounded raw-query parser cannot distinguish legitimate and malformed input.", "The fix requires broadening approved destinations.", "TASK-030 recovery is not operator-approved."],
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-043/.", "Run /verify and /red-verify before closure."]
+}

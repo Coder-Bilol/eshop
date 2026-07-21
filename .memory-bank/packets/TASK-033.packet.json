@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-033-R1",
+  "packet_id": "PACKET-TASK-033-R2",
   "task_id": "TASK-033",
-  "created_at": "2026-07-16T12:00:00+03:00",
-  "source_task_hash": "sha256:6dda5ab7b73b9691062de260b7002063dcf270333780ee8f6b913c6ca15ce15b",
+  "created_at": "2026-07-18T12:26:56+03:00",
+  "source_task_hash": "sha256:8276cf1ca45b8c2d78f05f6409bd633daefa2808bfd66814df9754d4bf5ae421",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove the auth feature against its real Medusa/PostgreSQL security and persistence boundaries before browser acceptance.",

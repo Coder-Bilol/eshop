@@ -4,7 +4,8 @@
 - Mode: scheduler
 - Tier: T3
 - Authoritative task: `.memory-bank/tasks/TASK-027.task.json`
-- Packet context: `.memory-bank/packets/TASK-027.packet.json` (derivative; readiness was not validated)
+- Packet context: `.memory-bank/packets/TASK-027.packet.json` R5 (derivative;
+  scheduler/doctor readiness was accepted and not structurally revalidated)
 - Dependency: `TASK-003` is `done`
 - Task status observed: `in_progress`; lifecycle was not changed
 
@@ -21,7 +22,7 @@
 - `.memory-bank/contracts/api-guidelines.md`
 - `.memory-bank/testing/index.md`
 
-## Preflight Finding
+## Historical Preflight Finding
 
 The task requires the Medusa 2.16 built-in Google provider and an exact,
 backend-environment callback URL. The security contract forbids browser callback
@@ -35,7 +36,35 @@ configuration boundary:
 - `node_modules/@medusajs/auth-google/dist/services/google.js` selects
   `body.callback_url` before configured `callbackUrl`.
 
-This is a security and public-contract contradiction covered by the task stop
-condition. Resolving it requires a settled design change and write scope beyond
-TASK-027, such as route middleware or a provider wrapper. No such decision is
-authorized for this Implementer run.
+This caused the first Implementer run to stop before runtime edits.
+
+## Bounded Retry 1/2
+
+- Operator decision: preserve the strict backend-controlled callback contract and
+  extend TASK-027 to the existing `apps/backend/src/api/middlewares.ts` guard
+  boundary.
+- Authoritative task and packet R3 now include that middleware path and require GET
+  plus POST callback override rejection.
+- Human boundary checkpoint: the current operator instruction explicitly approves
+  this resolved security/public-contract boundary. It does not authorize task
+  closure.
+- Exact expected runtime files: `apps/backend/medusa-config.ts`,
+  `apps/backend/.env.example`, `apps/backend/package.json`,
+  `apps/backend/src/api/middlewares.ts`, and
+  `apps/backend/src/scripts/smoke-auth-config.ts`.
+- Existing scheduler changes in the task record, packet, autonomous status, and
+  changelog were preserved. No forbidden-scope overlap was found.
+
+## Bounded Retry 2/2
+
+- Scheduler intent is limited to the two independent T3 findings recorded by the
+  functional and semantic Reviewer reports: secure cookies outside local HTTP
+  development and fail-closed production signing secrets.
+- The authoritative runtime policy is explicit: `Secure=false` is allowed only for
+  local HTTP development, and production must not use local signing-secret
+  fallbacks.
+- Exact runtime files for this retry: `apps/backend/medusa-config.ts` and
+  `apps/backend/src/scripts/smoke-auth-config.ts`.
+- `DEPLOYMENT.md` and all other unrelated dirty files are excluded from this retry.
+- Callback guard, provider allowlists, explicit CORS, bounded TTL, secret-safe
+  provider failure, and admin `emailpass` behavior must remain unchanged.

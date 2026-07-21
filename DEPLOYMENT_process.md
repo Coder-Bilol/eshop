@@ -13,7 +13,8 @@ of its values, paths, and commands are obsolete.
 
 ## Current Checkpoint
 
-Preparation finished on 2026-07-11:
+Preparation started on 2026-07-11. The current server state was checked again on
+2026-07-18:
 
 | Area | Current state |
 |---|---|
@@ -26,13 +27,15 @@ Preparation finished on 2026-07-11:
 | Git | `2.52.0` |
 | Docker Engine | `29.6.1`, enabled and active |
 | Docker Compose | `v5.3.1` |
+| Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
 | Caddy | `2.11.4`, installed but disabled/inactive |
 | Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | repository cloned at `33b8fad`; images and containers not deployed |
+| Application | clean repository checkout at `0b79a4d`; images and containers not deployed |
 
-The server remains small. Do not build production images on it and do not run
-multiple application replicas. Increasing the VPS to at least 2 vCPU / 2 GB RAM
-is recommended before accepting real orders.
+The server remains small. Production images are now built directly on the VPS,
+strictly one at a time and under live `sar` monitoring. Never build backend and
+storefront concurrently. Increasing the VPS to at least 2 vCPU / 2 GB RAM is
+still recommended before accepting real orders.
 
 ## Current Access Model
 
@@ -265,18 +268,17 @@ Initial deployment attempt on 2026-07-16:
   so OOM versus provider watchdog could not be distinguished.
 - After reboot, Docker and Git were healthy. No application image, container,
   PostgreSQL volume, migration, seed, or production data had been created.
-- Application image builds are now prohibited on the current 1 vCPU / 1.7 GiB
-  VPS. Build `linux/amd64` images on an external Docker-capable host and transfer
-  archives for `docker load`, or introduce a registry later.
+- This incident proved that an unmonitored retry is unsafe on the current
+  1 vCPU / 1.7 GiB VPS. Any later retry must build only one image and must run
+  under live RAM, swap, load, and disk monitoring.
 - The local Windows Docker Desktop could not start because its WSL backend
   requires an update. An attempted installer switch to Hyper-V did not change
   the active backend; completing that switch requires local Windows
   administration and likely a reboot.
 
-External backend image build checkpoint on 2026-07-17:
+Retired external backend image build checkpoint on 2026-07-17:
 
-- GitHub Actions is the selected external `linux/amd64` build host for the first
-  backend image archive.
+- GitHub Actions was temporarily used as an external `linux/amd64` build host.
 - Native Linux preflight completed the scoped dependency install and
   `medusa build`; Docker builds then showed that `medusa-config.ts` was copied
   into `/app/apps/backend`, but the Medusa CLI could not resolve the
@@ -284,11 +286,27 @@ External backend image build checkpoint on 2026-07-17:
 - The backend Docker build now compiles that one config to CommonJS
   `medusa-config.js` before `medusa build`, removing the image build's reliance
   on runtime TypeScript loader registration.
-- No failed CI build produced a deployed image, and the VPS still has no
+- The final external run for commit `224b568` still failed at the Dockerfile
+  `npm run build` step; no production image artifact was created.
+- The operator retired the external CI build path and selected sequential VPS
+  builds instead. The GitHub workflow file still requires repository cleanup.
+- No failed external build produced a deployed image, and the VPS still has no
   application container, PostgreSQL volume, migration, seed, or production
   data.
 
-The committed Compose file uses locally loaded image names:
+VPS build-monitoring checkpoint on 2026-07-18:
+
+- `sysstat` is installed and enabled.
+- `sysstat-collect.timer` is active and schedules periodic samples.
+- Live `sar -r 1 3` sampling was verified successfully.
+- Each image build must run in its own `eshop` SSH session while additional SSH
+  sessions monitor `sar -r 2`, `sar -S 2`, `sar -q 2`, and `sar -d 2`.
+- Stop the active build with `Ctrl+C` if swap remains close to full, the host
+  becomes unresponsive, or disk wait remains saturated.
+- Docker currently has no application container or volume. The remaining build
+  cache is about 379 MB and may accelerate the next backend attempt.
+
+The committed Compose file uses images built directly on the VPS:
 
 ```text
 eshop-backend:production
@@ -322,7 +340,7 @@ Configured values without exposing secrets:
 - `backend.env`: `NODE_ENV`, `PORT`, `DATABASE_URL`, `STORE_CORS`,
   `ADMIN_CORS`, `AUTH_CORS`, `JWT_SECRET`, `COOKIE_SECRET`, `NODE_OPTIONS`,
   `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `VK_ID_CLIENT_ID`,
-  `VK_ID_CLIENT_SECRET`, `YOOKASSA_MODE`, `YOOKASSA_SHOP_ID`,
+  `VK_ID_SERVICE_TOKEN`, `YOOKASSA_MODE`, `YOOKASSA_SHOP_ID`,
   `YOOKASSA_SECRET_KEY`, `YOOKASSA_WEBHOOK_SECRET`, `EMAIL_PROVIDER`,
   `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`.
 - `storefront.env`: `NODE_ENV`, `PORT`, `NEXT_PUBLIC_MEDUSA_BACKEND_URL`,
@@ -345,15 +363,22 @@ Known remaining env gaps and fake placeholders:
 
 ### Product and repository readiness
 
-1. Complete the unfinished product features and their required tests.
-2. Verify production Docker image builds in CI or on an external build host.
-3. Verify backend, storefront, and PostgreSQL health checks from real containers.
-4. Verify containers do not run dev servers.
-5. Verify backend and storefront only bind to `127.0.0.1`.
-6. Verify PostgreSQL has no `ports` section.
-7. Verify a named volume owns PostgreSQL data.
-8. Verify secrets are excluded from images and Git.
-9. Verify no Redis service or `REDIS_URL` is introduced without a design change.
+1. Select a verified release commit that excludes unfinished product work.
+2. Update the clean VPS checkout from `0b79a4d` to that exact commit.
+3. Resolve the remaining backend Docker `npm run build` failure before treating
+   the first VPS build as expected to succeed.
+4. Build the backend image on the VPS under `sar` monitoring.
+5. Build the storefront image only after the backend build, database setup, and
+   real public Medusa values are ready.
+6. Never run backend and storefront image builds concurrently.
+7. Verify production Docker image builds directly on the VPS.
+8. Verify backend, storefront, and PostgreSQL health checks from real containers.
+9. Verify containers do not run dev servers.
+10. Verify backend and storefront only bind to `127.0.0.1`.
+11. Verify PostgreSQL has no `ports` section.
+12. Verify a named volume owns PostgreSQL data.
+13. Verify secrets are excluded from images and Git.
+14. Verify no Redis service or `REDIS_URL` is introduced without a design change.
 
 ### Delivery decisions
 
@@ -361,12 +386,14 @@ Known remaining env gaps and fake placeholders:
 2. Optional: select a container registry for future image delivery.
 3. Optional: configure registry credentials for the image publisher.
 4. Configure `eshop` access to the Git repository.
-5. Keep the locally loaded `production` backend and storefront image tags,
+5. Keep the locally built `production` backend and storefront image tags,
    or define registry-backed stable tags later.
-6. Preserve previous known-good image archives for rollback unless a registry is
-   introduced later.
+6. Preserve previous known-good image references before later updates.
 7. Ensure image builds target `linux/amd64`.
-8. Do not build application images on the current VPS.
+8. Build exactly one application image at a time on the VPS.
+9. Monitor every build with `sar` and stop an unstable build before starting any
+   container or database operation.
+10. Remove the retired GitHub Actions image-build workflow from the repository.
 
 ### Domains and proxy
 
@@ -408,8 +435,9 @@ Known remaining env gaps and fake placeholders:
 ### Capacity and launch decision
 
 1. Prefer upgrading the VPS to at least 2 vCPU and 2 GB RAM.
-2. Keep image builds external even after an upgrade.
-3. Monitor memory, swap, disk, and Docker image size during staging.
+2. Build backend and storefront sequentially on the VPS, never concurrently.
+3. Monitor RAM, swap, load, disk activity, and Docker image size during every
+   build using `sar` and Docker disk checks.
 4. Do not accept real orders until the critical buyer journey is verified.
 5. Verify payment/webhook behavior in staging before enabling live credentials.
 6. Verify a payment return page cannot mark an order as paid by itself.

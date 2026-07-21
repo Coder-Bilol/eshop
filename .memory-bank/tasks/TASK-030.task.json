@@ -1,7 +1,7 @@
 {
   "id": "TASK-030",
   "title": "Implement storefront customer session state",
-  "status": "planned",
+  "status": "in_progress",
   "wave": "W2",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011", "REQ-012"],
@@ -25,9 +25,114 @@
   ],
   "verify": [
     "Client starts allowlisted provider login, retrieves current customer, and logs out using credentials include.",
+    "Provider login accepts only exact paths https://accounts.google.com/o/oauth2/v2/auth and https://id.vk.com/authorize with no explicit port, credentials, or fragment; backend destinations and all other paths fail closed.",
     "Auth state follows the normative lifecycle and treats current-customer 401/session expiry as guest.",
     "Safe return-path adapter accepts only one-leading-slash internal paths and consumes the versioned sessionStorage value.",
-    "Confirmed logout clears customer/auth state and local cart reference without storing JWT/provider tokens."
+    "Confirmed logout clears customer/auth state and local cart reference without storing JWT/provider tokens.",
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found stale current-customer/logout races, weak provider-origin validation, repeatable return-path consumption, and cart-reference cleanup failure handling.",
+      "evidence": [
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "retry": 1,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "retry",
+      "reason": "T3 re-verification found return-path replay after getItem failure and lost confirmed customer on failed logout overlapping restore.",
+      "evidence": [
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-02.md"
+      ],
+      "retry": 2,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "failed",
+      "reason": "Final T3 verification found storefront backend-origin-only validation rejects the VK provider authorization redirect; retry budget 2/2 is exhausted.",
+      "evidence": [
+        ".tasks/TASK-030/TASK-030-S-IMPL-final-report-code-03.md",
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-03.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-03.md",
+        ".tasks/TASK-030/BUG-OAUTH-PROVIDER-REDIRECT-ALLOWLIST.md"
+      ],
+      "functional_verdict": "FAIL",
+      "semantic_verdict": "semantic-fail",
+      "retry_budget": "exhausted"
+    },
+    {
+      "scheduler_decision": "reopened",
+      "reason": "Operator approved exact Google/VK authorization origins and one reviewed recovery attempt beyond the default retry budget.",
+      "evidence": [
+        ".protocols/AUTONOMOUS-RUN/status.md",
+        ".tasks/TASK-030/BUG-OAUTH-PROVIDER-REDIRECT-ALLOWLIST.md"
+      ],
+      "operator_approved_origins": [
+        "https://accounts.google.com",
+        "https://id.vk.com"
+      ],
+      "recovery_attempt": 1
+    },
+    {
+      "scheduler_decision": "failed",
+      "reason": "Operator-approved recovery failed T3 verification: backend callback paths were overbroad, explicit default ports were accepted, and fragment payloads bypassed redirect-data rejection.",
+      "evidence": [
+        ".tasks/TASK-030/TASK-030-S-IMPL-final-report-code-04.md",
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-04.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-04.md",
+        ".tasks/TASK-030/BUG-OAUTH-PROVIDER-REDIRECT-ALLOWLIST.md"
+      ],
+      "functional_verdict": "FAIL",
+      "semantic_verdict": "semantic-fail",
+      "operator_recovery_budget": "exhausted"
+    },
+    {
+      "scheduler_decision": "reopened",
+      "reason": "Operator approved exact provider authorization paths, complete backend-destination rejection, and one additional reviewed recovery attempt.",
+      "evidence": [
+        ".protocols/AUTONOMOUS-RUN/status.md",
+        ".tasks/TASK-030/BUG-OAUTH-PROVIDER-REDIRECT-ALLOWLIST.md"
+      ],
+      "operator_approved_destinations": [
+        "https://accounts.google.com/o/oauth2/v2/auth",
+        "https://id.vk.com/authorize"
+      ],
+      "backend_destinations": "forbidden",
+      "explicit_ports": "forbidden",
+      "fragments": "forbidden",
+      "recovery_attempt": 2
+    },
+    {
+      "scheduler_decision": "failed",
+      "reason": "Recovery 2 failed T3 verification because malformed and double-encoded OAuth query parameters were accepted fail-open.",
+      "evidence": [
+        ".tasks/TASK-030/TASK-030-S-IMPL-final-report-code-05.md",
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-05.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-05.md",
+        ".tasks/TASK-030/BUG-OAUTH-PROVIDER-REDIRECT-ALLOWLIST.md"
+      ],
+      "functional_verdict": "FAIL",
+      "semantic_verdict": "semantic-fail",
+      "operator_recovery_2": "exhausted"
+    },
+    {
+      "scheduler_decision": "reopened_for_verification",
+      "reason": "TASK-043 closed the remaining malformed-query gap with T3 functional and semantic PASS.",
+      "evidence": [
+        ".tasks/TASK-043/TASK-043-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-043/TASK-043-S-RED-VERIFY-final-report-code-02.md"
+      ]
+    },
+    {
+      "scheduler_decision": "recovery_fix",
+      "reason": "Final full verification found logout 401 state cleanup and empty-fragment rejection defects.",
+      "evidence": [
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-06.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-06.md"
+      ]
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Auth client/state and safe return-path test output.", "Logout and token non-storage assertions.", "Storefront typecheck and Memory Bank lint output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
@@ -38,7 +143,7 @@
     ".memory-bank/tasks/plans/IMPL-FT-004.md"
   ],
   "normative_inputs": [".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/cart-access-security.md"],
-  "constraints": ["Use direct Medusa HTTP session APIs and credentials include; do not add JS SDK unless implementation proves it smaller.", "Persist only safe return path in sessionStorage; auth tokens are forbidden.", "Use existing CartProvider clearLocalReference on confirmed logout."],
+  "constraints": ["Use direct Medusa HTTP session APIs and credentials include; do not add JS SDK unless implementation proves it smaller.", "Persist only safe return path in sessionStorage; auth tokens are forbidden.", "Use existing CartProvider clearLocalReference on confirmed logout.", "OAuth start destinations are limited to exact paths https://accounts.google.com/o/oauth2/v2/auth and https://id.vk.com/authorize; backend destinations, explicit ports, credentials, fragments, and all other paths are forbidden."],
   "invariants": ["Client auth state never proves backend identity without current-customer success.", "Logout is not reported successful before session destruction succeeds.", "Unsafe return paths fall back to root."],
   "verification_targets": [
     ".memory-bank/contracts/auth-session-security.md#session-and-csrf-rules",

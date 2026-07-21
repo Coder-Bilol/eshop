@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-027-R2",
+  "packet_id": "PACKET-TASK-027-R6",
   "task_id": "TASK-027",
-  "created_at": "2026-07-16T11:49:55+03:00",
-  "source_task_hash": "sha256:7d93920dde4b987316841728807b3e2d84bef5a79aa5d4761dd37ae37c0d04bd",
+  "created_at": "2026-07-18T10:25:05+03:00",
+  "source_task_hash": "sha256:555e2b1d95a73b6739616f54a4ab0846ab46619e30d642bd0c507dc3830dd91d",
   "status": "ready",
   "tier": "T3",
   "purpose": "Establish the secure Medusa provider and session baseline used by every FT-004 slice.",
@@ -17,12 +17,12 @@
     "protocols": [".protocols/FT-004/plan.md", ".protocols/FT-004/decision-log.md"]
   },
   "scope": {
-    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/.env.example", "apps/backend/package.json", "apps/backend/src/scripts/smoke-auth-config.ts", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/.env.example", "apps/backend/package.json", "apps/backend/src/api/middlewares.ts", "apps/backend/src/scripts/smoke-auth-config.ts", ".memory-bank/changelog.md"],
     "forbidden_scope": ["Medusa Core", "storefront auth UI", "VK provider implementation", "checkout/order/payment behavior", "live or production secrets"]
   },
   "verification": {
     "commands": ["npm --workspace apps/backend run smoke:auth-config", "npm --workspace apps/backend run typecheck", "node scripts/mb-lint.mjs"],
-    "success_checks": ["Customer providers are google/vkid and admin emailpass remains enabled.", "Cookie/CORS/TTL configuration matches the security contract.", "Missing enabled-provider secrets fail safely without value disclosure."],
+    "success_checks": ["Customer providers are google/vkid and admin emailpass remains enabled.", "Cookie/CORS/TTL configuration matches the security contract.", "Google auth start rejects caller-provided callback_url overrides for GET and POST.", "Missing enabled-provider secrets fail safely without value disclosure."],
     "evidence_required": ["Sanitized config smoke output.", "Provider allowlist and cookie/CORS assertions.", "Typecheck, lint, T3 human checkpoint, and recovery note."]
   },
   "stop_conditions": ["Medusa v2.16 provider configuration conflicts with linked specs.", "Required secrets would enter public configuration or evidence.", "Admin emailpass cannot be preserved with the customer provider allowlist."],

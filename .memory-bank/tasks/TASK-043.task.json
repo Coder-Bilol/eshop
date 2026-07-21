@@ -1,0 +1,66 @@
+{
+  "id": "TASK-043",
+  "title": "Fail closed on malformed OAuth destination queries",
+  "status": "done",
+  "wave": "W2-fix",
+  "feature": "FT-004",
+  "reqs": ["REQ-010", "REQ-011", "REQ-012"],
+  "depends_on": ["TASK-027", "TASK-028"],
+  "touched_files": ["apps/storefront/lib/auth.ts", "apps/storefront/src/auth-client.test.cjs", ".memory-bank/changelog.md"],
+  "tier": "T3",
+  "gates": [
+    {"name": "storefront auth client tests", "command": "npm --workspace apps/storefront run test -- auth-client", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Malformed OAuth query segments, invalid percent escapes, encoded controls, empty names, empty segments, and double-encoded callback/return keys fail closed.",
+    "Legitimate Google/VK OAuth query parameters on the exact approved paths still pass.",
+    "All prior TASK-030 path, origin, concurrency, storage, cart, and no-token checks remain green.",
+    {
+      "scheduler_decision": "ready",
+      "reason": "Operator instructed scheduler to continue remediation without repeated per-fix approval prompts.",
+      "evidence": [".protocols/AUTONOMOUS-RUN/status.md"]
+    },
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found malformed percent after decode, invalid decoded names, and missing query size/count caps.",
+      "evidence": [
+        ".tasks/TASK-043/TASK-043-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-043/TASK-043-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "retry": 1,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed after bounded retry 1/2.",
+      "evidence": [
+        ".tasks/TASK-043/TASK-043-S-IMPL-final-report-code-02.md",
+        ".tasks/TASK-043/TASK-043-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-043/TASK-043-S-RED-VERIFY-final-report-code-02.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    }
+  ],
+  "docs": [".memory-bank/changelog.md"],
+  "evidence_required": ["Malformed query hostile matrix.", "Legitimate provider start regression output.", "T3 checkpoint and recovery evidence."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md", ".memory-bank/contracts/auth-session-security.md", ".tasks/TASK-030/BUG-OAUTH-PROVIDER-REDIRECT-ALLOWLIST.md"],
+  "normative_inputs": [".memory-bank/contracts/auth-session-security.md", ".memory-bank/constitution.md"],
+  "constraints": ["Keep exact Google/VK destination paths.", "Parse and validate the raw query before URL normalization loses malformed structure.", "Do not reset TASK-030 without operator approval."],
+  "invariants": ["Malformed or ambiguous query syntax fails closed.", "Dangerous keys fail closed after bounded decoding.", "No browser token persistence."],
+  "verification_targets": [".memory-bank/contracts/auth-session-security.md#callback-and-redirect-rules", ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-05.md"],
+  "purpose": "Close the remaining malformed-query bypass in the OAuth start destination validator.",
+  "success_outcome": "Only structurally valid legitimate OAuth queries pass on exact approved provider paths.",
+  "anti_goals": ["Do not broaden provider origins or paths.", "Do not change backend provider exchange.", "Do not weaken prior TASK-030 fixes."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-043.packet.json",
+    "allowed_write_scope": ["apps/storefront/lib/auth.ts", "apps/storefront/src/auth-client.test.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend provider implementation", "cart semantics", "checkout/order/payment", "browser token storage"],
+    "stop_conditions": ["A bounded raw-query parser cannot distinguish legitimate and malformed input.", "The fix requires broadening approved destinations."]
+  }
+}

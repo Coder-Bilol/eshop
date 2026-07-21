@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-032-R1",
+  "packet_id": "PACKET-TASK-032-R6",
   "task_id": "TASK-032",
-  "created_at": "2026-07-16T12:00:00+03:00",
-  "source_task_hash": "sha256:4a55f89b22bc2f9b04f56f11b66a838814c2a37cfa810af3a5473f97ca5c546d",
+  "created_at": "2026-07-18T14:58:52+03:00",
+  "source_task_hash": "sha256:9a34e13916597862fd5d72d167a2e4dfa397f5937e12347a836f6c61615f2786",
   "status": "ready",
   "tier": "T3",
   "purpose": "Enforce the buyer-facing login-before-payment boundary without implementing later checkout/payment scope.",

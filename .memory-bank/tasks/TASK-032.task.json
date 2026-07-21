@@ -1,7 +1,7 @@
 {
   "id": "TASK-032",
   "title": "Gate checkout on authenticated ready state",
-  "status": "planned",
+  "status": "blocked",
   "wave": "W2",
   "feature": "FT-004",
   "reqs": ["REQ-012"],

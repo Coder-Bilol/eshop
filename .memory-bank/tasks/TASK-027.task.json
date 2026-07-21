@@ -1,7 +1,7 @@
 {
   "id": "TASK-027",
   "title": "Configure Medusa OAuth providers and session policy",
-  "status": "blocked",
+  "status": "done",
   "wave": "W1",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011", "REQ-012"],
@@ -10,6 +10,7 @@
     "apps/backend/medusa-config.ts",
     "apps/backend/.env.example",
     "apps/backend/package.json",
+    "apps/backend/src/api/middlewares.ts",
     "apps/backend/src/scripts/smoke-auth-config.ts",
     ".memory-bank/changelog.md"
   ],
@@ -22,6 +23,7 @@
   "verify": [
     "Customer actor permits only google and vkid while admin user retains emailpass.",
     "Google and VK provider configuration is backend-only and exact callback URLs are environment-driven.",
+    "Google auth start rejects caller-provided callback_url overrides for both GET and POST requests.",
     "Session cookie, CORS, TTL, and local-versus-HTTPS secure policy match the auth security contract.",
     "Missing enabled-provider secrets fail startup safely without printing values.",
     {
@@ -33,6 +35,40 @@
         ".protocols/TASK-027/handoff.md"
       ],
       "required_action": "Approve preserving the strict callback contract and expand TASK-027 to the existing apps/backend/src/api/middlewares.ts guard boundary, then refresh the packet and rerun execute."
+    },
+    {
+      "scheduler_decision": "reopened",
+      "reason": "Operator approved preserving the strict callback contract and extending TASK-027 to the existing Medusa middleware boundary.",
+      "evidence": [
+        ".protocols/AUTONOMOUS-RUN/status.md",
+        ".tasks/TASK-027/preflight-security-conflict.md"
+      ]
+    },
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found insecure non-local HTTPS cookie handling and production signing-secret fallbacks.",
+      "evidence": [
+        ".tasks/TASK-027/TASK-027-S-VERIFY-final-report-code-01.md",
+        ".tasks/TASK-027/TASK-027-S-RED-VERIFY-final-report-code-01.md"
+      ],
+      "retry": 2,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 closure requirements satisfied after bounded retry 2/2.",
+      "evidence": [
+        ".tasks/TASK-027/TASK-027-S-IMPL-final-report-code-03.md",
+        ".tasks/TASK-027/TASK-027-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-027/TASK-027-S-RED-VERIFY-final-report-code-02.md",
+        ".protocols/TASK-027/verification-code-02.md",
+        ".protocols/TASK-027/red-verification-code-02.md",
+        ".protocols/TASK-027/handoff.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
     }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
@@ -74,7 +110,7 @@
   "runtime_context": {
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-027.packet.json",
-    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/.env.example", "apps/backend/package.json", "apps/backend/src/scripts/smoke-auth-config.ts", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/backend/medusa-config.ts", "apps/backend/.env.example", "apps/backend/package.json", "apps/backend/src/api/middlewares.ts", "apps/backend/src/scripts/smoke-auth-config.ts", ".memory-bank/changelog.md"],
     "forbidden_scope": ["Medusa Core", "storefront auth UI", "VK provider implementation", "checkout/order/payment behavior", "live or production secrets"],
     "stop_conditions": ["Medusa v2.16 provider configuration conflicts with linked specs.", "Required secrets would enter public configuration or evidence.", "Admin emailpass cannot be preserved with the customer provider allowlist."]
   }

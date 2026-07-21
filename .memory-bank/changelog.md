@@ -4,6 +4,98 @@ status: active
 ---
 # Changelog
 
+## [2026-07-18] TASK-030 recovery 2 failed malformed-query T3 gate
+- Passed: exact Google/VK paths, backend/port/credential/fragment/path rejection,
+  real provider starts, and every prior TASK-030 behavior.
+- Failed: malformed raw query syntax, invalid escapes, encoded controls, empty
+  segments, and double-encoded callback/return keys remained fail-open.
+- Blocked: `TASK-030` and direct dependents; added `TASK-043` for the bounded parser
+  gap. Terminal state is `HALT_FAILURE_BUDGET`.
+- Resumed: operator authorized continued bounded remediation without repeated
+  approval prompts; `TASK-043` moved to `ready`.
+- Verified: `TASK-043` retry 1/2 passed independent functional and semantic T3
+  checks; scheduler closed the malformed-query remediation.
+
+## [2026-07-18] TASK-030 recovery failed exact-path T3 gate
+- Confirmed: approved Google/VK origins allow real provider starts and preserve all
+  prior race, storage, cart cleanup, and token non-storage fixes.
+- Failed: origin-only backend trust still accepted arbitrary/wrong-provider paths,
+  explicit default ports, and fragment payloads.
+- Blocked: `TASK-030` and its direct dependents; added blocked `TASK-043` for an
+  exact provider/backend destination contract.
+- Terminal state: `HALT_FAILURE_BUDGET` after the approved recovery attempt failed.
+- Resumed: operator approved only the exact Google/VK authorization paths, rejected
+  every backend destination/port/fragment variant, and authorized recovery attempt
+  2; temporary `TASK-043` was removed.
+
+## [2026-07-18] TASK-030 halted after exhausted T3 retry budget
+- Failed: final adversarial verification confirmed that backend-origin-only
+  storefront validation rejects the legitimate VK ID authorization redirect.
+- Preserved: all earlier concurrency, one-shot storage, logout/cart cleanup, token
+  non-storage, and origin-hardening fixes remain verified.
+- Blocked: direct dependents `TASK-031`, `TASK-032`, and `TASK-039`.
+- Added: `TASK-043` and bug evidence for an authoritative Google/VK provider
+  authorization-origin allowlist; run terminal state is `HALT_FAILURE_BUDGET`.
+- Resumed: operator approved exact HTTPS origins `accounts.google.com` and
+  `id.vk.com` plus one reviewed recovery attempt; temporary `TASK-043` was removed
+  and `TASK-030` reopened.
+
+## [2026-07-18] TASK-029 customer auth completion execute
+- Added: backend-only Google/VK callback completion through Medusa Auth validation,
+  Customer Module lookup, and the supported customer-account workflow.
+- Guarded: duplicate/replayed callback state, same-email cross-provider collision,
+  concurrent customer resolution, and session-save failure all fail closed without
+  browser token handoff or automatic linking.
+- Added: fixed sanitized storefront completion redirects plus bounded single-process
+  start/completion limits that retain only salted key hashes and coarse counters.
+- Added: synthetic integration assertions for reuse/create, collision, missing email,
+  replay, redirect cleanup, bounded rate state, session save, and failure cleanup;
+  no live provider credentials or provider calls are used.
+- Fixed: callback ownership now remains serialized per provider identity through
+  customer resolution, identity confirmation, session save, and compensation;
+  post-create identity-read failure also removes the newly created customer/link
+  through the supported Medusa workflow.
+- Verified: final independent T3 functional and adversarial checks passed after
+  retry 2/2; scheduler closed `TASK-029` with checkpoint and recovery evidence.
+
+## [2026-07-18] TASK-028 VK ID Auth Module Provider execute
+- Added: custom Medusa Auth Module Provider `vkid` with opaque single-use/expiring
+  state, S256 PKCE, fixed backend callback, required `device_id`, and server-side
+  authorization-code exchange.
+- Mapped: matching VK token/user-info `user_id` to provider entity ID and required a
+  normalized provider-returned email before identity creation.
+- Guarded: callback state is consumed before exchange, provider tokens are discarded
+  without persistence/logging, and cancel, malformed, replay, expiry, PKCE,
+  identity, and upstream failures return one sanitized error.
+- Added: synthetic provider-double integration coverage; live credentials and live
+  provider calls remain excluded.
+- Fixed: retry aligned confidential exchange with the VK ID `service_token` wire
+  contract and proved mismatched `device_id` rejection before identity creation.
+- Verified: independent functional and semantic T3 checks passed; scheduler closed
+  `TASK-028` with checkpoint and rollback evidence.
+
+## [2026-07-18] Sequential VPS image-build policy
+- Changed: [DEPLOYMENT.md](../DEPLOYMENT.md) now builds production backend and
+  storefront images directly on the VPS, strictly one at a time.
+- Added: `sysstat` setup, live `sar` monitoring commands for RAM, swap, load, and
+  disk activity, plus explicit stop conditions for an unstable build host.
+- Updated: first deployment, update, and rollback procedures no longer depend on
+  an external build host or transferred image archives.
+- Preserved: the prior VPS reboot remains a documented capacity risk; monitoring
+  does not remove that risk.
+
+## [2026-07-18] TASK-027 OAuth configuration execute retry
+- Added: backend-only Google/VK provider configuration, actor allowlists, explicit
+  authenticated CORS, and bounded signed HttpOnly session-cookie policy.
+- Guarded: Medusa Google auth start rejects caller-supplied `callback_url` for
+  both GET and POST before the built-in provider can consume it.
+- Added: sanitized configuration smoke coverage for provider callbacks, session
+  policy, CORS, callback override rejection, and missing enabled-provider secrets.
+- Fixed: non-local HTTPS/staging cookies are secure, and production startup fails
+  closed when either signing secret is absent.
+- Verified: independent functional and adversarial T3 review passed with human
+  checkpoint and rollback/recovery evidence; scheduler closed `TASK-027`.
+
 ## [2026-07-17] Deterministic Medusa config image build
 - Confirmed: the external Docker build contains
   `apps/backend/medusa-config.ts`; the failure is extensionless TypeScript
@@ -41,6 +133,9 @@ status: active
   `apps/backend/src/api/middlewares.ts` guard boundary, refresh its Execution
   Packet, and resume scheduler-mode `/autopilot`.
 - Terminal run state: `HALT_CLARIFICATION_REQUIRED`.
+- Resumed: operator approved preserving the strict contract and adding the
+  existing Medusa middleware boundary to `TASK-027`; scheduler reopened the task
+  for one bounded retry.
 
 ## [2026-07-16] FT-005 manual SDD review remediation
 - Decoupled: wishlist capability now requires successful backend current-customer

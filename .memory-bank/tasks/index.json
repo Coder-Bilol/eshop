@@ -168,6 +168,10 @@
     {
       "id": "TASK-042",
       "file": "TASK-042.task.json"
+    },
+    {
+      "id": "TASK-043",
+      "file": "TASK-043.task.json"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import { AuthProvider } from "../components/auth-provider";
 import { CartProvider } from "../components/cart-provider";
 
 export const metadata = {
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
-        <CartProvider restoreOnMount={false}>{children}</CartProvider>
+        <CartProvider restoreOnMount={false}>
+          <AuthProvider>{children}</AuthProvider>
+        </CartProvider>
       </body>
     </html>
   );

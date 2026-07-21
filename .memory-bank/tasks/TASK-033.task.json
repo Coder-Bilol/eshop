@@ -1,7 +1,7 @@
 {
   "id": "TASK-033",
   "title": "Verify backend auth persistence and security",
-  "status": "planned",
+  "status": "ready",
   "wave": "W3",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011"],

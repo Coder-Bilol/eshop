@@ -1,7 +1,7 @@
 {
   "id": "TASK-039",
   "title": "Implement storefront wishlist state",
-  "status": "planned",
+  "status": "blocked",
   "wave": "W2",
   "feature": "FT-005",
   "reqs": ["REQ-009"],

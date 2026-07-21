@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-030-R1",
+  "packet_id": "PACKET-TASK-030-R14",
   "task_id": "TASK-030",
-  "created_at": "2026-07-16T12:00:00+03:00",
-  "source_task_hash": "sha256:bad08ea6603de99f6868de86adc749cd14790227f6b0cae56596115dc0e67456",
+  "created_at": "2026-07-19T19:27:38+03:00",
+  "source_task_hash": "sha256:034df2f32870c9e936fbcef3c3d2165efac21d0d56c458ed7bf272eae35ef09b",
   "status": "ready",
   "tier": "T3",
   "purpose": "Provide one deterministic session-backed customer state boundary for login UI and checkout gating.",

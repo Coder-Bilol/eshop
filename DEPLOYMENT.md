@@ -4,12 +4,13 @@
 
 - Local development and local verification run without Docker.
 - Production deployment on the VPS runs through Docker Compose.
-- Docker Desktop is not required for local development, but production images
-  require an external Docker-capable build host.
-- Do not build application images on the current 1 vCPU / 1.7 GiB VPS. The
-  first backend build attempt exhausted host capacity and the VPS rebooted.
-- Until a registry is selected, transfer externally built `linux/amd64` image
-  archives to the VPS and load them with `docker load`.
+- Docker Desktop is not required for local development. Production images are
+  built directly on the VPS.
+- Build exactly one application image at a time: backend first, then storefront.
+  Never run both image builds concurrently.
+- The first backend build attempt exhausted host capacity and the VPS rebooted.
+  Monitor every image build with `sar` and stop it if sustained memory, swap, or
+  disk pressure makes the host unstable.
 
 ## Current DNS
 
@@ -68,8 +69,8 @@ npm --workspace apps/storefront run build
 node scripts/mb-lint.mjs
 ```
 
-Backend build can take a few minutes. Verify Docker images on the external build
-host before transferring them to the VPS.
+Backend build can take a long time on the current VPS. Docker image verification
+is performed on the VPS after each sequential build.
 
 ## Connect
 
@@ -77,6 +78,39 @@ Connect as `eshop` from the local machine:
 
 ```powershell
 ssh -i C:\Users\ADMIN\.ssh\eshop_vps_ed25519 eshop@79.133.183.183
+```
+
+## VPS Build Monitoring
+
+Install and enable `sysstat` once as `root`:
+
+```bash
+dnf install -y sysstat
+systemctl enable --now sysstat
+systemctl start sysstat-collect.service
+systemctl list-timers --all 'sysstat*'
+```
+
+For every image build, keep the build in one `eshop` SSH session and monitor the
+host from additional SSH sessions. Use these commands during the build:
+
+```bash
+sar -r 2
+sar -S 2
+sar -q 2
+sar -d 2
+```
+
+The commands show RAM, swap, process queue/load, and disk activity respectively.
+Stop the active `docker build` with `Ctrl+C` if swap remains close to full, the
+host stops responding normally, or disk wait remains saturated. Historical
+samples for the current day are available without the interval argument:
+
+```bash
+sar -r
+sar -S
+sar -q
+sar -d
 ```
 
 ## Production Secrets
@@ -112,7 +146,7 @@ NODE_OPTIONS=--max-old-space-size=256
 GOOGLE_OAUTH_CLIENT_ID=fake_google_oauth_client_id_NOT_REAL
 GOOGLE_OAUTH_CLIENT_SECRET=fake_google_oauth_client_secret_NOT_REAL
 VK_ID_CLIENT_ID=fake_vk_id_client_id_NOT_REAL
-VK_ID_CLIENT_SECRET=fake_vk_id_client_secret_NOT_REAL
+VK_ID_SERVICE_TOKEN=fake_vk_id_service_token_NOT_REAL
 YOOKASSA_MODE=mock
 YOOKASSA_SHOP_ID=fake_yookassa_shop_id_NOT_REAL
 YOOKASSA_SECRET_KEY=fake_yookassa_secret_key_NOT_REAL
@@ -161,21 +195,15 @@ cd /opt/eshop/app
 git checkout <PRODUCTION_BRANCH_OR_TAG>
 ```
 
-On an external Docker-capable build host, check out the same production commit,
-build the backend for `linux/amd64`, and export it:
+Build the backend image on the VPS. Do not start the storefront build until this
+command has completed and the host has returned to normal resource usage:
 
 ```bash
 docker build --platform linux/amd64 \
   --tag eshop-backend:production \
   --file apps/backend/Dockerfile \
   .
-docker save --output eshop-backend-production.tar eshop-backend:production
-```
-
-Transfer the archive to the VPS, then load it:
-
-```bash
-docker load --input /opt/eshop/eshop-backend-production.tar
+docker image inspect eshop-backend:production >/dev/null
 ```
 
 Start PostgreSQL, run migrations, and start the backend:
@@ -201,8 +229,9 @@ Copy the seed output values `publishable_api_key` and `sales_channel_id` into
 `/opt/eshop/secrets/storefront.env`. Both values are public storefront
 configuration. Do not run a different or unverified seed script.
 
-Build the storefront image on the external host only after those values are
-configured. Export it, transfer it to the VPS, then load and start it:
+Only after the backend build, database initialization, and public Medusa values
+are configured, build the storefront image on the VPS. Continue monitoring with
+`sar` and do not run another image build concurrently:
 
 ```bash
 docker build --platform linux/amd64 \
@@ -213,9 +242,7 @@ docker build --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=<PRODUCTION_PUBLISHABLE_KEY> \
   --build-arg NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID=<PRODUCTION_SALES_CHANNEL_ID> \
   .
-docker save --output eshop-storefront-production.tar eshop-storefront:production
-
-docker load --input /opt/eshop/eshop-storefront-production.tar
+docker image inspect eshop-storefront:production >/dev/null
 docker compose -f compose.production.yml up -d storefront
 ```
 
@@ -295,8 +322,9 @@ docker compose -f /opt/eshop/app/compose.production.yml \
   > /opt/eshop/backups/eshop-$(date +%Y%m%d-%H%M%S).dump
 ```
 
-Update the repository, then load application images built from that exact commit
-on the external build host:
+Update the repository, stop the application containers to release memory, then
+build backend and storefront sequentially on the VPS. Keep PostgreSQL running,
+monitor each build with `sar`, and never start both builds concurrently:
 
 ```bash
 cd /opt/eshop/app
@@ -305,8 +333,19 @@ git checkout <PRODUCTION_BRANCH_OR_TAG>
 git pull --ff-only
 
 docker compose -f compose.production.yml stop storefront backend
-docker load --input /opt/eshop/eshop-backend-production.tar
-docker load --input /opt/eshop/eshop-storefront-production.tar
+docker build --platform linux/amd64 \
+  --tag eshop-backend:production \
+  --file apps/backend/Dockerfile \
+  .
+
+docker build --platform linux/amd64 \
+  --tag eshop-storefront:production \
+  --file apps/storefront/Dockerfile \
+  --build-arg NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://eshop.natureonzoom.win \
+  --build-arg NEXT_PUBLIC_STOREFRONT_URL=https://eshop.natureonzoom.win \
+  --build-arg NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=<PRODUCTION_PUBLISHABLE_KEY> \
+  --build-arg NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID=<PRODUCTION_SALES_CHANNEL_ID> \
+  .
 
 docker compose -f compose.production.yml run --rm backend npm run db:migrate:medusa
 docker compose -f compose.production.yml up -d backend storefront
@@ -315,16 +354,27 @@ docker compose -f compose.production.yml up -d backend storefront
 ## Rollback
 
 Application rollback without a registry means returning the repository to the
-previous known-good commit/tag, loading image archives built from that exact
-commit, and starting them again:
+previous known-good commit/tag, rebuilding both images sequentially on the VPS
+under `sar` monitoring, and starting them again:
 
 ```bash
 cd /opt/eshop/app
 git checkout <PREVIOUS_GOOD_COMMIT_OR_TAG>
 
 docker compose -f compose.production.yml stop storefront backend
-docker load --input /opt/eshop/eshop-backend-previous.tar
-docker load --input /opt/eshop/eshop-storefront-previous.tar
+docker build --platform linux/amd64 \
+  --tag eshop-backend:production \
+  --file apps/backend/Dockerfile \
+  .
+
+docker build --platform linux/amd64 \
+  --tag eshop-storefront:production \
+  --file apps/storefront/Dockerfile \
+  --build-arg NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://eshop.natureonzoom.win \
+  --build-arg NEXT_PUBLIC_STOREFRONT_URL=https://eshop.natureonzoom.win \
+  --build-arg NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=<PRODUCTION_PUBLISHABLE_KEY> \
+  --build-arg NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID=<PRODUCTION_SALES_CHANNEL_ID> \
+  .
 docker compose -f compose.production.yml up -d backend storefront
 ```
 

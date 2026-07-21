@@ -1,7 +1,7 @@
 {
   "id": "TASK-028",
   "title": "Implement VK ID Auth Module Provider",
-  "status": "planned",
+  "status": "done",
   "wave": "W1",
   "feature": "FT-004",
   "reqs": ["REQ-011"],
@@ -24,7 +24,30 @@
     "Provider implements Medusa AbstractAuthModuleProvider under provider ID vkid.",
     "Start creates single-use state and S256 PKCE challenge; callback requires code, state, device_id, and verifier match.",
     "Server-side exchange maps stable VK user_id and required email without persisting provider tokens.",
-    "Cancel, malformed payload, network error, expired/replayed state, and PKCE mismatch fail with sanitized errors."
+    "Cancel, malformed payload, network error, expired/replayed state, and PKCE mismatch fail with sanitized errors.",
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found VK token exchange wire incompatibility and missing mismatched device_id proof.",
+      "evidence": [
+        ".tasks/TASK-028/TASK-028-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-028/TASK-028-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "retry": 1,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed after bounded retry 1/2.",
+      "evidence": [
+        ".tasks/TASK-028/TASK-028-S-IMPL-final-report-code-02.md",
+        ".tasks/TASK-028/TASK-028-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-028/TASK-028-S-RED-VERIFY-final-report-code-02.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Provider-double contract test output.", "PKCE/state/device_id and token non-persistence assertions.", "Sanitized error/log inspection.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

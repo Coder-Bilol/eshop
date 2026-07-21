@@ -1,7 +1,7 @@
 {
   "id": "TASK-029",
   "title": "Complete OAuth callback into customer session",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011"],
@@ -25,7 +25,40 @@
     "Validated provider identity resolves or creates exactly one PostgreSQL-backed Medusa customer and establishes customer session.",
     "Repeat provider identity reuses customer; same-email different-provider collision creates no link or session.",
     "Callback redirects only to configured storefront completion path and strips provider query/token data.",
-    "Start/completion rate limits are bounded and sanitized; failure leaves no partial session/customer linkage."
+    "Start/completion rate limits are bounded and sanitized; failure leaves no partial session/customer linkage.",
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found incomplete first-login rollback on session failure and a false-pass default integration dispatcher.",
+      "evidence": [
+        ".tasks/TASK-029/TASK-029-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-029/TASK-029-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "retry": 1,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "retry",
+      "reason": "Adversarial T3 re-verification found callback cleanup race and uncompensated post-create identity-read failure.",
+      "evidence": [
+        ".tasks/TASK-029/TASK-029-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-029/TASK-029-S-RED-VERIFY-final-report-code-02.md"
+      ],
+      "retry": 2,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed after final bounded retry 2/2.",
+      "evidence": [
+        ".tasks/TASK-029/TASK-029-S-IMPL-final-report-code-03.md",
+        ".tasks/TASK-029/TASK-029-S-VERIFY-final-report-code-03.md",
+        ".tasks/TASK-029/TASK-029-S-RED-VERIFY-final-report-code-03.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Medusa/PostgreSQL account/session integration output.", "Collision, duplicate callback, redirect, rate-limit, and partial-failure assertions.", "Sanitized log/error inspection.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
