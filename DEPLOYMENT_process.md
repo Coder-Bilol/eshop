@@ -30,7 +30,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
 | Caddy | `2.11.4`, installed but disabled/inactive |
 | Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | clean repository checkout at `c46fe46`; backend image built; containers, storefront image, and database volume not deployed |
+| Application | clean repository checkout at `74fa10e`; backend image rebuilt; storefront image failed before Dockerfile fix; containers and database volume not deployed |
 
 The current deployment treats this small VPS as the default server profile:
 1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap. Production images are
@@ -310,7 +310,7 @@ VPS build-monitoring checkpoint on 2026-07-18:
 - At that time, Docker had no application container or volume. The remaining
   build cache was about 379 MB and could accelerate the next backend attempt.
 
-Backend image status checked on 2026-07-21:
+Backend image status checked on 2026-07-21 before refresh:
 
 - The server checkout at `/opt/eshop/app` is clean at commit `c46fe46`.
 - Docker image `eshop-backend:production` exists on the VPS.
@@ -322,6 +322,35 @@ Backend image status checked on 2026-07-21:
   project services.
 - `docker volume ls` shows no project/database volume.
 - The storefront image is not present yet.
+
+Fresh backend image refresh checked on 2026-07-21:
+
+- The server checkout at `/opt/eshop/app` is clean at commit `74fa10e`.
+- Backend image `eshop-backend:production` was rebuilt successfully with Docker
+  cache enabled and `--pull`.
+- The build reused cached base/initial layers, but dependency install reran
+  because package files changed; `npm ci` took about 40 minutes.
+- The Medusa backend build completed successfully in the image.
+- The current backend image inspect ID is
+  `sha256:d82b18f754ad59b42319eb2c2f5e74b7131edf34ea7255ad5e7e671041c55017`.
+- The image creation timestamp is `2026-07-21T11:25:12+03:00`.
+- `docker ps -a` still shows no running or stopped project containers.
+- No project container was started during this image refresh.
+
+Storefront image attempt checked on 2026-07-21:
+
+- The operator intentionally did not start containers and attempted only the
+  second image build: `eshop-storefront:production`.
+- Build cache was enabled. Base/package layers were reused, but the storefront
+  dependency install ran and completed in about 23 seconds.
+- The build failed at `npm --workspace apps/storefront run build`.
+- Root cause: `apps/storefront/tsconfig.json` extends `../../tsconfig.json`, but
+  `apps/storefront/Dockerfile` did not copy the repository root `tsconfig.json`
+  into the image build stage.
+- Repository fix: copy root `tsconfig.json` before copying `apps/storefront`.
+- After this fix is committed, pushed, and pulled into `/opt/eshop/app`, rerun
+  only the storefront `docker build`; do not start containers unless deployment
+  moves from image-build verification to runtime startup.
 
 The committed Compose file uses images built directly on the VPS:
 
@@ -381,7 +410,7 @@ Known remaining env gaps and fake placeholders:
 ### Product and repository readiness
 
 1. Select a verified release commit that excludes unfinished product work.
-2. Update the clean VPS checkout from `c46fe46` to that exact commit if needed.
+2. Update the clean VPS checkout from `74fa10e` to that exact commit if needed.
 3. If the checkout changes after the existing backend image build, rebuild the
    backend image on the VPS under `sar` monitoring.
 4. Start PostgreSQL, run migrations, start the backend, and verify `/health`.

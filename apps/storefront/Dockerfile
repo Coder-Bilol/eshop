@@ -11,6 +11,7 @@ COPY apps/storefront/package.json apps/storefront/package.json
 RUN npm ci --workspace @eshop/storefront --include=dev
 
 FROM deps AS build
+COPY tsconfig.json ./
 COPY apps/storefront apps/storefront
 WORKDIR /app
 

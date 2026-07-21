@@ -14,6 +14,12 @@ status: active
   1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap.
 - Clarified: 2 vCPU / 2 GB RAM is an optional future capacity upgrade, not the
   baseline for the current deployment runbook.
+- Refreshed: backend image `eshop-backend:production` was rebuilt on VPS checkout
+  `74fa10e`; current image ID is
+  `sha256:d82b18f754ad59b42319eb2c2f5e74b7131edf34ea7255ad5e7e671041c55017`.
+- Fixed: storefront Dockerfile now copies the repository root `tsconfig.json`,
+  resolving the VPS image build failure where
+  `apps/storefront/tsconfig.json` could not resolve `../../tsconfig.json`.
 
 ## [2026-07-21] TASK-031 OAuth UI and cart handoff verified
 - Added: Google/VK login and completion UI with sanitized pending, cancel, failure,
