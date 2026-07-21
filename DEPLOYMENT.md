@@ -12,6 +12,23 @@
   Monitor every image build with `sar` and stop it if sustained memory, swap, or
   disk pressure makes the host unstable.
 
+## Current VPS Defaults
+
+These are the default production server assumptions for the current deployment:
+
+```text
+Operating system: AlmaLinux 9.8
+CPU:              1 vCPU
+RAM:              about 1.7 GiB
+Disk:             30 GB
+Swap:             2.0 GiB
+Docker Engine:    29.6.1
+Docker Compose:   v5.3.1
+```
+
+Do not treat 2 vCPU / 2 GB RAM as the baseline for this project. A later VPS
+upgrade is a capacity decision, not a prerequisite for following this runbook.
+
 ## Current DNS
 
 ```text
@@ -195,8 +212,17 @@ cd /opt/eshop/app
 git checkout <PRODUCTION_BRANCH_OR_TAG>
 ```
 
-Build the backend image on the VPS. Do not start the storefront build until this
-command has completed and the host has returned to normal resource usage:
+If resuming a partially completed deployment, first check whether the backend
+image for the selected checkout already exists:
+
+```bash
+docker image inspect eshop-backend:production >/dev/null
+```
+
+If the image is absent, or if `/opt/eshop/app` was changed to a new commit after
+the image was built, build the backend image on the VPS. Do not start the
+storefront build until this command has completed and the host has returned to
+normal resource usage:
 
 ```bash
 docker build --platform linux/amd64 \

@@ -1,7 +1,7 @@
 {
   "id": "TASK-031",
   "title": "Connect OAuth UI to post-auth cart merge",
-  "status": "blocked",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011", "REQ-012"],
@@ -26,7 +26,40 @@
     "Login page exposes Google and VK ID with pending, cancel, safe failure, and retry states.",
     "Completion retrieves session customer and invokes CartProvider.mergeAfterAuthentication when a guest reference exists.",
     "Merge success/no-source reaches authenticated_ready; recoverable failure preserves session/source and blocks continuation with retry.",
-    "Completion URL and UI never expose provider code, state, token, raw error, or customer PII."
+    "Completion URL and UI never expose provider code, state, token, raw error, or customer PII.",
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found fail-open merge-result mapping and missing component concurrency/stale-result coverage.",
+      "evidence": [
+        ".tasks/TASK-031/TASK-031-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-031/TASK-031-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "retry": 1,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "retry",
+      "reason": "T3 re-verification found real null+idle no-source mismatch and incomplete malformed handoff validation.",
+      "evidence": [
+        ".tasks/TASK-031/TASK-031-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-031/TASK-031-S-RED-VERIFY-final-report-code-02.md"
+      ],
+      "retry": 2,
+      "retry_limit": 2
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed after final bounded retry 2/2.",
+      "evidence": [
+        ".tasks/TASK-031/TASK-031-S-IMPL-final-report-code-03.md",
+        ".tasks/TASK-031/TASK-031-S-VERIFY-final-report-code-03.md",
+        ".tasks/TASK-031/TASK-031-S-RED-VERIFY-final-report-code-03.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Auth UI/component test output.", "Cart merge handoff success/failure/retry assertions.", "URL/error/privacy assertions and storefront build output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

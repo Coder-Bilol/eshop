@@ -1,7 +1,7 @@
 {
   "id": "TASK-030",
   "title": "Implement storefront customer session state",
-  "status": "in_progress",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011", "REQ-012"],
@@ -132,6 +132,21 @@
         ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-06.md",
         ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-06.md"
       ]
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "Full T3 functional and semantic verification passed after TASK-043 remediation and final bounded recovery fixes.",
+      "evidence": [
+        ".tasks/TASK-043/TASK-043-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-043/TASK-043-S-RED-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-030/TASK-030-S-IMPL-final-report-code-06.md",
+        ".tasks/TASK-030/TASK-030-S-VERIFY-final-report-code-07.md",
+        ".tasks/TASK-030/TASK-030-S-RED-VERIFY-final-report-code-07.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
     }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],

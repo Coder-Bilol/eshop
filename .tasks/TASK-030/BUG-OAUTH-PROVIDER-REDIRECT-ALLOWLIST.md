@@ -2,7 +2,7 @@
 
 - Source task: `TASK-030`
 - Severity: HIGH
-- Status: second recovery failed; operator decision required
+- Status: resolved
 - Functional verdict: FAIL
 - Semantic verdict: semantic-fail
 - Retry budget: exhausted (2/2)
@@ -51,6 +51,12 @@ recovery requires explicit operator approval.
 Exact origins/paths and standard hostile URL variants now pass review, but malformed
 raw query forms, invalid escapes, encoded controls, empty segments, and double-encoded
 callback/return keys remain fail-open. `TASK-043` captures this final parser gap.
+
+## Resolution
+
+`TASK-043` closed the malformed-query gap, and the final TASK-030 recovery fixed
+logout `401` cleanup plus literal empty-fragment handling. Independent code-07
+functional and semantic verification passed the complete acceptance surface.
 
 ## Evidence
 

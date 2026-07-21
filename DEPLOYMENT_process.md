@@ -14,7 +14,7 @@ of its values, paths, and commands are obsolete.
 ## Current Checkpoint
 
 Preparation started on 2026-07-11. The current server state was checked again on
-2026-07-18:
+2026-07-21:
 
 | Area | Current state |
 |---|---|
@@ -22,7 +22,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Kernel | `5.14.0-687.20.1.el9_8.x86_64` |
 | CPU | 1 vCPU |
 | RAM | about 1.7 GiB |
-| Disk | 30 GB, about 23 GB free after preparation |
+| Disk | 30 GB, about 18 GB free after backend image build |
 | Swap | 2.0 GiB |
 | Git | `2.52.0` |
 | Docker Engine | `29.6.1`, enabled and active |
@@ -30,12 +30,16 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
 | Caddy | `2.11.4`, installed but disabled/inactive |
 | Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | clean repository checkout at `0b79a4d`; images and containers not deployed |
+| Application | clean repository checkout at `c46fe46`; backend image built; containers, storefront image, and database volume not deployed |
 
-The server remains small. Production images are now built directly on the VPS,
-strictly one at a time and under live `sar` monitoring. Never build backend and
-storefront concurrently. Increasing the VPS to at least 2 vCPU / 2 GB RAM is
-still recommended before accepting real orders.
+The current deployment treats this small VPS as the default server profile:
+1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap. Production images are
+built directly on the VPS, strictly one at a time and under live `sar`
+monitoring. Never build backend and storefront concurrently.
+
+Do not treat 2 vCPU / 2 GB RAM as the baseline. A later VPS upgrade is an
+optional capacity decision if monitored builds, traffic, or real orders show
+that the current server is not enough.
 
 ## Current Access Model
 
@@ -303,8 +307,21 @@ VPS build-monitoring checkpoint on 2026-07-18:
   sessions monitor `sar -r 2`, `sar -S 2`, `sar -q 2`, and `sar -d 2`.
 - Stop the active build with `Ctrl+C` if swap remains close to full, the host
   becomes unresponsive, or disk wait remains saturated.
-- Docker currently has no application container or volume. The remaining build
-  cache is about 379 MB and may accelerate the next backend attempt.
+- At that time, Docker had no application container or volume. The remaining
+  build cache was about 379 MB and could accelerate the next backend attempt.
+
+Backend image status checked on 2026-07-21:
+
+- The server checkout at `/opt/eshop/app` is clean at commit `c46fe46`.
+- Docker image `eshop-backend:production` exists on the VPS.
+- The image inspect ID is
+  `sha256:0fe5fe6fb553572c8ea7e362cd1a4e041d8124e4d37a916e6b556d77260d415d`.
+- The image creation timestamp is `2026-07-18T12:09:32+03:00`.
+- `docker ps -a` shows no running or stopped application containers.
+- `docker compose -f /opt/eshop/app/compose.production.yml ps` shows no
+  project services.
+- `docker volume ls` shows no project/database volume.
+- The storefront image is not present yet.
 
 The committed Compose file uses images built directly on the VPS:
 
@@ -364,21 +381,22 @@ Known remaining env gaps and fake placeholders:
 ### Product and repository readiness
 
 1. Select a verified release commit that excludes unfinished product work.
-2. Update the clean VPS checkout from `0b79a4d` to that exact commit.
-3. Resolve the remaining backend Docker `npm run build` failure before treating
-   the first VPS build as expected to succeed.
-4. Build the backend image on the VPS under `sar` monitoring.
-5. Build the storefront image only after the backend build, database setup, and
-   real public Medusa values are ready.
-6. Never run backend and storefront image builds concurrently.
-7. Verify production Docker image builds directly on the VPS.
-8. Verify backend, storefront, and PostgreSQL health checks from real containers.
-9. Verify containers do not run dev servers.
-10. Verify backend and storefront only bind to `127.0.0.1`.
-11. Verify PostgreSQL has no `ports` section.
-12. Verify a named volume owns PostgreSQL data.
-13. Verify secrets are excluded from images and Git.
-14. Verify no Redis service or `REDIS_URL` is introduced without a design change.
+2. Update the clean VPS checkout from `c46fe46` to that exact commit if needed.
+3. If the checkout changes after the existing backend image build, rebuild the
+   backend image on the VPS under `sar` monitoring.
+4. Start PostgreSQL, run migrations, start the backend, and verify `/health`.
+5. Configure the initial Medusa region and run the verified catalog seed.
+6. Replace the fake public Medusa values in `storefront.env` with the seed output.
+7. Build the storefront image only after the backend, database setup, and real
+   public Medusa values are ready.
+8. Never run backend and storefront image builds concurrently.
+9. Verify backend, storefront, and PostgreSQL health checks from real containers.
+10. Verify containers do not run dev servers.
+11. Verify backend and storefront only bind to `127.0.0.1`.
+12. Verify PostgreSQL has no `ports` section.
+13. Verify a named volume owns PostgreSQL data.
+14. Verify secrets are excluded from images and Git.
+15. Verify no Redis service or `REDIS_URL` is introduced without a design change.
 
 ### Delivery decisions
 
@@ -434,15 +452,18 @@ Known remaining env gaps and fake placeholders:
 
 ### Capacity and launch decision
 
-1. Prefer upgrading the VPS to at least 2 vCPU and 2 GB RAM.
-2. Build backend and storefront sequentially on the VPS, never concurrently.
-3. Monitor RAM, swap, load, disk activity, and Docker image size during every
+1. Treat the current VPS as the default capacity: 1 vCPU, about 1.7 GiB RAM,
+   30 GB disk, and 2.0 GiB swap.
+2. Consider upgrading to 2 vCPU / 2 GB RAM or higher only if monitored builds,
+   traffic, or real orders show that the current server is not enough.
+3. Build backend and storefront sequentially on the VPS, never concurrently.
+4. Monitor RAM, swap, load, disk activity, and Docker image size during every
    build using `sar` and Docker disk checks.
-4. Do not accept real orders until the critical buyer journey is verified.
-5. Verify payment/webhook behavior in staging before enabling live credentials.
-6. Verify a payment return page cannot mark an order as paid by itself.
-7. Verify duplicate webhooks are idempotent.
-8. Verify order, reservation, payment, and email flows before production launch.
+5. Do not accept real orders until the critical buyer journey is verified.
+6. Verify payment/webhook behavior in staging before enabling live credentials.
+7. Verify a payment return page cannot mark an order as paid by itself.
+8. Verify duplicate webhooks are idempotent.
+9. Verify order, reservation, payment, and email flows before production launch.
 
 ## Historical Archive: Original Pre-Preparation Plan
 

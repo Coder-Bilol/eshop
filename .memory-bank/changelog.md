@@ -4,6 +4,45 @@ status: active
 ---
 # Changelog
 
+## [2026-07-21] VPS deployment checkpoint refreshed
+- Recorded: server checkout is clean at `c46fe46` and backend production image
+  `eshop-backend:production` exists.
+- Confirmed: no project containers, PostgreSQL volume, or storefront image are
+  present yet; the next deployment step is PostgreSQL, migrations, backend
+  health check, Medusa public values, then storefront build.
+- Updated: deployment docs now treat the current VPS as the default capacity:
+  1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap.
+- Clarified: 2 vCPU / 2 GB RAM is an optional future capacity upgrade, not the
+  baseline for the current deployment runbook.
+
+## [2026-07-21] TASK-031 OAuth UI and cart handoff verified
+- Added: Google/VK login and completion UI with sanitized pending, cancel, failure,
+  retry, merge, and no-source states.
+- Fixed: fail-closed merge-result mapping, stale async invalidation, duplicate action
+  guards, real `null + idle` no-source composition, and strict merge metadata checks.
+- Verified: final independent functional and semantic T3 checks passed after retry
+  2/2; scheduler closed `TASK-031`.
+
+## [2026-07-21] TASK-031 OAuth login and cart completion UI execute
+- Added: equal Google/VK ID login choices with bounded pending, safe failure, and
+  retry states through the existing storefront AuthProvider boundary.
+- Added: fixed completion UI that strips callback query/fragment data before
+  rendering, confirms the existing customer session, and invokes the existing
+  CartProvider post-auth merge handoff.
+- Guarded: merged/no-source readiness is distinguished from recoverable merge
+  failure; failures preserve the active session/source reference and safe return
+  state is consumed only from `authenticated_ready`.
+- Hardened after independent review: only a validated ready target or genuine
+  no-source handoff reaches readiness; auth loss, retry supersession, remounts, and
+  duplicate actions cannot apply a stale merge result or consume the return path.
+- Corrected after final bounded review: the real root CartProvider `null + idle`
+  no-source composition reaches readiness only with no operation/error/cart, while
+  ready merge handoffs require complete and coherent source/target/outcome/replay
+  metadata and reject pending, errored, incomplete, or contradictory forms.
+- Preserved: no backend/provider, FT-003 merge semantics, checkout, order,
+  inventory, payment, token storage, raw provider-error rendering, or customer PII
+  rendering was added.
+
 ## [2026-07-18] TASK-030 recovery 2 failed malformed-query T3 gate
 - Passed: exact Google/VK paths, backend/port/credential/fragment/path rejection,
   real provider starts, and every prior TASK-030 behavior.
@@ -15,6 +54,9 @@ status: active
   approval prompts; `TASK-043` moved to `ready`.
 - Verified: `TASK-043` retry 1/2 passed independent functional and semantic T3
   checks; scheduler closed the malformed-query remediation.
+- Closed: final TASK-030 code-07 functional and semantic verification passed after
+  logout `401` cleanup and empty-fragment fixes; direct eligible dependent may now
+  be promoted.
 
 ## [2026-07-18] TASK-030 recovery failed exact-path T3 gate
 - Confirmed: approved Google/VK origins allow real provider starts and preserve all
