@@ -25,7 +25,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Kernel | `5.14.0-687.20.1.el9_8.x86_64` |
 | CPU | 1 vCPU |
 | RAM | about 1.7 GiB |
-| Disk | 30 GB, about 14 GB free before PostgreSQL initialization |
+| Disk | 30 GB, about 7.6 GB free after the backend image rebuild |
 | Swap | 2.0 GiB |
 | Git | `2.52.0` |
 | Docker Engine | `29.6.1`, enabled and active |
@@ -33,7 +33,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
 | Caddy | `2.11.4`, installed but disabled/inactive |
 | Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | clean repository checkout at `5a47a9d`; PostgreSQL is healthy and migrated; backend and storefront services are not started |
+| Application | clean checkout at `99b92f4`; PostgreSQL is healthy and migrated; backend image rebuilt; backend and storefront services are not started |
 
 The current deployment treats this small VPS as the default server profile:
 1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap. Production images are
@@ -428,6 +428,28 @@ no production data to back up. Failed attempts retained the named volume and
 were retried idempotently; no volume deletion, migration rollback, region, or
 seed operation was used.
 
+Backend image rebuild checkpoint on 2026-07-23:
+
+- Deployment configuration was committed and pushed as `99b92f4`; the clean VPS
+  checkout was fast-forwarded to that revision.
+- The old backend image was preserved as `eshop-backend:pre-99b92f4` with image
+  ID `sha256:d82b18f754ad59b42319eb2c2f5e74b7131edf34ea7255ad5e7e671041c55017`.
+- A direct SSH build session closed after about 10 minutes. BuildKit continued
+  through `npm ci` but did not export an image after losing its client, so the
+  production tag remained unchanged.
+- The successful retry used the same Docker build through `nohup` with progress
+  stored in `/opt/eshop/backend-build-99b92f4.log`; no helper script was added.
+- The dependency layer installed 1135 packages in about 41 minutes. Medusa
+  backend and Admin frontend builds completed successfully.
+- New `eshop-backend:production` image ID:
+  `sha256:89684d39af06a2d913940a5d212318fdaa9e2470aa8740de86ef9c113d399927`.
+- The image is `linux/amd64`, has OCI revision label `99b92f4`, and includes the
+  committed internal PostgreSQL `ssl=false` configuration.
+- PostgreSQL remained `healthy` with zero restarts. Backend and storefront
+  application containers were not created or started.
+- After export the VPS had about 7.6 GB free; Docker reported about 8.9 GB of
+  reclaimable build cache. Do not prune while deployment verification is active.
+
 The committed Compose file uses images built directly on the VPS:
 
 ```text
@@ -491,23 +513,19 @@ deployment.
 
 ### Product and repository readiness
 
-1. Select a verified release commit that excludes unfinished product work and
-   includes the explicit PostgreSQL `ssl=false` backend configuration.
-2. Commit and push the selected deployment changes, then update the clean VPS
-   checkout from `5a47a9d` to that exact commit.
-3. Rebuild the backend image on the VPS under `sar` monitoring so it contains the
-   committed database configuration.
-4. Start the backend and verify `/health`.
-5. Configure the initial Medusa region and run the verified catalog seed.
-6. Replace the fake public Medusa values in `storefront.env` with the seed output.
-7. Rebuild the storefront image after replacing fake public Medusa values.
-8. Never run backend and storefront image builds concurrently.
-9. Start the storefront, verify backend and storefront health checks, and recheck
+1. Run the documented migration command with the rebuilt backend image and
+   confirm that the existing database is already up to date.
+2. Start the backend and verify `/health`.
+3. Configure the initial Medusa region and run the verified catalog seed.
+4. Replace the fake public Medusa values in `storefront.env` with the seed output.
+5. Rebuild the storefront image after replacing fake public Medusa values.
+6. Never run backend and storefront image builds concurrently.
+7. Start the storefront, verify backend and storefront health checks, and recheck
    the already-running PostgreSQL health check.
-10. Verify containers do not run dev servers.
-11. Verify backend and storefront only bind to `127.0.0.1`.
-12. Verify secrets are excluded from images and Git.
-13. Verify no Redis service or `REDIS_URL` is introduced without a design change.
+8. Verify containers do not run dev servers.
+9. Verify backend and storefront only bind to `127.0.0.1`.
+10. Verify secrets are excluded from images and Git.
+11. Verify no Redis service or `REDIS_URL` is introduced without a design change.
 
 ### Delivery decisions
 

@@ -17,9 +17,15 @@ status: active
   full migration run completed idempotently with the schema already up to date.
 - Verified: the `eshop` database contains 141 public tables; region creation and
   catalog seed were not run.
-- Fixed locally: backend database driver configuration now explicitly disables
-  SSL for the private Compose PostgreSQL connection. The VPS backend image must
-  be rebuilt from the committed fix before the application service is started.
+- Fixed and published: backend database driver configuration explicitly disables
+  SSL for the private Compose PostgreSQL connection in commit `99b92f4`.
+- Rebuilt: `eshop-backend:production` now points to
+  `sha256:89684d39af06a2d913940a5d212318fdaa9e2470aa8740de86ef9c113d399927`
+  with OCI revision label `99b92f4`; the previous image is preserved as
+  `eshop-backend:pre-99b92f4`.
+- Recorded: long backend builds must use `nohup` plus a persistent log because
+  the current SSH path may close after about 10 minutes. No helper script was
+  added, and backend/storefront application containers remain stopped.
 
 ## [2026-07-21] VPS deployment checkpoint refreshed
 - Recorded: server checkout is clean at `c46fe46` and backend production image

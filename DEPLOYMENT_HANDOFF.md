@@ -9,6 +9,7 @@ not complete.
 
 - PostgreSQL is running and healthy on the production VPS.
 - Medusa migrations are applied and an idempotent second run succeeded.
+- Backend image was rebuilt successfully from revision `99b92f4`.
 - Backend and storefront application services are not running.
 - Region creation and catalog seed were not run.
 - No production application traffic is enabled yet.
@@ -23,7 +24,7 @@ continue.
 Host:              79.133.183.183
 Deployment user:   eshop
 Repository:        /opt/eshop/app
-Server commit:     5a47a9d (clean checkout)
+Image source commit: 99b92f4 (clean checkout during build)
 Secrets directory: /opt/eshop/secrets
 Compose file:      /opt/eshop/app/compose.production.yml
 ```
@@ -47,14 +48,18 @@ Existing application images:
 
 ```text
 eshop-backend:production
+sha256:89684d39af06a2d913940a5d212318fdaa9e2470aa8740de86ef9c113d399927
+
+eshop-backend:pre-99b92f4
 sha256:d82b18f754ad59b42319eb2c2f5e74b7131edf34ea7255ad5e7e671041c55017
 
 eshop-storefront:production
 sha256:f3cbb5523708b96404e1d10eaa6bf089fcb391f5bf721bc1adae93edc808081a
 ```
 
-The current backend image predates the repository `ssl=false` fix. Do not start
-it as the production backend.
+The production backend image is `linux/amd64`, carries OCI revision label
+`99b92f4`, and contains the repository `ssl=false` fix. The `pre-99b92f4`
+rollback image predates that fix.
 
 ## Completed Work
 
@@ -72,6 +77,11 @@ it as the production backend.
    region creation and catalog seed were intentionally not run.
 8. Removed all one-off migration containers while preserving PostgreSQL and its
    named volume.
+9. Committed and pushed the database/deployment fix as `99b92f4`, then
+   fast-forwarded the clean VPS checkout to that revision.
+10. Preserved the previous backend image under `eshop-backend:pre-99b92f4`.
+11. Rebuilt `eshop-backend:production` successfully through BuildKit and verified
+    its image ID, platform, revision label, and completed export log.
 
 HUMAN_CHECKPOINT: done
 
@@ -103,20 +113,15 @@ databaseDriverOptions: {
 ```
 
 The successful first migration used the same option as a temporary one-off
-runtime override because the existing backend image did not contain the fix.
-Future migrations must use a rebuilt image containing the committed setting.
+runtime override because the old backend image did not contain the fix. The new
+production image contains the committed setting and must be used for the next
+idempotency check and subsequent application start.
 
 ## Local Repository State
 
-Deployment-related local changes awaiting a dedicated commit:
-
-```text
-DEPLOYMENT.md
-DEPLOYMENT_process.md
-DEPLOYMENT_HANDOFF.md
-apps/backend/medusa-config.ts
-.memory-bank/changelog.md (deployment hunk only)
-```
+Deployment configuration commit `99b92f4` is pushed to `origin/main` and was the
+source revision for the successful backend image build. This post-build
+documentation update records the result separately.
 
 The worktree also contains unrelated in-progress `TASK-032` changes. Do not stage
 or commit the entire worktree as one deployment commit.
@@ -135,6 +140,11 @@ pg_isready: accepting connections
 database name: eshop
 public table count: 141
 named volume: eshop_postgres_data
+backend image: sha256:89684d39af06a2d913940a5d212318fdaa9e2470aa8740de86ef9c113d399927
+backend platform: linux/amd64
+backend revision label: 99b92f4
+old backend image: eshop-backend:pre-99b92f4
+backend/storefront containers: not created or started
 ```
 
 Local checks passed:
@@ -146,24 +156,21 @@ git diff --check
 git ls-files -- '*.env'  # no output
 ```
 
-## Current Blocker
+## Remaining Blockers
 
-The VPS backend image must be rebuilt from a committed revision containing the
-explicit internal PostgreSQL `ssl=false` configuration. Until then, do not start
-the backend application service. This does not block PostgreSQL.
+Before starting the backend service, run the documented migration command once
+with the rebuilt image and confirm that the existing schema is already up to
+date. The backend image rebuild itself is no longer a blocker.
 
 The storefront image contains fake public Medusa values. It must be rebuilt only
 after the initial region and verified catalog seed provide real values.
 
 ## Next Safe Sequence
 
-1. Commit and push only the intended deployment changes.
-2. Fast-forward `/opt/eshop/app` to that exact commit.
-3. Rebuild only `eshop-backend:production` under live `sar` monitoring.
-4. Run the documented migration command with the rebuilt image and confirm that
+1. Run the documented migration command with the rebuilt image and confirm that
    the database is already up to date.
-5. Start the backend only after a separate explicit deployment step.
-6. Create the initial region, run catalog seed, replace storefront public values,
+2. Start the backend only after a separate explicit deployment step.
+3. Create the initial region, run catalog seed, replace storefront public values,
    rebuild storefront, and start it as later steps.
 
 ## Safety Rules
@@ -175,7 +182,8 @@ after the initial region and verified catalog seed provide real values.
 - Keep PostgreSQL running while rebuilding application images.
 - Back up the database before every later migration or application update.
 - A code or image rollback does not reverse an applied database migration.
-- Do not start the old backend image that lacks the SSL setting.
+- Do not retag `eshop-backend:pre-99b92f4` as production without an explicit
+  rollback decision; it lacks the committed SSL setting.
 
 ## Read-Only Resume Checks
 

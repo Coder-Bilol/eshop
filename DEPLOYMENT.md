@@ -11,6 +11,8 @@
 - The first backend build attempt exhausted host capacity and the VPS rebooted.
   Monitor every image build with `sar` and stop it if sustained memory, swap, or
   disk pressure makes the host unstable.
+- The current SSH path may close a session after about 10 minutes. Run long
+  backend builds through `nohup` with a persistent log as documented below.
 
 ## Current VPS Defaults
 
@@ -108,8 +110,7 @@ systemctl start sysstat-collect.service
 systemctl list-timers --all 'sysstat*'
 ```
 
-For every image build, keep the build in one `eshop` SSH session and monitor the
-host from additional SSH sessions. Use these commands during the build:
+Monitor the host from additional SSH sessions while an image build is running:
 
 ```bash
 sar -r 2
@@ -129,6 +130,56 @@ sar -S
 sar -q
 sar -d
 ```
+
+### Detached Backend Build
+
+The backend dependency layer can take more than 40 minutes on the current VPS,
+while an SSH session may close after about 10 minutes. Start backend builds
+detached and write progress to a persistent log; no additional script is needed:
+
+```bash
+cd /opt/eshop/app
+BUILD_REV=$(git rev-parse --short HEAD)
+BUILD_LOG=/opt/eshop/backend-build-${BUILD_REV}.log
+
+if docker image inspect eshop-backend:production >/dev/null 2>&1 && \
+   ! docker image inspect eshop-backend:pre-${BUILD_REV} >/dev/null 2>&1; then
+  docker tag eshop-backend:production eshop-backend:pre-${BUILD_REV}
+fi
+
+nohup env DOCKER_BUILDKIT=1 docker build \
+  --pull \
+  --progress=plain \
+  --platform linux/amd64 \
+  --label org.opencontainers.image.revision=${BUILD_REV} \
+  --tag eshop-backend:production \
+  --file apps/backend/Dockerfile \
+  . >"${BUILD_LOG}" 2>&1 < /dev/null &
+BUILD_PID=$!
+printf 'backend build pid=%s log=%s\n' "${BUILD_PID}" "${BUILD_LOG}"
+```
+
+Follow the build from any SSH session:
+
+```bash
+BUILD_REV=$(git -C /opt/eshop/app rev-parse --short HEAD)
+BUILD_LOG=/opt/eshop/backend-build-${BUILD_REV}.log
+tail -f "${BUILD_LOG}"
+```
+
+The build is complete only after the log ends with a successful image export and
+the inspect output contains the expected revision:
+
+```bash
+tail -n 30 "${BUILD_LOG}"
+docker image inspect --format '{{.Id}} {{json .Config.Labels}}' \
+  eshop-backend:production
+```
+
+If monitoring shows sustained unsafe pressure, stop only the recorded build PID.
+After reconnecting, locate it with
+`pgrep -af 'docker build.*eshop-backend:production'`; do not start a second build
+while the first PID still exists.
 
 ## Production Secrets
 
@@ -225,16 +276,13 @@ docker image inspect eshop-backend:production >/dev/null
 ```
 
 If the image is absent, or if `/opt/eshop/app` was changed to a new commit after
-the image was built, build the backend image on the VPS. Do not start the
-storefront build until this command has completed and the host has returned to
-normal resource usage:
+the image was built, use the **Detached Backend Build** procedure above. Do not
+start the storefront build until the backend log confirms successful export and
+the host has returned to normal resource usage:
 
 ```bash
-docker build --platform linux/amd64 \
-  --tag eshop-backend:production \
-  --file apps/backend/Dockerfile \
-  .
-docker image inspect eshop-backend:production >/dev/null
+docker image inspect --format '{{.Id}} {{json .Config.Labels}}' \
+  eshop-backend:production
 ```
 
 Start PostgreSQL, wait for its health check, run migrations, and start the
@@ -418,10 +466,9 @@ git checkout <PRODUCTION_BRANCH_OR_TAG>
 git pull --ff-only
 
 docker compose -f compose.production.yml stop storefront backend
-docker build --platform linux/amd64 \
-  --tag eshop-backend:production \
-  --file apps/backend/Dockerfile \
-  .
+
+# Rebuild backend with the Detached Backend Build procedure above and wait for
+# successful export before continuing.
 
 docker build --platform linux/amd64 \
   --tag eshop-storefront:production \
@@ -450,10 +497,9 @@ cd /opt/eshop/app
 git checkout <PREVIOUS_GOOD_COMMIT_OR_TAG>
 
 docker compose -f compose.production.yml stop storefront backend
-docker build --platform linux/amd64 \
-  --tag eshop-backend:production \
-  --file apps/backend/Dockerfile \
-  .
+
+# Rebuild backend with the Detached Backend Build procedure above and wait for
+# successful export before continuing.
 
 docker build --platform linux/amd64 \
   --tag eshop-storefront:production \
