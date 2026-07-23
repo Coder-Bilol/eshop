@@ -7,6 +7,9 @@ This file records deployment preparation history and the remaining work.
 [DEPLOYMENT.md](DEPLOYMENT.md) is the authoritative handoff runbook. Use it for
 future deployment commands.
 
+[DEPLOYMENT_HANDOFF.md](DEPLOYMENT_HANDOFF.md) is the current operational
+handoff snapshot for resuming the in-progress production deployment.
+
 The historical archive below preserves the detailed plan that existed before
 the VPS preparation. It is evidence, not an operational instruction: several
 of its values, paths, and commands are obsolete.
@@ -14,7 +17,7 @@ of its values, paths, and commands are obsolete.
 ## Current Checkpoint
 
 Preparation started on 2026-07-11. The current server state was checked again on
-2026-07-21:
+2026-07-23:
 
 | Area | Current state |
 |---|---|
@@ -22,7 +25,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Kernel | `5.14.0-687.20.1.el9_8.x86_64` |
 | CPU | 1 vCPU |
 | RAM | about 1.7 GiB |
-| Disk | 30 GB, about 18 GB free after backend image build |
+| Disk | 30 GB, about 14 GB free before PostgreSQL initialization |
 | Swap | 2.0 GiB |
 | Git | `2.52.0` |
 | Docker Engine | `29.6.1`, enabled and active |
@@ -30,7 +33,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
 | Caddy | `2.11.4`, installed but disabled/inactive |
 | Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | clean repository checkout at `74fa10e`; backend image rebuilt; storefront image failed before Dockerfile fix; containers and database volume not deployed |
+| Application | clean repository checkout at `5a47a9d`; PostgreSQL is healthy and migrated; backend and storefront services are not started |
 
 The current deployment treats this small VPS as the default server profile:
 1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap. Production images are
@@ -359,6 +362,72 @@ Storefront image attempt checked on 2026-07-21:
   rerun only the storefront `docker build`; do not start containers unless
   deployment moves from image-build verification to runtime startup.
 
+Storefront image success checked on 2026-07-21:
+
+- The server checkout at `/opt/eshop/app` is clean at commit `5a47a9d`.
+- Storefront image `eshop-storefront:production` was built successfully with
+  Docker cache enabled and `--pull`.
+- The dependency install reran after `package-lock.json` changed and completed
+  in about 21 seconds.
+- The Next.js production build completed successfully in about 18 seconds.
+- The current storefront image inspect ID is
+  `sha256:f3cbb5523708b96404e1d10eaa6bf089fcb391f5bf721bc1adae93edc808081a`.
+- The image creation timestamp is `2026-07-21T14:07:35+03:00`.
+- The image size reported by Docker is about 407 MB.
+- `docker ps -a` still shows no running or stopped project containers.
+- Backend image `eshop-backend:production` is still present with image ID
+  `sha256:d82b18f754ad59b42319eb2c2f5e74b7131edf34ea7255ad5e7e671041c55017`.
+- The backend image was built before the final `5a47a9d` checkout, but that
+  checkout only changed deployment docs, `apps/storefront/package.json`, and
+  `package-lock.json` for the storefront build fix. Rebuild backend again only
+  if exact same-checkout image provenance is required before runtime startup.
+
+PostgreSQL and migrations checkpoint on 2026-07-23:
+
+- The operator explicitly approved the production PostgreSQL startup and Medusa
+  migrations.
+- Compose created only `eshop-postgres-1`, the private `eshop_default` network,
+  and the named volume `eshop_postgres_data`.
+- PostgreSQL is `healthy`, publishes no host port, and uses the existing
+  `/opt/eshop/secrets/postgres.env` file with mode `600`.
+- The first migration attempt inherited the backend runtime heap limit of
+  `256 MB` and failed with Node.js heap OOM. Migration commands now override the
+  heap to `768 MB` while keeping the normal backend limit unchanged.
+- A second attempt exposed a Medusa 2.16 connection issue: the internal Docker
+  hostname `postgres` was treated as a remote database for the separate
+  migration-lock connection, so Medusa enabled SSL and waited indefinitely.
+- Repository fix: `apps/backend/medusa-config.ts` now explicitly sets
+  `databaseDriverOptions.connection.ssl` to `false` for the private Compose
+  PostgreSQL connection.
+- The existing backend image does not contain that repository fix yet. For this
+  first empty-database migration only, the same `ssl=false` driver option was
+  injected into the one-off migration process; no application service used the
+  temporary override.
+- Medusa core migrations, the custom `cartMerge` migration, link-table sync, and
+  Medusa migration scripts completed successfully. A second full migration run
+  exited with code `0`, reported modules and links up to date, and made no schema
+  changes.
+- Verification found `141` public tables and the `cart_merge` table. Both
+  `region` and `product` contain zero rows: region creation and catalog seed were
+  not run.
+- No persistent backend or storefront container was created. All one-off
+  migration containers were removed after completion.
+- A temporary backend rebuild was stopped when the changed lockfile invalidated
+  the dependency cache and started another resource-heavy `npm ci`. The original
+  backend image ID remains
+  `sha256:d82b18f754ad59b42319eb2c2f5e74b7131edf34ea7255ad5e7e671041c55017`.
+- The temporary build context was removed and `/opt/eshop/app` remains clean at
+  `5a47a9d`.
+
+HUMAN_CHECKPOINT: done
+
+ROLLBACK_RECOVERY_NOTE: present
+
+Recovery note: this was the first deployment of an empty database, so there was
+no production data to back up. Failed attempts retained the named volume and
+were retried idempotently; no volume deletion, migration rollback, region, or
+seed operation was used.
+
 The committed Compose file uses images built directly on the VPS:
 
 ```text
@@ -414,25 +483,31 @@ Known remaining env gaps and fake placeholders:
 
 ## What Remains Before A Successful Deployment
 
+PostgreSQL startup and schema migration are complete as of 2026-07-23. The
+container is healthy, accepts connections, publishes no host port, and stores
+data in `eshop_postgres_data`; the migrated `eshop` database contains 141 public
+tables. Keep this container and volume intact while completing the application
+deployment.
+
 ### Product and repository readiness
 
-1. Select a verified release commit that excludes unfinished product work.
-2. Update the clean VPS checkout from `74fa10e` to that exact commit if needed.
-3. If the checkout changes after the existing backend image build, rebuild the
-   backend image on the VPS under `sar` monitoring.
-4. Start PostgreSQL, run migrations, start the backend, and verify `/health`.
+1. Select a verified release commit that excludes unfinished product work and
+   includes the explicit PostgreSQL `ssl=false` backend configuration.
+2. Commit and push the selected deployment changes, then update the clean VPS
+   checkout from `5a47a9d` to that exact commit.
+3. Rebuild the backend image on the VPS under `sar` monitoring so it contains the
+   committed database configuration.
+4. Start the backend and verify `/health`.
 5. Configure the initial Medusa region and run the verified catalog seed.
 6. Replace the fake public Medusa values in `storefront.env` with the seed output.
-7. Build the storefront image only after the backend, database setup, and real
-   public Medusa values are ready.
+7. Rebuild the storefront image after replacing fake public Medusa values.
 8. Never run backend and storefront image builds concurrently.
-9. Verify backend, storefront, and PostgreSQL health checks from real containers.
+9. Start the storefront, verify backend and storefront health checks, and recheck
+   the already-running PostgreSQL health check.
 10. Verify containers do not run dev servers.
 11. Verify backend and storefront only bind to `127.0.0.1`.
-12. Verify PostgreSQL has no `ports` section.
-13. Verify a named volume owns PostgreSQL data.
-14. Verify secrets are excluded from images and Git.
-15. Verify no Redis service or `REDIS_URL` is introduced without a design change.
+12. Verify secrets are excluded from images and Git.
+13. Verify no Redis service or `REDIS_URL` is introduced without a design change.
 
 ### Delivery decisions
 

@@ -198,6 +198,11 @@ them before enabling the corresponding production feature. `NEXT_PUBLIC_*`
 values are embedded during storefront image build, so rebuild the storefront
 image after changing them.
 
+`apps/backend/medusa-config.ts` explicitly sets
+`databaseDriverOptions.connection.ssl` to `false`. PostgreSQL is reached only
+through the private Compose network, where TLS is not enabled. Do not remove
+this setting while `DATABASE_URL` uses the internal `postgres` hostname.
+
 ## First Deployment
 
 Run as `eshop` after repository access is available:
@@ -232,11 +237,19 @@ docker build --platform linux/amd64 \
 docker image inspect eshop-backend:production >/dev/null
 ```
 
-Start PostgreSQL, run migrations, and start the backend:
+Start PostgreSQL, wait for its health check, run migrations, and start the
+backend. The migration-only container needs a larger heap than the normal
+backend runtime, so override `NODE_OPTIONS` only for this command:
 
 ```bash
-docker compose -f compose.production.yml up -d postgres
-docker compose -f compose.production.yml run --rm backend npm run db:migrate:medusa
+docker compose -f compose.production.yml up -d --no-deps postgres
+docker compose -f compose.production.yml ps postgres
+
+docker compose -f compose.production.yml run --rm --no-deps \
+  -e NODE_OPTIONS=--max-old-space-size=768 \
+  --workdir /app/apps/backend/.medusa/server \
+  backend /app/node_modules/.bin/medusa db:migrate
+
 docker compose -f compose.production.yml up -d backend
 curl -fsS http://127.0.0.1:9000/health
 ```
@@ -335,6 +348,52 @@ curl -fsSI https://eshop.natureonzoom.win/
 curl -fsS https://eshop.natureonzoom.win/health
 ```
 
+## Migration Procedure
+
+Always run migrations from the exact backend image that will be started after
+the deployment. The image must include the explicit internal PostgreSQL
+`ssl=false` setting from `apps/backend/medusa-config.ts`.
+
+Before every later migration, keep PostgreSQL running, stop the application
+containers to free RAM, and create a database backup. Copy the backup to the
+configured external storage before changing the schema:
+
+```bash
+cd /opt/eshop/app
+docker compose -f compose.production.yml stop storefront backend
+docker compose -f compose.production.yml ps postgres
+
+mkdir -p /opt/eshop/backups
+chmod 700 /opt/eshop/backups
+docker compose -f compose.production.yml \
+  exec -T postgres pg_dump -U eshop -Fc eshop \
+  > /opt/eshop/backups/eshop-$(date +%Y%m%d-%H%M%S).dump
+```
+
+Run Medusa from the compiled production directory. Do not use the normal
+backend heap limit of `256 MB`: it is sufficient for the HTTP runtime but caused
+the migration CLI to fail with heap OOM on this VPS.
+
+```bash
+docker compose -f compose.production.yml run --rm --no-deps \
+  -e NODE_OPTIONS=--max-old-space-size=768 \
+  --workdir /app/apps/backend/.medusa/server \
+  backend /app/node_modules/.bin/medusa db:migrate
+```
+
+The command applies module migrations, syncs Medusa links, and runs Medusa
+migration scripts. It does not start the backend HTTP server. After a successful
+run, execute the same command once more: all modules and links must report that
+the database is already up to date. Only then start the application containers
+and verify their health checks.
+
+If a migration fails, keep PostgreSQL and `eshop_postgres_data` intact, save the
+full migration and PostgreSQL logs, and fix the cause before an idempotent retry.
+Never use `docker compose down -v`, never delete the named volume, and never run
+region creation or catalog seed as an attempted migration recovery. A code/image
+rollback does not reverse an already applied database migration; restore a
+backup only after an explicit recovery decision.
+
 ## Update
 
 Before every update, create a database backup and copy it to external storage:
@@ -373,7 +432,10 @@ docker build --platform linux/amd64 \
   --build-arg NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID=<PRODUCTION_SALES_CHANNEL_ID> \
   .
 
-docker compose -f compose.production.yml run --rm backend npm run db:migrate:medusa
+docker compose -f compose.production.yml run --rm --no-deps \
+  -e NODE_OPTIONS=--max-old-space-size=768 \
+  --workdir /app/apps/backend/.medusa/server \
+  backend /app/node_modules/.bin/medusa db:migrate
 docker compose -f compose.production.yml up -d backend storefront
 ```
 

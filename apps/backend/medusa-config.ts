@@ -137,6 +137,11 @@ module.exports = defineConfig({
     databaseUrl:
       process.env.DATABASE_URL ??
       "postgres://postgres:postgres@127.0.0.1:5432/eshop",
+    databaseDriverOptions: {
+      connection: {
+        ssl: false,
+      },
+    },
     http: {
       storeCors,
       adminCors,

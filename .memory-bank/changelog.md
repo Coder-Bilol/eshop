@@ -4,6 +4,23 @@ status: active
 ---
 # Changelog
 
+## [2026-07-23] Production PostgreSQL initialized and migrated
+- Added: `DEPLOYMENT_HANDOFF.md` records the verified VPS state, migration
+  findings, safety boundaries, blocker, and exact resume sequence without
+  containing production secrets.
+- Started only the Compose `postgres` service on the VPS; backend and storefront
+  application services remain stopped.
+- Confirmed: `eshop-postgres-1` is healthy with zero restarts, accepts database
+  connections, publishes no host port, and mounts the named
+  `eshop_postgres_data` volume.
+- Applied Medusa core, custom `cartMerge`, link, and script migrations; a second
+  full migration run completed idempotently with the schema already up to date.
+- Verified: the `eshop` database contains 141 public tables; region creation and
+  catalog seed were not run.
+- Fixed locally: backend database driver configuration now explicitly disables
+  SSL for the private Compose PostgreSQL connection. The VPS backend image must
+  be rebuilt from the committed fix before the application service is started.
+
 ## [2026-07-21] VPS deployment checkpoint refreshed
 - Recorded: server checkout is clean at `c46fe46` and backend production image
   `eshop-backend:production` exists.
