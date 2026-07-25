@@ -17,7 +17,7 @@ of its values, paths, and commands are obsolete.
 ## Current Checkpoint
 
 Preparation started on 2026-07-11. The current server state was checked again on
-2026-07-23:
+2026-07-25:
 
 | Area | Current state |
 |---|---|
@@ -31,9 +31,9 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Docker Engine | `29.6.1`, enabled and active |
 | Docker Compose | `v5.3.1` |
 | Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
-| Caddy | `2.11.4`, installed but disabled/inactive |
-| Firewall | only SSH is needed now; HTTP/HTTPS remain closed |
-| Application | clean checkout at `99b92f4`; PostgreSQL is healthy and migrated; backend image rebuilt; backend and storefront services are not started |
+| Caddy | `2.11.4`, configured, enabled, and active |
+| Firewall | public zone allows SSH, HTTP, and HTTPS |
+| Application | PostgreSQL, backend, and storefront are healthy; public HTTPS storefront and backend `/health` return `200` |
 
 The current deployment treats this small VPS as the default server profile:
 1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap. Production images are
@@ -450,6 +450,36 @@ Backend image rebuild checkpoint on 2026-07-23:
 - After export the VPS had about 7.6 GB free; Docker reported about 8.9 GB of
   reclaimable build cache. Do not prune while deployment verification is active.
 
+Caddy, firewall, and public HTTPS checkpoint on 2026-07-25:
+
+- The operator explicitly approved production Caddy configuration and opening
+  HTTP/HTTPS in the host firewall.
+- The package-default Caddyfile was backed up as
+  `/etc/caddy/Caddyfile.backup-20260725-111004`.
+- `/etc/caddy/Caddyfile` routes `/store*`, `/admin*`, `/auth*`, `/app*`, and
+  `/health` to Medusa on `127.0.0.1:9000`; all remaining paths route to the
+  Next.js storefront on `127.0.0.1:3000`.
+- The candidate and installed Caddyfiles passed `caddy validate` before service
+  activation.
+- The public firewalld zone permanently allows `http` and `https`; SSH remains
+  allowed. No PostgreSQL or application host binding was widened.
+- Caddy is enabled and active. Ports `80` and `443` are public, while backend and
+  storefront remain bound only to `127.0.0.1`.
+- Let's Encrypt issued a certificate for `eshop.natureonzoom.win`, valid through
+  2026-10-23. HTTP redirects to HTTPS.
+- External checks returned `200` for the storefront root and backend `/health`.
+- PostgreSQL, backend, and storefront containers remained `healthy`; no service
+  errors were present in the Caddy journal after activation.
+
+HUMAN_CHECKPOINT: done
+
+ROLLBACK_RECOVERY_NOTE: present
+
+Recovery note: restore the timestamped Caddyfile backup and restart Caddy if the
+proxy configuration must be rolled back. Remove only `http` and `https` from the
+public firewalld zone if public access itself must be reverted; do not alter the
+Docker network, PostgreSQL container, or named volume.
+
 The committed Compose file uses images built directly on the VPS:
 
 ```text
@@ -513,19 +543,15 @@ deployment.
 
 ### Product and repository readiness
 
-1. Run the documented migration command with the rebuilt backend image and
-   confirm that the existing database is already up to date.
-2. Start the backend and verify `/health`.
-3. Configure the initial Medusa region and run the verified catalog seed.
-4. Replace the fake public Medusa values in `storefront.env` with the seed output.
-5. Rebuild the storefront image after replacing fake public Medusa values.
-6. Never run backend and storefront image builds concurrently.
-7. Start the storefront, verify backend and storefront health checks, and recheck
-   the already-running PostgreSQL health check.
-8. Verify containers do not run dev servers.
-9. Verify backend and storefront only bind to `127.0.0.1`.
-10. Verify secrets are excluded from images and Git.
-11. Verify no Redis service or `REDIS_URL` is introduced without a design change.
+1. Configure the initial Medusa region and run the verified catalog seed.
+2. Replace the fake public Medusa values in `storefront.env` with the seed output.
+3. Rebuild the storefront image after replacing fake public Medusa values.
+4. Never run backend and storefront image builds concurrently.
+5. Restart only the rebuilt storefront and recheck all health checks.
+6. Verify containers do not run dev servers.
+7. Verify backend and storefront only bind to `127.0.0.1`.
+8. Verify secrets are excluded from images and Git.
+9. Verify no Redis service or `REDIS_URL` is introduced without a design change.
 
 ### Delivery decisions
 

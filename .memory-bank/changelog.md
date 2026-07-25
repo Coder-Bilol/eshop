@@ -4,6 +4,20 @@ status: active
 ---
 # Changelog
 
+## [2026-07-25] Production Caddy, firewall, and HTTPS enabled
+- Configured host-level Caddy routing for Medusa paths and the Next.js
+  storefront; candidate and installed configurations passed validation.
+- Preserved the package-default Caddyfile as
+  `/etc/caddy/Caddyfile.backup-20260725-111004` for rollback.
+- Permanently allowed only HTTP and HTTPS in the public firewalld zone; backend
+  and storefront remain loopback-bound and PostgreSQL remains private.
+- Enabled Caddy and obtained a Let's Encrypt certificate for
+  `eshop.natureonzoom.win`, valid through 2026-10-23.
+- Verified externally: HTTP redirects to HTTPS, storefront returns `200`, backend
+  `/health` returns `200`, and all three Docker services remain healthy.
+- Remaining: region/catalog seed and real storefront public Medusa values are
+  still required before catalog behavior is production-ready.
+
 ## [2026-07-23] Production PostgreSQL initialized and migrated
 - Added: `DEPLOYMENT_HANDOFF.md` records the verified VPS state, migration
   findings, safety boundaries, blocker, and exact resume sequence without

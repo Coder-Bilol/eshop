@@ -1,18 +1,19 @@
 # Production Deployment Handoff
 
-Last verified: 2026-07-23
+Last verified: 2026-07-25
 
 ## Scope Status
 
-The PostgreSQL deployment phase is complete. The full application deployment is
-not complete.
+The infrastructure runtime is online, but the storefront is not yet
+production-ready for catalog use.
 
 - PostgreSQL is running and healthy on the production VPS.
 - Medusa migrations are applied and an idempotent second run succeeded.
 - Backend image was rebuilt successfully from revision `99b92f4`.
-- Backend and storefront application services are not running.
+- PostgreSQL, backend, and storefront services are running and healthy.
+- Caddy serves the public domain over HTTPS and redirects HTTP to HTTPS.
 - Region creation and catalog seed were not run.
-- No production application traffic is enabled yet.
+- Storefront public Medusa values are still fake placeholders.
 
 Use [DEPLOYMENT.md](DEPLOYMENT.md) as the authoritative runbook. This file is the
 current-session handoff and records the exact state from which work should
@@ -40,9 +41,22 @@ Current Docker state:
 | Compose network | `eshop_default` |
 | Database | `eshop`, accepts connections |
 | Schema | 141 public tables, including the custom `cart_merge` table |
-| Backend service | Not created or started |
-| Storefront service | Not created or started |
+| Backend service | Running and healthy on `127.0.0.1:9000` |
+| Storefront service | Running and healthy on `127.0.0.1:3000` |
 | Temporary migration containers | Removed |
+
+Public edge state:
+
+| Item | Verified state |
+|---|---|
+| Domain | `https://eshop.natureonzoom.win` |
+| Caddy | Active and enabled |
+| Firewall | Public HTTP/HTTPS enabled; PostgreSQL remains private |
+| HTTP | `308` redirect to HTTPS |
+| HTTPS storefront | External `200` |
+| HTTPS backend health | External `200` with `{"status":"ok","service":"eshop-backend"}` |
+| TLS certificate | Let's Encrypt; valid through 2026-10-23 |
+| Caddy rollback | `/etc/caddy/Caddyfile.backup-20260725-111004` |
 
 Existing application images:
 
@@ -82,6 +96,11 @@ rollback image predates that fix.
 10. Preserved the previous backend image under `eshop-backend:pre-99b92f4`.
 11. Rebuilt `eshop-backend:production` successfully through BuildKit and verified
     its image ID, platform, revision label, and completed export log.
+12. Started PostgreSQL, backend, and storefront; all three report `healthy`.
+13. Installed and validated the production Caddy reverse-proxy configuration.
+14. Permanently opened only HTTP/HTTPS in the public firewalld zone.
+15. Enabled Caddy, obtained a Let's Encrypt certificate, and verified the public
+    storefront and backend health endpoint externally.
 
 HUMAN_CHECKPOINT: done
 
@@ -144,7 +163,11 @@ backend image: sha256:89684d39af06a2d913940a5d212318fdaa9e2470aa8740de86ef9c113d
 backend platform: linux/amd64
 backend revision label: 99b92f4
 old backend image: eshop-backend:pre-99b92f4
-backend/storefront containers: not created or started
+backend/storefront containers: running and healthy
+public storefront: HTTPS 200
+public backend /health: HTTPS 200
+Caddy: active and enabled
+firewall: HTTP/HTTPS allowed
 ```
 
 Local checks passed:
@@ -158,20 +181,19 @@ git ls-files -- '*.env'  # no output
 
 ## Remaining Blockers
 
-Before starting the backend service, run the documented migration command once
-with the rebuilt image and confirm that the existing schema is already up to
-date. The backend image rebuild itself is no longer a blocker.
-
 The storefront image contains fake public Medusa values. It must be rebuilt only
 after the initial region and verified catalog seed provide real values.
 
+The database still contains zero regions and zero products. The public website
+is reachable, but catalog behavior is not production-ready until those steps are
+completed.
+
 ## Next Safe Sequence
 
-1. Run the documented migration command with the rebuilt image and confirm that
-   the database is already up to date.
-2. Start the backend only after a separate explicit deployment step.
-3. Create the initial region, run catalog seed, replace storefront public values,
-   rebuild storefront, and start it as later steps.
+1. Create the initial region and run the verified catalog seed.
+2. Replace storefront public values with the seed output.
+3. Rebuild and restart only storefront, then verify catalog behavior through the
+   public HTTPS domain.
 
 ## Safety Rules
 

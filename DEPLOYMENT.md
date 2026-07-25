@@ -51,6 +51,17 @@ https://eshop.natureonzoom.win
 Caddy routes backend paths to Medusa and all other paths to the Next.js
 storefront.
 
+Current edge status, verified on 2026-07-25:
+
+```text
+Caddy:        active and enabled
+Firewall:     HTTP and HTTPS allowed in the public zone
+HTTP:         redirects to HTTPS
+HTTPS:        public storefront returns 200
+Backend:      public /health returns 200
+Certificate:  Let's Encrypt, valid through 2026-10-23
+```
+
 ## Repository Artifacts
 
 The repository contains the production deployment artifacts:
@@ -342,6 +353,10 @@ curl -fsSI http://127.0.0.1:3000/
 ```
 
 ## Caddy, Firewall, and TLS
+
+This configuration is active on the current VPS. The original package Caddyfile
+was preserved as `/etc/caddy/Caddyfile.backup-20260725-111004` before the first
+production activation.
 
 Create `/etc/caddy/Caddyfile`:
 
