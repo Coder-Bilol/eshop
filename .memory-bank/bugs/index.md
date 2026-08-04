@@ -4,6 +4,10 @@ status: active
 ---
 # Bugs
 
+- [TASK-034 callback session](TASK-034-callback-session-gap.md): active real browser callback-to-session acceptance blocker.
+- [TASK-034 evidence sanitization](TASK-034-evidence-sanitization-gap.md): active raw callback/cart identifier evidence blocker.
+- [TASK-033 interrupted-run cleanup](TASK-033-interrupted-run-cleanup-gap.md): resolved stale temp-state and fixture recovery gap.
+- [TASK-033 session restart acceptance](TASK-033-session-restart-acceptance-gap.md): resolved real cookie/restart evidence gap.
 - [FT-003 backend acceptance fixture reproducibility](FT-003-backend-acceptance-fixture-reproducibility.md): resolved source-runtime acceptance blocker.
 - [TASK-026 browser merge handoff bypass](TASK-026-browser-merge-handoff-bypass.md): resolved browser acceptance false-success blocker.
 - [TASK-020 duplicate target variant lines](TASK-020-duplicate-target-variant-lines.md): resolved semantic blocker for same-variant target aggregation.

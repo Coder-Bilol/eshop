@@ -39,6 +39,7 @@ const { createGuestCartStateController } = require("../lib/cart-state.ts");
 
 async function run() {
   verifySanitizedCompletionSignals();
+  verifyLoginRouteIgnoresQueryInput();
   await verifyTruthfulCartReadiness();
   await verifyCompletionControllerConcurrency();
   await verifyExclusiveLoginAction();
@@ -52,6 +53,7 @@ async function run() {
         status: "ok",
         assertions: [
           "Google and VK ID login expose pending, safe failure, and retry UI",
+          "login route ignores return-path query input and passes no navigation props",
           "completion strips its URL before rendering bounded cancel/failure states",
           "session-established completion invokes the existing CartProvider merge handoff",
           "only documented merge and no-source handoffs reach readiness",
@@ -66,6 +68,18 @@ async function run() {
       2
     )}\n`
   );
+}
+
+function verifyLoginRouteIgnoresQueryInput() {
+  const LoginPage = require("../app/login/page.tsx").default;
+  const element = LoginPage({
+    searchParams: Promise.resolve({
+      return_path: "//attacker.test",
+      next: "/checkout",
+    }),
+  });
+
+  assert.deepEqual(Object.keys(element.props), []);
 }
 
 function verifySanitizedCompletionSignals() {
@@ -334,10 +348,11 @@ function verifyUiProviderBoundariesAndPrivacy() {
   const completion = read(path.join(componentRoot, "auth-completion.tsx"));
   const runner = read(path.join(__dirname, "test-runner.cjs"));
 
-  assert.match(loginPage, /normalizeReturnPath/);
-  assert.match(loginPage, /<AuthLogin returnPath=\{returnPath\}/);
+  assert.match(loginPage, /<AuthLogin \/>/);
+  assert.equal(loginPage.includes("searchParams"), false);
+  assert.equal(loginPage.includes("return_path"), false);
   assert.match(completionPage, /<AuthCompletion \/>/);
-  assert.match(login, /startLogin\(provider, returnPath\)/);
+  assert.match(login, /startLogin\(provider\)/);
   assert.match(login, /window\.location\.assign\(location\)/);
   assert.match(login, /"google"/);
   assert.match(login, /"vkid"/);

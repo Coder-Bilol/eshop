@@ -15,6 +15,88 @@ status: active
 - Recorded T3 markers: `HUMAN_CHECKPOINT: done` and
   `ROLLBACK_RECOVERY_NOTE: present`.
 
+## [2026-08-02] TASK-033 interrupted-run recovery remediation
+- Added: a private owner marker is created before acceptance database writes; bounded
+  discovery skips live owners and recovers dead-owner or legacy TASK-033 runs through
+  the existing idempotent Medusa cleanup phase.
+- Tested: acceptance writes real PostgreSQL fixtures, simulates termination before
+  `finally`, and requires a later discovery pass to remove that run before normal
+  persistence/session acceptance proceeds.
+- Recovered: the first remediated command removed the legacy state that triggered the
+  semantic concern plus the simulated interrupted run, then left no TASK-033 temp
+  owner/state files.
+- Guarded: discovery accepts only bounded lowercase TASK-033 IDs, inspects at most 20
+  run groups, treats live owners as active for at most two hours to bound PID reuse,
+  does not emit state values, and removes markers only after cleanup.
+- Verified locally: auth acceptance, backend typecheck, and Windows-native local
+  smoke pass; repeated functional and semantic verification remain required for T3
+  closure.
+- Reverified: repeated functional verification returned `VERDICT: PASS`; hostile
+  recovery review returned `SEMANTIC_VERDICT: semantic-pass` with bounded lease,
+  retry, privacy, and production-scope risks explicitly assessed.
+- Closed: the continued manual run supplied explicit standalone closure ownership;
+  TASK-033 is `done` with checkpoint and rollback/recovery evidence. REQ-010, REQ-011,
+  FT-004, and TASK-034 lifecycle/promotion remain unchanged.
+- Synced: task record, hash-matched packet R4, archived bug, protocol/evidence, and
+  changelog agree; strict doctor passes. TASK-034 is reported only as a promotion
+  candidate for its scheduler/owner.
+
+## [2026-07-31] TASK-033 real session HTTP remediation
+- Replaced: the acceptance no longer claims runtime cookie/restart proof from only an
+  in-memory session recorder and persisted DTO field scan.
+- Added: compiled real Medusa starts twice on an isolated local port; a synthetic
+  bearer for the persisted test customer creates an actual session through
+  `POST /auth/session` and captures the real `Set-Cookie` response.
+- Proved: the session cookie authenticates `/store/customers/me`, logout returns an
+  empty session cookie and rejects the prior cookie, and a second valid cookie is
+  rejected after full backend process restart while the durable Auth/Customer link
+  remains readable in a fresh Medusa process.
+- Added: a temporary publishable API key through the real API Key Module; auth,
+  customer, and key fixtures are revoked/deleted in unconditional cleanup and the
+  private temp state file is removed.
+- Corrected: provider summary now claims real HTTP session coverage only after these
+  probes pass; no session cookie, bearer, publishable key, customer ID, or email is
+  emitted to evidence.
+- Status: implementation remediation complete; historical `/verify` FAIL remains
+  authoritative until repeated `/verify TASK-033`, followed by `/red-verify` only
+  after functional PASS.
+
+## [2026-07-25] TASK-033 backend auth acceptance execute
+- Added: real Medusa/PostgreSQL auth acceptance runs synthetic Google/VK identity
+  completion through Auth/Customer modules and supported customer-account workflows.
+- Proved: first/repeat login, same-email collision, missing email, server-side session
+  save/destroy, explicit cookie/CORS policy, and durable identity/customer linkage
+  across a fresh Medusa process.
+- Added: sanitized local provider-double aggregation for invalid/replayed/expired
+  state, VK PKCE/device mismatch, callback redirect, rate limiting, failure cleanup,
+  and token non-persistence without live providers or credentials.
+- Guarded: acceptance always runs a final cleanup process and asserts no synthetic
+  identities/customers remain; output contains only coarse booleans/counts.
+- Updated: backend integration dispatcher now owns auth suites as well as existing
+  catalog/cart suites; `test:integration -- auth-acceptance` uses the real source
+  boundary while contract-only auth suites are labelled synthetic.
+- Verified locally: auth acceptance, auth-completion/VK dispatcher regressions,
+  backend typecheck, and Windows-native local smoke pass.
+- Status: `/execute` handoff complete; TASK-033 remains `ready` pending independent
+  `/verify`, per-task `/red-verify`, closure ownership, and `/mb-sync`.
+- Independent verify: `VERDICT: FAIL`. Real PostgreSQL persistence, provider-negative
+  contracts, privacy, and cleanup pass, but no real HTTP cookie/logout/restart flow is
+  exercised; the green summary is based on an in-memory recorder and JSON scan.
+- Recorded: active `TASK-033-session-restart-acceptance-gap` bug. TASK-033 remains
+  `ready` pending bounded acceptance remediation and repeated `/verify`;
+  `/red-verify` was not run because functional PASS was not reached.
+- Remediated: acceptance now exercises actual Set-Cookie, current-customer access,
+  real logout, stale-cookie rejection, full backend restart, durable-link survival,
+  API-key/Auth/Customer cleanup, and private temp-state removal.
+- Reverified: repeated `/verify TASK-033` returned `VERDICT: PASS`; the session restart
+  bug is archived. TASK-033 remains `ready` pending per-task `/red-verify`.
+- Red verification: core persistence/session/security behavior passed, but
+  `SEMANTIC_VERDICT: semantic-concern` because an interrupted prior run left private
+  temp state and normal new-run IDs cannot recover or prove stale fixture cleanup.
+- Recorded: active `TASK-033-interrupted-run-cleanup-gap`; TASK-033 remains `ready`
+  pending tested recovery or an explicit operator decision that narrows the cleanup
+  guarantee, followed by repeated verification.
+
 ## [2026-07-25] Production Caddy, firewall, and HTTPS enabled
 - Configured host-level Caddy routing for Medusa paths and the Next.js
   storefront; candidate and installed configurations passed validation.
@@ -28,6 +110,33 @@ status: active
   `/health` returns `200`, and all three Docker services remain healthy.
 - Remaining: region/catalog seed and real storefront public Medusa values are
   still required before catalog behavior is production-ready.
+
+## [2026-07-24] TASK-032 return-path semantic remediation
+- Removed: checkout return navigation is no longer duplicated in the `/login` URL;
+  guest checkout writes only normalized `/checkout` through the existing versioned
+  sessionStorage adapter and navigates to clean `/login`.
+- Changed: the login page no longer accepts `return_path` query input, and provider
+  start without an explicit path preserves existing sessionStorage state instead of
+  overwriting it with `/`.
+- Scoped: the operator approved the bounded neighboring login/auth-state test scope;
+  backend auth/provider/callback, cart merge, checkout fields, orders, inventory, and
+  payments remain unchanged.
+- Refreshed: TASK-032 and required `PACKET-TASK-032-R8` record the approved scope and
+  the session-storage-only boundary.
+- Verified locally: checkout/auth-state/auth-UI focused suites, all storefront tests,
+  typecheck, production build, Memory Bank lint, strict doctor, and diff check pass.
+- Historical status: the reported semantic concern was remediated before repeated
+  independent `/verify` and `/red-verify` verdicts.
+- Reverified: repeated functional verification returned `VERDICT: PASS`; repeated
+  hostile verification, including malicious login-query behavior, returned
+  `SEMANTIC_VERDICT: semantic-pass`.
+- Closed: the operator supplied explicit standalone closure ownership; TASK-032 is
+  `done` after repeated functional PASS, semantic-pass, checkpoint, recovery,
+  protocol, packet, and evidence gates.
+- Synced: task record, closure handoff, packet hash, and changelog are reconciled.
+  REQ-012 and FT-004 remain `planned` pending TASK-034 browser acceptance; no
+  dependent promotion was performed.
+
 
 ## [2026-07-23] Production PostgreSQL initialized and migrated
 - Added: `DEPLOYMENT_HANDOFF.md` records the verified VPS state, migration
@@ -52,6 +161,26 @@ status: active
   the current SSH path may close after about 10 minutes. No helper script was
   added, and backend/storefront application containers remain stopped.
 
+## [2026-07-23] TASK-032 checkout authentication gate execute
+- Added: `/checkout` now confirms the backend customer session, restores the current
+  backend cart, and renders continuation only after no-source/current-customer cart
+  readiness or the existing FT-003 merge handoff succeeds.
+- Guarded: guests store only the normalized `/checkout` return path and route to
+  login; foreign, unresolved, failed, and stale cart/session states fail closed.
+- Added: recoverable `merge_blocked` retry, bounded FT-006 handoff content, and an
+  explicit reminder that storefront gating never replaces backend authorization.
+- Verified locally: focused checkout state-matrix tests, full storefront tests,
+  storefront typecheck/build, and Memory Bank lint pass.
+- Verified independently: `/verify TASK-032` passed focused/full storefront tests,
+  typecheck, production build, Memory Bank lint, strict doctor, packet hash, scope,
+  and diff checks.
+- Status: functional `VERDICT: PASS`; `TASK-032` remains `ready` under T3 policy.
+- Red verification: hostile auth/cart readiness probes passed, but
+  `SEMANTIC_VERDICT: semantic-concern` because the fixed checkout return path is
+  duplicated in the login query despite the linked session-storage-only contract.
+- Next: keep `TASK-032` open pending an explicit contract decision or bounded
+  login-boundary remediation and repeated functional/semantic verification.
+
 ## [2026-07-21] VPS deployment checkpoint refreshed
 - Recorded: server checkout is clean at `c46fe46` and backend production image
   `eshop-backend:production` exists.
@@ -71,6 +200,11 @@ status: active
 - Fixed: storefront package now declares `typescript` as its own dev dependency,
   preventing Next.js from trying to install TypeScript with Yarn during the
   Docker image build.
+- Confirmed: storefront image `eshop-storefront:production` was built on VPS
+  checkout `5a47a9d`; current image ID is
+  `sha256:f3cbb5523708b96404e1d10eaa6bf089fcb391f5bf721bc1adae93edc808081a`.
+- Preserved: no project containers or database volume were started during image
+  build verification.
 
 ## [2026-07-21] TASK-031 OAuth UI and cart handoff verified
 - Added: Google/VK login and completion UI with sanitized pending, cancel, failure,

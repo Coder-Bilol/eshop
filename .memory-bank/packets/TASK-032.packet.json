@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-032-R7",
+  "packet_id": "PACKET-TASK-032-R10",
   "task_id": "TASK-032",
-  "created_at": "2026-07-21T10:04:28+03:00",
-  "source_task_hash": "sha256:dd69e95a733f28782edbc04db48c6836987c875fc1002cf4bdcab375b78cb291",
+  "created_at": "2026-07-24T19:30:21+03:00",
+  "source_task_hash": "sha256:1c1594a68d3d72906232a9c54dcde6b8d3722b8751e95077059627d956f6bdc8",
   "status": "ready",
   "tier": "T3",
   "purpose": "Enforce the buyer-facing login-before-payment boundary without implementing later checkout/payment scope.",
@@ -17,12 +17,12 @@
     "protocols": [".protocols/FT-004/plan.md", ".protocols/FT-004/decision-log.md"]
   },
   "scope": {
-    "allowed_write_scope": ["apps/storefront/app/checkout/page.tsx", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/storefront/app/checkout/page.tsx", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/src/test-runner.cjs", "apps/storefront/app/login/page.tsx", "apps/storefront/components/auth-login.tsx", "apps/storefront/lib/auth-state.ts", "apps/storefront/src/auth-state.test.cjs", "apps/storefront/src/auth-ui.test.cjs", ".memory-bank/changelog.md"],
     "forbidden_scope": ["backend authorization routes", "checkout data fields", "orders", "inventory", "payments", "external redirects"]
   },
   "verification": {
     "commands": ["npm --workspace apps/storefront run test -- checkout-auth-gate", "npm --workspace apps/storefront run typecheck", "npm --workspace apps/storefront run build", "node scripts/mb-lint.mjs"],
-    "success_checks": ["Guest routes to login with safe /checkout return path.", "Only authenticated_ready renders bounded checkout continuation.", "Merge-blocked offers retry and frontend gate is not treated as backend authorization."],
+    "success_checks": ["Guest stores the safe /checkout return path only in the versioned sessionStorage adapter and routes to /login without URL transport.", "Only authenticated_ready renders bounded checkout continuation.", "Merge-blocked offers retry and frontend gate is not treated as backend authorization."],
     "evidence_required": ["Checkout state-matrix tests.", "Return-path and merge retry assertions.", "Build, typecheck, lint, T3 human checkpoint, and recovery note."]
   },
   "stop_conditions": ["Checkout handoff cannot be separated from FT-006 fields or payment implementation.", "Auth lifecycle lacks a truthful authenticated_ready/merge_blocked distinction.", "Gate would rely on unvalidated browser flags instead of current customer state."],

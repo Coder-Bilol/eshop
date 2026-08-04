@@ -24,6 +24,7 @@ const { createAuthStateController } = require("../lib/auth-state.ts");
 async function run() {
   await verifySessionResolutionAndExpiry();
   await verifyLoginLifecycleAndSafePathHandoff();
+  await verifyLoginWithoutExplicitPathPreservesStoredState();
   await verifyConfirmedLogoutOrdering();
   await verifyExpiredSessionLogoutCompletesCleanup();
   await verifyLogoutFailurePreservesConfirmedState();
@@ -42,6 +43,7 @@ async function run() {
           "current-customer success is the only transition to session_established",
           "current-customer 401 and session expiry transition to guest",
           "provider start follows auth_starting to provider_pending with a safe path",
+          "provider start without an explicit path preserves existing sessionStorage state",
           "logout clears return path, cart reference, and customer only after session deletion",
           "logout 401 confirms session absence and completes shared-browser cleanup",
           "logout failure reports a recoverable error with the last confirmed customer/cart state",
@@ -121,6 +123,38 @@ async function verifyLoginLifecycleAndSafePathHandoff() {
     "path:/checkout",
     "state:auth_starting",
     "request:vkid",
+    "state:provider_pending",
+  ]);
+}
+
+async function verifyLoginWithoutExplicitPathPreservesStoredState() {
+  const events = [];
+  const controller = createAuthStateController({
+    client: {
+      async startProviderLogin(provider) {
+        events.push(`request:${provider}`);
+        return "https://provider.test/authorize";
+      },
+      async retrieveCurrentCustomer() {
+        throw new Error("restore should not be called");
+      },
+      async logout() {
+        throw new Error("logout should not be called");
+      },
+    },
+    clearLocalCartReference() {},
+    writeSafeReturnPath(path) {
+      events.push(`path:${path}`);
+      return path;
+    },
+  });
+  controller.subscribe((state) => events.push(`state:${state.status}`));
+
+  const location = await controller.startLogin("google");
+  assert.equal(location, "https://provider.test/authorize");
+  assert.deepEqual(events, [
+    "state:auth_starting",
+    "request:google",
     "state:provider_pending",
   ]);
 }

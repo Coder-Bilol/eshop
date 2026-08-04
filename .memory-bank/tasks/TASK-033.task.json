@@ -1,7 +1,7 @@
 {
   "id": "TASK-033",
   "title": "Verify backend auth persistence and security",
-  "status": "ready",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011"],
@@ -24,7 +24,82 @@
     "Real Medusa/PostgreSQL flow persists Google/VK provider identity, customer, and link across a fresh process query.",
     "First/repeat login, duplicate callback, same-email collision, missing email, invalid/replayed/expired state, and VK PKCE mismatch have expected atomic outcomes.",
     "Session cookie creation/destruction, CORS, callback redirect, bounded rate limit, and restart logout behavior match contracts.",
-    "Provider doubles and evidence contain no live credentials, tokens, session IDs, raw IP, customer email, or production data."
+    "Provider doubles and evidence contain no live credentials, tokens, session IDs, raw IP, customer email, or production data.",
+    {
+      "verification_decision": "functional_fail",
+      "reason": "Real Auth/Customer PostgreSQL persistence passes, but the required session-cookie creation/destruction and restart-logout behavior is not exercised: the harness uses an in-memory session recorder and JSON field-name scan while reporting runtime cookie/restart coverage.",
+      "evidence": [
+        ".protocols/TASK-033/verification.md",
+        ".tasks/TASK-033/verify-functional-gates-code-01.md",
+        ".tasks/TASK-033/TASK-033-S-VERIFY-final-report-code-01.md",
+        ".memory-bank/bugs/TASK-033-session-restart-acceptance-gap.md"
+      ],
+      "functional_verdict": "FAIL",
+      "recommended_status": "failed_or_retry",
+      "closure": "not_eligible",
+      "red_verify": "skipped_until_functional_pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "functional_pass_after_remediation",
+      "reason": "Repeated verification reproduced real Medusa HTTP Set-Cookie, authenticated current-customer access, logout invalidation, full backend restart rejection, durable Auth/Customer linkage, negative security contracts, cleanup, privacy, and all required gates.",
+      "evidence": [
+        ".protocols/TASK-033/verification.md",
+        ".tasks/TASK-033/verify-functional-gates-code-02.md",
+        ".tasks/TASK-033/TASK-033-S-VERIFY-final-report-code-02.md",
+        ".memory-bank/bugs/TASK-033-session-restart-acceptance-gap.md"
+      ],
+      "functional_verdict": "PASS",
+      "closure": "pending_red_verify",
+      "red_verify": "required_next",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "semantic_concern",
+      "reason": "Real persistence and session HTTP behavior pass, but an interrupted prior run left private TASK-033 temp state; normal runs generate a new run ID and cannot recover or prove cleanup for stale API-key/Auth/Customer fixtures, contradicting unconditional cleanup and recovery claims.",
+      "evidence": [
+        ".protocols/TASK-033/red-verification.md",
+        ".tasks/TASK-033/TASK-033-S-RED-VERIFY-final-report-docs-01.md",
+        ".memory-bank/bugs/TASK-033-interrupted-run-cleanup-gap.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-concern",
+      "closure": "pending_cleanup_recovery_remediation_or_operator_decision",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "functional_pass_after_cleanup_recovery",
+      "reason": "Repeated verification recovered the legacy interrupted run, proved a simulated post-write interruption is self-healed through real Medusa cleanup, left no temp remnants, and preserved all PostgreSQL/session/security acceptance behavior.",
+      "evidence": [
+        ".protocols/TASK-033/verification.md",
+        ".tasks/TASK-033/verify-functional-gates-code-03.md",
+        ".tasks/TASK-033/TASK-033-S-VERIFY-final-report-code-03.md",
+        ".memory-bank/bugs/TASK-033-interrupted-run-cleanup-gap.md"
+      ],
+      "functional_verdict": "PASS",
+      "closure": "pending_repeated_red_verify",
+      "red_verify": "required_next",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "semantic_pass_after_cleanup_recovery",
+      "reason": "Adversarial verification confirmed bounded dead-owner/legacy discovery, active-run exclusion, real idempotent fixture cleanup before marker removal, retry-safe failure behavior, sanitized evidence, and no production boundary drift.",
+      "evidence": [
+        ".protocols/TASK-033/red-verification.md",
+        ".tasks/TASK-033/TASK-033-S-RED-VERIFY-final-report-docs-02.md",
+        ".memory-bank/bugs/TASK-033-interrupted-run-cleanup-gap.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "closure": "done_by_explicit_standalone_owner",
+      "status_decision": "done",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Real Medusa/PostgreSQL acceptance output with redacted synthetic identifiers.", "Restart-safe identity/customer and session-ephemeral assertions.", "Security negative-case and evidence-secret scan output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

@@ -9,6 +9,8 @@
   "touched_files": [
     "apps/storefront/e2e/run-real-medusa-e2e.cjs",
     "apps/storefront/e2e/auth-provider-double.cjs",
+    "apps/storefront/components/checkout-auth-gate.tsx",
+    "apps/storefront/src/checkout-auth-gate.test.cjs",
     "apps/storefront/package.json",
     ".memory-bank/changelog.md"
   ],
@@ -24,7 +26,24 @@
     "Real browser completes Google and VK provider-double redirects into signed session and current customer state.",
     "Guest cart merges through the existing handoff before checkout; merge conflict blocks and retry recovers without losing source/session.",
     "Guest/payment gate, safe return path, callback URL cleanup, cancel/failure/replay, session expiry, and logout cleanup are buyer-visible and deterministic.",
-    "Browser storage, URL, console, network evidence, screenshots, and reports contain no token, secret, session ID, raw provider payload, customer email, or production data."
+    "Browser storage, URL, console, network evidence, screenshots, and reports contain no token, secret, session ID, raw provider payload, customer email, or production data.",
+    {
+      "verification_decision": "functional_fail",
+      "reason": "Real Google callback redirected as success but left no usable customer session; current-customer returned 401, cart merge never started, VK and downstream acceptance were not reached, and the generated backend log persisted raw callback/cart identifiers.",
+      "evidence": [
+        ".protocols/TASK-034/verification.md",
+        ".tasks/TASK-034/verify-functional-gates-code-01.md",
+        ".tasks/TASK-034/TASK-034-S-VERIFY-final-report-code-01.md",
+        ".memory-bank/bugs/TASK-034-callback-session-gap.md",
+        ".memory-bank/bugs/TASK-034-evidence-sanitization-gap.md"
+      ],
+      "functional_verdict": "FAIL",
+      "recommended_status": "failed_or_retry",
+      "closure": "not_eligible",
+      "red_verify": "skipped_until_functional_pass",
+      "human_checkpoint": "pending",
+      "rollback_recovery_note": "present"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Playwright trace/report for both provider-double paths and checkout gate.", "Cart merge success/conflict/retry and logout assertions.", "Artifact privacy/secret scan plus full storefront regression/build output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
@@ -36,7 +55,7 @@
     ".memory-bank/tasks/plans/IMPL-FT-004.md"
   ],
   "normative_inputs": [".memory-bank/contracts/auth-session-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/cart-access-security.md", ".memory-bank/testing/index.md"],
-  "constraints": ["Use real browser, storefront, Medusa, PostgreSQL, and local provider doubles.", "Use existing FT-003 cart merge endpoint and state handoff.", "Do not use live Google/VK accounts, production secrets, or production data."],
+  "constraints": ["Use real browser, storefront, Medusa, PostgreSQL, and local provider doubles.", "Use existing FT-003 cart merge endpoint and state handoff.", "Use the existing AuthStateController logout orchestration through a minimal buyer-visible checkout control.", "Do not use live Google/VK accounts, production secrets, or production data."],
   "invariants": ["Only authenticated_ready reaches checkout continuation.", "Callback and return navigation never become open redirects.", "Logout clears session and local cart reference while preserving durable backend records."],
   "verification_targets": [
     ".memory-bank/tech-specs/FT-004-oauth-login-before-payment.md#verification-targets",
@@ -49,8 +68,8 @@
   "runtime_context": {
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-034.packet.json",
-    "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/e2e/auth-provider-double.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
-    "forbidden_scope": ["production auth/cart behavior", "live providers or credentials", "production data", "checkout fields", "orders/inventory/payments"],
+    "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/e2e/auth-provider-double.cjs", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["backend auth/cart behavior", "live providers or credentials", "production data", "checkout fields", "orders/inventory/payments"],
     "stop_conditions": ["E2E cannot use real Medusa/PostgreSQL and browser boundaries.", "Provider double bypasses the production callback/session path.", "Artifacts cannot be produced without exposing secrets, tokens, session IDs, or PII."]
   }
 }

@@ -22,7 +22,7 @@
     "smoke:cart-merge-acceptance": "medusa exec ./src/scripts/smoke-cart-merge-acceptance.ts",
     "smoke:auth-config": "node -r ts-node/register ./src/scripts/smoke-auth-config.ts",
     "smoke:auth-vkid": "node -r ts-node/register ./src/scripts/smoke-auth-vkid.ts auth-vkid",
-    "test:integration": "node -r ts-node/register ./src/scripts/smoke-auth-completion.ts",
+    "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -22,11 +22,17 @@ const storefrontPort = Number(
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 const storefrontUrl = `http://127.0.0.1:${storefrontPort}`;
 const selectedSuites = selectSuites(process.argv.slice(2));
-const outputTaskId = selectedSuites.includes("cart") ? "TASK-026" : "TASK-016";
+const outputTaskId = selectedSuites.includes("auth")
+  ? "TASK-034"
+  : selectedSuites.includes("cart")
+    ? "TASK-026"
+    : "TASK-016";
 const outputDir = path.join(rootDir, ".tasks", outputTaskId, "playwright");
 const backendLogPath = path.join(outputDir, "medusa-backend.log");
 const progressLogPath = path.join(outputDir, "real-runtime-progress.log");
 const cartReferenceKey = "eshop.cart.v1";
+const authReturnPathKey = "eshop.auth.return-path.v1";
+const authProviderDoublePath = path.join(__dirname, "auth-provider-double.cjs");
 
 async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -59,13 +65,32 @@ async function main() {
       NEXT_PUBLIC_MEDUSA_BACKEND_URL: backendUrl,
       NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: publishableKey,
       NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID: seedSummary.sales_channel_id,
-      NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.includes("cart")
+      NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.some((suite) =>
+        ["auth", "cart"].includes(suite)
+      )
         ? "true"
         : "false",
+      NODE_ENV: "development",
       PORT: String(backendPort),
       AUTH_CORS: corsOrigins(),
       STORE_CORS: corsOrigins(),
       STOREFRONT_PORT: String(storefrontPort),
+      JWT_SECRET: "task034-local-jwt-secret",
+      COOKIE_SECRET: "task034-local-cookie-secret",
+      GOOGLE_AUTH_ENABLED: selectedSuites.includes("auth") ? "true" : "false",
+      GOOGLE_OAUTH_CLIENT_ID: "task034-local-google-client",
+      GOOGLE_OAUTH_CLIENT_SECRET: "task034-local-google-secret",
+      GOOGLE_OAUTH_CALLBACK_URL: `${backendUrl}/auth/customer/google/complete`,
+      VK_ID_AUTH_ENABLED: selectedSuites.includes("auth") ? "true" : "false",
+      VK_ID_CLIENT_ID: "340034",
+      VK_ID_SERVICE_TOKEN: "task034-local-vk-service-token",
+      VK_ID_CALLBACK_URL: `${backendUrl}/auth/customer/vkid/complete`,
+      ESHOP_E2E_AUTH_PROVIDER_DOUBLE: selectedSuites.includes("auth")
+        ? "true"
+        : "false",
+      NODE_OPTIONS: selectedSuites.includes("auth")
+        ? `${process.env.NODE_OPTIONS || ""} --require=${authProviderDoublePath}`.trim()
+        : process.env.NODE_OPTIONS,
     })
   );
 
@@ -76,13 +101,14 @@ async function main() {
   let traceStopped = false;
   let noKeyStatus;
   let cartEvidence = null;
+  let authEvidence = null;
   let cartContext = null;
 
   try {
     logStep("waiting for compiled Medusa health endpoint");
     await waitForHttp(`${backendUrl}/health`, 90_000);
     noKeyStatus = await verifyPublishableKeyBoundary(publishableKey);
-    if (selectedSuites.includes("cart")) {
+    if (selectedSuites.some((suite) => ["auth", "cart"].includes(suite))) {
       cartContext = await resolveCartContext(publishableKey, seedSummary);
     }
 
@@ -103,11 +129,15 @@ async function main() {
       channel: process.env.PLAYWRIGHT_CHANNEL || "msedge",
     });
     context = await browser.newContext();
-    await context.tracing.start({
-      screenshots: true,
-      snapshots: true,
-      sources: true,
-    });
+    if (!selectedSuites.includes("auth")) {
+      await context.tracing.start({
+        screenshots: true,
+        snapshots: true,
+        sources: true,
+      });
+    } else {
+      traceStopped = true;
+    }
     const page = await context.newPage();
 
     if (selectedSuites.includes("catalog")) {
@@ -119,11 +149,16 @@ async function main() {
     if (selectedSuites.includes("cart")) {
       cartEvidence = await verifyCart(page, browser, publishableKey, cartContext);
     }
+    if (selectedSuites.includes("auth")) {
+      authEvidence = await verifyAuth(browser, publishableKey, cartContext);
+    }
 
-    await context.tracing.stop({
-      path: path.join(outputDir, "real-medusa-trace.zip"),
-    });
-    traceStopped = true;
+    if (!traceStopped) {
+      await context.tracing.stop({
+        path: path.join(outputDir, "real-medusa-trace.zip"),
+      });
+      traceStopped = true;
+    }
   } catch (error) {
     const page = context?.pages().at(0);
     await page
@@ -155,7 +190,7 @@ async function main() {
     logStep("cleanup complete");
   }
 
-  writeRuntimeEvidence(noKeyStatus, publishableKey, cartEvidence);
+  writeRuntimeEvidence(noKeyStatus, publishableKey, cartEvidence, authEvidence);
   process.stdout.write(
     `${JSON.stringify(
       {
@@ -171,9 +206,15 @@ async function main() {
           withKeyStatus: 200,
         },
         cartAcceptance: cartEvidence,
+        authAcceptance: authEvidence,
         variantIdentity: "medusa-product-variant-id",
         mediaContract: "string-url",
-        trace: `.tasks/${outputTaskId}/playwright/real-medusa-trace.zip`,
+        trace: selectedSuites.includes("auth")
+          ? ["google", "vkid"].map(
+              (provider) =>
+                `.tasks/${outputTaskId}/playwright/auth-${provider}-sanitized-trace.zip`
+            )
+          : `.tasks/${outputTaskId}/playwright/real-medusa-trace.zip`,
         screenshots: screenshotPaths(selectedSuites),
         processCleanup: "ports-released",
         productionData: false,
@@ -483,6 +524,382 @@ async function verifyCart(page, browser, publishableKey, cartContext) {
     browserStorage: "reference-only",
     auth: "synthetic-medusa-emailpass-bearer-through-provider-handoff",
   };
+}
+
+async function verifyAuth(browser, publishableKey, cartContext) {
+  logStep("verifying browser auth, cart handoff, checkout gate, and logout");
+  const results = [];
+  const requestedProvider =
+    process.env.ESHOP_E2E_AUTH_PROVIDER ||
+    process.argv.slice(2).find((value) => ["google", "vkid"].includes(value));
+  const providers = ["google", "vkid"].filter(
+    (provider) => !requestedProvider || provider === requestedProvider
+  );
+  assert.ok(providers.length > 0, "Unsupported ESHOP_E2E_AUTH_PROVIDER value");
+
+  for (const provider of providers) {
+    const context = await browser.newContext();
+    context.setDefaultNavigationTimeout(120_000);
+    context.setDefaultTimeout(60_000);
+    const consoleMessages = [];
+    let sourceCartId = null;
+    let mergeAttempts = 0;
+
+    try {
+      await installAuthProviderRoutes(context);
+      const page = await context.newPage();
+      page.on("console", (message) => consoleMessages.push(message.text()));
+
+      if (provider === "google") {
+        const product = await readProductDetail(
+          "steel-telescopic-curtain-rod",
+          publishableKey
+        );
+        const variant = requiredVariant(product, "CR-STL-BLK-160-300");
+        sourceCartId = await addConfiguredVariantToCart(
+          page,
+          product,
+          variant,
+          publishableKey
+        );
+        await page.route(`${backendUrl}/store/carts/*/merge`, async (route) => {
+          if (route.request().method() !== "POST") {
+            await route.continue();
+            return;
+          }
+          mergeAttempts += 1;
+          if (mergeAttempts === 1) {
+            await route.fulfill({
+              status: 409,
+              contentType: "application/json",
+              headers: {
+                "access-control-allow-credentials": "true",
+                "access-control-allow-origin": storefrontUrl,
+              },
+              body: JSON.stringify({
+                error: { code: "cart_merge_stock_conflict" },
+              }),
+            });
+            return;
+          }
+          await route.continue();
+        });
+      }
+
+      await page.goto(`${storefrontUrl}/checkout`);
+      await waitForCleanStorefrontPath(page, "/login");
+      await assertReturnPathEnvelope(page, "/checkout");
+
+      const negativeMode = provider === "google" ? "cancel" : "failure";
+      await completeProviderAttempt(page, provider, negativeMode);
+      await waitForCleanStorefrontPath(page, "/auth/complete");
+      await visible(
+        page.getByRole("heading", {
+          name: negativeMode === "cancel" ? "Sign-in cancelled" : "Sign-in cancelled",
+        })
+      );
+      if (sourceCartId) {
+        await assertReferenceEnvelope(page, sourceCartId);
+      }
+      await page.getByRole("link", { name: "Try sign-in again" }).click();
+      await waitForCleanStorefrontPath(page, "/login");
+
+      const previousSessionCookie = (await context.cookies(backendUrl)).find(
+        (cookie) => cookie.name === "connect.sid"
+      );
+      const callback = await completeProviderAttempt(page, provider, "success");
+      if (provider === "google") {
+        await waitForCleanStorefrontPath(page, "/auth/complete");
+        await page.waitForTimeout(3_000);
+        const observation = await page.evaluate(() => ({
+          completionState: document
+            .querySelector("[data-auth-completion-state]")
+            ?.getAttribute("data-auth-completion-state"),
+          path: location.pathname,
+        }));
+        const sessionRequest = page.waitForRequest(
+          (request) => request.url() === `${backendUrl}/store/customers/me`,
+          { timeout: 10_000 }
+        );
+        const sessionProbe = await browserStoreRequest(page, {
+          path: "/store/customers/me",
+          method: "GET",
+          publishableKey,
+        });
+        const sessionHeaders = await (await sessionRequest).allHeaders();
+        const sessionCookie = (await context.cookies(backendUrl)).find(
+          (cookie) => cookie.name === "connect.sid"
+        );
+        logStep(
+          `google completion observation path=${observation.path} state=${observation.completionState || "none"} callback=${callback.status} set_cookie=${callback.setCookie} browser_cookie=${Boolean(sessionCookie)} cookie_changed=${Boolean(sessionCookie && sessionCookie.value !== previousSessionCookie?.value)} cookie_sent=${Boolean(sessionHeaders.cookie)} cookie_secure=${sessionCookie?.secure ?? "none"} session=${sessionProbe.status} merge_attempts=${mergeAttempts}`
+        );
+        await page.waitForFunction(
+          () => {
+            const completion = document.querySelector("[data-auth-completion-state]");
+            return (
+              completion?.getAttribute("data-auth-completion-state") ===
+              "merge_blocked"
+            );
+          },
+          undefined,
+          { timeout: 30_000 }
+        );
+        await visible(page.getByRole("heading", { name: "Cart needs another attempt" }));
+        assert.equal(mergeAttempts, 1);
+        await assertReferenceEnvelope(page, sourceCartId);
+        assert.equal(
+          (await browserStoreRequest(page, {
+            path: "/store/customers/me",
+            method: "GET",
+            publishableKey,
+          })).status,
+          200
+        );
+        await page.getByRole("button", { name: "Retry cart merge" }).click();
+      }
+
+      await waitForCleanStorefrontPath(page, "/checkout");
+      await visible(page.locator('[data-checkout-continuation="ft-006-handoff"]'));
+      const current = await browserStoreRequest(page, {
+        path: "/store/customers/me",
+        method: "GET",
+        publishableKey,
+      });
+      assert.equal(current.status, 200);
+      assert.match(current.body.customer?.id || "", /^cus_/);
+      await assertReturnPathAbsent(page);
+
+      if (sourceCartId) {
+        assert.equal(mergeAttempts, 2);
+        const reference = await readBrowserCartReference(page);
+        assert.match(reference?.cart_id || "", /^cart_/);
+        const mergedCart = await readStoreCart(reference.cart_id, publishableKey);
+        assert.equal(mergedCart.customer_id, current.body.customer.id);
+      }
+
+      await page.goto(callback.url);
+      await waitForCleanStorefrontPath(page, "/auth/complete");
+      await visible(page.getByRole("heading", { name: "Sign-in cancelled" }));
+      await page.goto(`${storefrontUrl}/checkout`);
+      await waitForCleanStorefrontPath(page, "/checkout");
+      await visible(page.locator('[data-checkout-continuation="ft-006-handoff"]'));
+
+      if (provider === "google") {
+        const expired = await browserStoreRequest(page, {
+          path: "/auth/session",
+          method: "DELETE",
+          publishableKey,
+        });
+        assert.equal(expired.status, 200);
+        await page.goto(`${storefrontUrl}/checkout`);
+        await waitForCleanStorefrontPath(page, "/login");
+        assert.ok(await readBrowserCartReference(page));
+        await completeProviderAttempt(page, provider, "success");
+        await waitForCleanStorefrontPath(page, "/checkout");
+        await visible(page.locator('[data-checkout-continuation="ft-006-handoff"]'));
+      }
+
+      await assertBrowserStoragePrivacy(page);
+      await context.tracing.start({
+        screenshots: true,
+        snapshots: true,
+        sources: false,
+      });
+      await page.screenshot({
+        path: path.join(outputDir, `auth-${provider}-checkout.png`),
+        fullPage: true,
+      });
+      await context.tracing.stop({
+        path: path.join(outputDir, `auth-${provider}-sanitized-trace.zip`),
+      });
+
+      await page.getByRole("button", { name: "Log out" }).click();
+      await waitForCleanStorefrontPath(page, "/login");
+      assert.equal(
+        (await browserStoreRequest(page, {
+          path: "/store/customers/me",
+          method: "GET",
+          publishableKey,
+        })).status,
+        401
+      );
+      assert.equal(await readBrowserCartReference(page), null);
+      await assertReturnPathAbsent(page);
+      assertEvidencePrivacy(consoleMessages.join("\n"));
+
+      results.push({
+        provider,
+        callbackCleanup: true,
+        checkoutGate: true,
+        mergeConflictRetry: provider === "google",
+        replayRejected: true,
+        sessionExpiry: provider === "google",
+        logoutCleanup: true,
+      });
+    } finally {
+      await context.close().catch(() => {});
+    }
+  }
+
+  return {
+    status: "ok",
+    providers: results,
+    browserStorage: "cart-reference-and-safe-return-path-only",
+    providerNetwork: "local-double-only",
+    artifactPrivacy: "sanitized-post-callback-traces",
+  };
+}
+
+async function installAuthProviderRoutes(context) {
+  for (const [provider, pattern] of [
+    ["google", "https://accounts.google.com/o/oauth2/v2/auth**"],
+    ["vkid", "https://id.vk.com/authorize**"],
+  ]) {
+    await context.route(pattern, async (route) => {
+      const authorization = new URL(route.request().url());
+      const callback = authorization.searchParams.get("redirect_uri");
+      const state = authorization.searchParams.get("state");
+      assert.equal(
+        callback,
+        `${backendUrl}/auth/customer/${provider}/complete`
+      );
+      assert.ok(state);
+
+      const success = new URL(callback);
+      success.searchParams.set("code", `task034-${provider}-success`);
+      success.searchParams.set("state", state);
+      if (provider === "vkid") success.searchParams.set("device_id", "task034-device");
+
+      const failure = new URL(callback);
+      failure.searchParams.set("code", `task034-${provider}-failure`);
+      failure.searchParams.set("state", state);
+      if (provider === "vkid") failure.searchParams.set("device_id", "task034-device");
+
+      const cancel = new URL(callback);
+      cancel.searchParams.set("error", "access_denied");
+      cancel.searchParams.set("state", state);
+
+      await route.fulfill({
+        status: 200,
+        contentType: "text/html",
+        body: providerPage(provider, {
+          cancel: cancel.toString(),
+          failure: failure.toString(),
+          success: success.toString(),
+        }),
+      });
+    });
+  }
+}
+
+function providerPage(provider, destinations) {
+  const label = provider === "google" ? "Google" : "VK ID";
+  return `<!doctype html><html><body><main><h1>${label} local provider</h1>
+    <button id="approve">Continue</button><button id="cancel">Cancel</button>
+    <button id="fail">Fail safely</button></main><script>
+    const destinations = ${JSON.stringify(destinations)};
+    document.querySelector('#approve').onclick = () => location.assign(destinations.success);
+    document.querySelector('#cancel').onclick = () => location.assign(destinations.cancel);
+    document.querySelector('#fail').onclick = () => location.assign(destinations.failure);
+    </script></body></html>`;
+}
+
+async function completeProviderAttempt(page, provider, mode) {
+  await page
+    .getByRole("button", { name: provider === "google" ? "Google" : "VK ID" })
+    .click();
+  await page.waitForURL(
+    (url) =>
+      url.origin === (provider === "google" ? "https://accounts.google.com" : "https://id.vk.com"),
+    { timeout: 20_000 }
+  );
+  const authorization = new URL(page.url());
+  const callback = new URL(authorization.searchParams.get("redirect_uri"));
+  callback.searchParams.set(
+    mode === "cancel" ? "error" : "code",
+    mode === "cancel" ? "access_denied" : `task034-${provider}-${mode}`
+  );
+  callback.searchParams.set("state", authorization.searchParams.get("state"));
+  if (provider === "vkid" && mode !== "cancel") {
+    callback.searchParams.set("device_id", "task034-device");
+  }
+  const callbackResponse = page.waitForResponse(
+    (response) => {
+      const url = new URL(response.url());
+      return (
+        url.origin === backendUrl &&
+        url.pathname === `/auth/customer/${provider}/complete`
+      );
+    },
+    { timeout: 30_000 }
+  );
+  await page
+    .getByRole("button", {
+      name: mode === "success" ? "Continue" : mode === "cancel" ? "Cancel" : "Fail safely",
+    })
+    .click();
+  const response = await callbackResponse;
+  const headers = await response.allHeaders();
+  return {
+    url: callback.toString(),
+    status: response.status(),
+    setCookie: Object.hasOwn(headers, "set-cookie"),
+  };
+}
+
+async function waitForCleanStorefrontPath(page, pathname) {
+  await page.waitForURL(
+    (url) =>
+      url.origin === storefrontUrl &&
+      url.pathname === pathname &&
+      url.search === "" &&
+      url.hash === "",
+    { timeout: 30_000 }
+  );
+}
+
+async function assertReturnPathEnvelope(page, expectedPath) {
+  const value = await page.evaluate((key) => {
+    const raw = sessionStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  }, authReturnPathKey);
+  assert.deepEqual(value, { version: 1, path: expectedPath });
+}
+
+async function assertReturnPathAbsent(page) {
+  assert.equal(
+    await page.evaluate((key) => sessionStorage.getItem(key), authReturnPathKey),
+    null
+  );
+}
+
+async function readBrowserCartReference(page) {
+  return page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  }, cartReferenceKey);
+}
+
+async function assertBrowserStoragePrivacy(page) {
+  const storage = await page.evaluate(() => ({
+    local: Object.fromEntries(Object.entries(localStorage)),
+    session: Object.fromEntries(Object.entries(sessionStorage)),
+  }));
+  assertEvidencePrivacy(JSON.stringify(storage));
+  assert.equal(
+    Object.keys(storage.local).every((key) => key === cartReferenceKey),
+    true
+  );
+  assert.deepEqual(Object.keys(storage.session), []);
+}
+
+function assertEvidencePrivacy(value) {
+  assert.equal(
+    /(?:access[_-]?token|refresh[_-]?token|id[_-]?token|client[_-]?secret|service[_-]?token|connect\.sid|@example\.test)/i.test(
+      value
+    ),
+    false
+  );
 }
 
 async function verifyPublishableKeyBoundary(publishableKey) {
@@ -888,8 +1305,14 @@ function startBackend() {
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   });
-  child.stdout.pipe(log);
-  child.stderr.pipe(log);
+  if (selectedSuites.includes("auth")) {
+    log.write("backend_output=suppressed_for_task034_privacy\n");
+    child.stdout.resume();
+    child.stderr.resume();
+  } else {
+    child.stdout.pipe(log);
+    child.stderr.pipe(log);
+  }
   child.once("exit", (code) => {
     log.end(`[exit] code=${code}\n`);
   });
@@ -978,12 +1401,17 @@ async function stopChild(child) {
 }
 
 function selectSuites(args) {
-  const supported = ["catalog", "product-detail", "cart"];
+  const supported = ["catalog", "product-detail", "cart", "auth"];
   const selected = args.filter((arg) => supported.includes(arg));
   return selected.length > 0 ? Array.from(new Set(selected)) : ["catalog", "product-detail"];
 }
 
-function writeRuntimeEvidence(noKeyStatus, publishableKey, cartEvidence) {
+function writeRuntimeEvidence(
+  noKeyStatus,
+  publishableKey,
+  cartEvidence,
+  authEvidence
+) {
   fs.writeFileSync(
     path.join(outputDir, "real-runtime.log"),
     [
@@ -1001,6 +1429,9 @@ function writeRuntimeEvidence(noKeyStatus, publishableKey, cartEvidence) {
       `durable_cart_persistence=${cartEvidence ? "true" : "false"}`,
       `cart_acceptance=${cartEvidence ? cartEvidence.status : "not-run"}`,
       `synthetic_auth=${cartEvidence ? cartEvidence.auth : "not-run"}`,
+      `browser_auth_acceptance=${authEvidence ? authEvidence.status : "not-run"}`,
+      `provider_network=${authEvidence ? authEvidence.providerNetwork : "not-run"}`,
+      `artifact_privacy=${authEvidence ? authEvidence.artifactPrivacy : "not-run"}`,
       "",
     ].join("\n"),
     "utf8"
@@ -1016,6 +1447,12 @@ function screenshotPaths(suites) {
         "cart-auth-merge.png",
         "cart-replay.png",
       ].map((file) => `.tasks/${outputTaskId}/playwright/${file}`);
+    }
+    if (suite === "auth") {
+      return ["google", "vkid"].map(
+        (provider) =>
+          `.tasks/${outputTaskId}/playwright/auth-${provider}-checkout.png`
+      );
     }
     return [`.tasks/${outputTaskId}/playwright/${suite}.png`];
   });

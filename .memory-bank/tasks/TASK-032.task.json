@@ -1,7 +1,7 @@
 {
   "id": "TASK-032",
   "title": "Gate checkout on authenticated ready state",
-  "status": "ready",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-004",
   "reqs": ["REQ-012"],
@@ -11,6 +11,11 @@
     "apps/storefront/components/checkout-auth-gate.tsx",
     "apps/storefront/src/checkout-auth-gate.test.cjs",
     "apps/storefront/src/test-runner.cjs",
+    "apps/storefront/app/login/page.tsx",
+    "apps/storefront/components/auth-login.tsx",
+    "apps/storefront/lib/auth-state.ts",
+    "apps/storefront/src/auth-state.test.cjs",
+    "apps/storefront/src/auth-ui.test.cjs",
     ".memory-bank/changelog.md"
   ],
   "tier": "T3",
@@ -24,7 +29,74 @@
     "Guest checkout stores only safe /checkout return path and routes to login.",
     "Every state except authenticated_ready blocks checkout continuation; merge_blocked offers merge retry.",
     "Authenticated ready consumes the return path and renders only a bounded FT-006 checkout handoff, not payment behavior.",
-    "Gate documentation/test explicitly preserves later backend customer authorization requirement."
+    "Gate documentation/test explicitly preserves later backend customer authorization requirement.",
+    {
+      "verification_decision": "functional_pass",
+      "reason": "Independent manual verification confirmed the fail-closed checkout auth/cart gate, safe return path, merge retry, bounded FT-006 handoff, backend-authorization boundary, required gates, and scope compliance.",
+      "evidence": [
+        ".protocols/TASK-032/verification.md",
+        ".tasks/TASK-032/verify-functional-gates-code-01.md",
+        ".tasks/TASK-032/TASK-032-S-VERIFY-final-report-code-01.md"
+      ],
+      "functional_verdict": "PASS",
+      "closure": "pending_red_verify",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "semantic_concern",
+      "reason": "The checkout gate passes hostile auth/cart readiness probes, but it transports the fixed return path in the login URL despite the linked security contract requiring storefront return-path state to remain in sessionStorage only.",
+      "evidence": [
+        ".protocols/TASK-032/red-verification.md",
+        ".tasks/TASK-032/TASK-032-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "semantic_verdict": "semantic-concern",
+      "closure": "pending_contract_decision_or_remediation",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "functional_pass_after_remediation",
+      "reason": "Repeated manual verification confirmed the sessionStorage-only return-path remediation, clean /login navigation, preserved explicit-path controller behavior, checkout readiness semantics, required gates, refreshed scope, and forbidden-scope compliance.",
+      "evidence": [
+        ".protocols/TASK-032/verification.md",
+        ".tasks/TASK-032/verify-functional-gates-code-02.md",
+        ".tasks/TASK-032/TASK-032-S-VERIFY-final-report-code-02.md"
+      ],
+      "functional_verdict": "PASS",
+      "closure": "pending_repeated_red_verify",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "semantic_pass_after_remediation",
+      "reason": "Repeated adversarial verification confirmed that the historical return-path trust-boundary drift is removed: checkout uses clean /login, the login route ignores hostile query navigation input, sessionStorage is the only return-path source, and auth/cart/backend-authorization boundaries remain fail closed.",
+      "evidence": [
+        ".protocols/TASK-032/red-verification.md",
+        ".tasks/TASK-032/TASK-032-S-RED-VERIFY-final-report-docs-02.md"
+      ],
+      "semantic_verdict": "semantic-pass",
+      "closure": "eligible_for_explicit_t3_closure",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "closure_decision": "done",
+      "owner": "explicit standalone operator instruction",
+      "reason": "TASK-032 passed repeated functional and adversarial verification after the sessionStorage-only return-path remediation and satisfies all T3 checkpoint, recovery, packet, protocol, and evidence gates.",
+      "evidence": [
+        ".protocols/TASK-032/verification.md",
+        ".protocols/TASK-032/red-verification.md",
+        ".tasks/TASK-032/TASK-032-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-032/TASK-032-S-RED-VERIFY-final-report-docs-02.md",
+        ".tasks/TASK-032/TASK-032-S-MB-SYNC-final-report-docs-01.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "closed_on": "2026-07-24"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Checkout gate state-matrix test output.", "Safe return path and merge-blocked retry assertions.", "Storefront build/typecheck output.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],
@@ -35,7 +107,7 @@
     ".memory-bank/tasks/plans/IMPL-FT-004.md"
   ],
   "normative_inputs": [".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/auth-session-security.md", ".memory-bank/contracts/api-guidelines.md"],
-  "constraints": ["Only authenticated_ready may render checkout continuation.", "Create no checkout fields, order, inventory, or payment behavior.", "Frontend gate never replaces backend actor authorization."],
+  "constraints": ["Only authenticated_ready may render checkout continuation.", "Create no checkout fields, order, inventory, or payment behavior.", "Frontend gate never replaces backend actor authorization.", "Return path remains only in the versioned sessionStorage adapter; an absent explicit login return path must preserve existing stored state instead of overwriting it."],
   "invariants": ["Guest cannot proceed to checkout/payment continuation.", "Unresolved cart merge blocks continuation without logging customer out.", "Unsafe return path never controls navigation."],
   "verification_targets": [
     ".memory-bank/states/customer-auth-session.md#checkout-gate",
@@ -48,7 +120,7 @@
   "runtime_context": {
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-032.packet.json",
-    "allowed_write_scope": ["apps/storefront/app/checkout/page.tsx", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/storefront/app/checkout/page.tsx", "apps/storefront/components/checkout-auth-gate.tsx", "apps/storefront/src/checkout-auth-gate.test.cjs", "apps/storefront/src/test-runner.cjs", "apps/storefront/app/login/page.tsx", "apps/storefront/components/auth-login.tsx", "apps/storefront/lib/auth-state.ts", "apps/storefront/src/auth-state.test.cjs", "apps/storefront/src/auth-ui.test.cjs", ".memory-bank/changelog.md"],
     "forbidden_scope": ["backend authorization routes", "checkout data fields", "orders", "inventory", "payments", "external redirects"],
     "stop_conditions": ["Checkout handoff cannot be separated from FT-006 fields or payment implementation.", "Auth lifecycle lacks a truthful authenticated_ready/merge_blocked distinction.", "Gate would rely on unvalidated browser flags instead of current customer state."]
   }

@@ -9,6 +9,7 @@ const suites = {
   "cart-merge": path.join(__dirname, "cart-merge.test.cjs"),
   "cart-state": path.join(__dirname, "cart-state.test.cjs"),
   "cart-view": path.join(__dirname, "cart-view.test.cjs"),
+  "checkout-auth-gate": path.join(__dirname, "checkout-auth-gate.test.cjs"),
   "product-detail": path.join(__dirname, "product-detail.test.cjs"),
 };
 

@@ -4,10 +4,6 @@ import { useState } from "react";
 import type { AuthClientErrorCode, CustomerAuthProvider } from "../lib/auth";
 import { useAuth } from "./auth-provider";
 
-type AuthLoginProps = {
-  returnPath?: string;
-};
-
 const AUTH_FAILURE_MESSAGES: Partial<Record<AuthClientErrorCode, string>> = {
   auth_rate_limited: "Too many sign-in attempts. Wait a moment and try again.",
   auth_network_error: "The sign-in service could not be reached. Try again.",
@@ -41,7 +37,7 @@ export function safeAuthFailureMessage(code?: AuthClientErrorCode) {
   );
 }
 
-export function AuthLogin({ returnPath = "/" }: AuthLoginProps) {
+export function AuthLogin() {
   const { state, startLogin } = useAuth();
   const [activeProvider, setActiveProvider] = useState<CustomerAuthProvider | null>(
     null
@@ -61,7 +57,7 @@ export function AuthLogin({ returnPath = "/" }: AuthLoginProps) {
       setActiveProvider(provider);
       setNavigationFailed(false);
       try {
-        const location = await startLogin(provider, returnPath);
+        const location = await startLogin(provider);
         window.location.assign(location);
       } catch {
         setActiveProvider(null);

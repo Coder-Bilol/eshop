@@ -73,10 +73,12 @@ export function createAuthStateController(
 
   async function startLogin(
     provider: CustomerAuthProvider,
-    returnPath: unknown = "/"
+    returnPath?: unknown
   ) {
     const operation = ++operationSequence;
-    storeReturnPath(returnPath);
+    if (returnPath !== undefined) {
+      storeReturnPath(returnPath);
+    }
     emit({ status: "auth_starting", customer: state.customer, error: null });
 
     try {
