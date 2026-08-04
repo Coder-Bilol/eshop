@@ -246,11 +246,9 @@ async function runAuthCompletionContract() {
   assert.equal(createCount, 2);
 
   let savedContext: unknown;
-  const session = {
+  let staleSessionSaved = false;
+  const regeneratedSession = {
     auth_context: undefined,
-    regenerate(callback: (error?: unknown) => void) {
-      callback();
-    },
     save(callback: (error?: unknown) => void) {
       savedContext = this.auth_context;
       callback();
@@ -258,13 +256,34 @@ async function runAuthCompletionContract() {
     destroy(callback: (error?: unknown) => void) {
       callback();
     },
+    regenerate(callback: (error?: unknown) => void) {
+      callback();
+    },
+  };
+  const sessionRequest: { session: typeof regeneratedSession } = {
+    session: {
+      auth_context: undefined,
+      regenerate(callback: (error?: unknown) => void) {
+        sessionRequest.session = regeneratedSession;
+        callback();
+      },
+      save(callback: (error?: unknown) => void) {
+        staleSessionSaved = true;
+        callback();
+      },
+      destroy(callback: (error?: unknown) => void) {
+        callback();
+      },
+    },
   };
   await establishCustomerSession(
-    session,
+    () => sessionRequest.session,
     "google",
     first.authIdentity,
     first.customer
   );
+  assert.equal(staleSessionSaved, false);
+  assert.equal(sessionRequest.session, regeneratedSession);
   assert.deepEqual(savedContext, {
     actor_id: first.customer.id,
     actor_type: "customer",
@@ -286,7 +305,7 @@ async function runAuthCompletionContract() {
           ...dependencies,
           establishSession: (completion) =>
             establishCustomerSession(
-              {
+              () => ({
                 auth_context: undefined,
                 regenerate(callback) {
                   callback();
@@ -299,7 +318,7 @@ async function runAuthCompletionContract() {
                 destroy(callback) {
                   callback();
                 },
-              },
+              }),
               "google",
               completion.authIdentity,
               completion.customer
@@ -347,7 +366,7 @@ async function runAuthCompletionContract() {
           establishSession: (completion) => {
             failedCustomerId = completion.customer.id;
             return establishCustomerSession(
-              failedSession,
+              () => failedSession,
               "google",
               completion.authIdentity,
               completion.customer
@@ -496,7 +515,7 @@ async function runAuthCompletionContract() {
       raceSessionAttempts += 1;
       const attempt = raceSessionAttempts;
       await establishCustomerSession(
-        {
+        () => ({
           auth_context: undefined,
           regenerate(callback) {
             callback();
@@ -515,7 +534,7 @@ async function runAuthCompletionContract() {
           destroy(callback) {
             callback();
           },
-        },
+        }),
         "google",
         completion.authIdentity,
         completion.customer

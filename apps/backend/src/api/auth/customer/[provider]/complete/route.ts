@@ -120,7 +120,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
         },
         establishSession: (completion) =>
           establishCustomerSession(
-            req.session,
+            () => req.session,
             provider,
             completion.authIdentity,
             completion.customer

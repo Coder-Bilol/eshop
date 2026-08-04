@@ -212,18 +212,28 @@ const sessionOperation = (
   });
 
 export const establishCustomerSession = async (
-  session: CustomerSession | undefined,
+  getSession: () => CustomerSession | undefined,
   provider: CustomerAuthProvider,
   authIdentity: AuthIdentityDTO,
   customer: CustomerDTO
 ) => {
+  let session = getSession();
+
   if (!session) {
     throw new CustomerAuthCompletionError("auth_session_failed");
   }
 
   try {
-    await sessionOperation((callback) => session.regenerate(callback));
-    session.auth_context = {
+    const sessionBeforeRegeneration = session;
+    await sessionOperation((callback) =>
+      sessionBeforeRegeneration.regenerate(callback)
+    );
+    const regeneratedSession = getSession();
+    if (!regeneratedSession) {
+      throw new Error("Regenerated customer session is unavailable.");
+    }
+    session = regeneratedSession;
+    regeneratedSession.auth_context = {
       actor_id: customer.id,
       actor_type: "customer",
       auth_identity_id: authIdentity.id,
@@ -231,13 +241,16 @@ export const establishCustomerSession = async (
       app_metadata: { customer_id: customer.id },
       user_metadata: {},
     };
-    await sessionOperation((callback) => session.save(callback));
+    await sessionOperation((callback) => regeneratedSession.save(callback));
   } catch {
-    delete session.auth_context;
-    try {
-      await sessionOperation((callback) => session.destroy(callback));
-    } catch {
-      // The response still fails closed; no callback or token data is exposed.
+    if (session) {
+      const cleanupSession = session;
+      delete cleanupSession.auth_context;
+      try {
+        await sessionOperation((callback) => cleanupSession.destroy(callback));
+      } catch {
+        // The response still fails closed; no callback or token data is exposed.
+      }
     }
     throw new CustomerAuthCompletionError("auth_session_failed");
   }

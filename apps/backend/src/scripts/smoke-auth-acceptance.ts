@@ -345,7 +345,7 @@ async function completeFixture(
       },
       establishSession: (completion) =>
         establishCustomerSession(
-          session,
+          () => session,
           fixtureValue.provider,
           completion.authIdentity,
           completion.customer

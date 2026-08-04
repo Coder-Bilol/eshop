@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-08-04] OAuth regenerated-session remediation
+- Fixed: customer OAuth completion reacquires the active Express session after
+  `regenerate()` before writing and saving Medusa customer `auth_context`.
+- Added: the auth-completion regression replaces the session object during
+  regeneration and proves the stale object is never saved.
+- Deployment remains in progress; TASK-034 stays open until the production image
+  and real browser current-customer boundary are verified.
+
 ## [2026-08-04] Production OAuth callback routing corrected
 - Fixed: Caddy now routes the storefront-owned `/auth/complete` page to Next.js
   before the general Medusa `/auth*` handler.

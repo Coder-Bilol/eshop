@@ -40,6 +40,15 @@ current-customer request returns `401`.
   boundary, then continue cart merge, checkout, replay, expiry, and logout checks.
 - Repeat `/verify TASK-034`; run `/red-verify TASK-034` only after functional PASS.
 
+## Remediation Status
+
+- Repository remediation now reacquires `req.session` after `regenerate()` before
+  writing and saving customer `auth_context`.
+- A focused regression simulates Express replacing the session object and rejects
+  any save through the stale object.
+- This bug remains active until the corrected backend is deployed and the real
+  browser callback/current-customer boundary is repeated successfully.
+
 ## Root Cause
 
 - Coarse browser diagnostics prove the callback returns `302` with Set-Cookie, the
