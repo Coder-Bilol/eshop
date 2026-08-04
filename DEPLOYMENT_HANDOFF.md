@@ -1,6 +1,6 @@
 # Production Deployment Handoff
 
-Last verified: 2026-07-25
+Last verified: 2026-08-04
 
 ## Scope Status
 
@@ -12,6 +12,8 @@ production-ready for catalog use.
 - Backend image was rebuilt successfully from revision `99b92f4`.
 - PostgreSQL, backend, and storefront services are running and healthy.
 - Caddy serves the public domain over HTTPS and redirects HTTP to HTTPS.
+- Caddy routes storefront OAuth completion `/auth/complete` to Next.js before
+  the general Medusa `/auth*` handler.
 - Region creation and catalog seed were not run.
 - Storefront public Medusa values are still fake placeholders.
 
@@ -55,8 +57,9 @@ Public edge state:
 | HTTP | `308` redirect to HTTPS |
 | HTTPS storefront | External `200` |
 | HTTPS backend health | External `200` with `{"status":"ok","service":"eshop-backend"}` |
+| OAuth completion page | External `200` from storefront |
 | TLS certificate | Let's Encrypt; valid through 2026-10-23 |
-| Caddy rollback | `/etc/caddy/Caddyfile.backup-20260725-111004` |
+| Caddy rollback | `/etc/caddy/Caddyfile.backup-20260804-071458` for the OAuth route correction |
 
 Existing application images:
 
@@ -101,6 +104,8 @@ rollback image predates that fix.
 14. Permanently opened only HTTP/HTTPS in the public firewalld zone.
 15. Enabled Caddy, obtained a Let's Encrypt certificate, and verified the public
     storefront and backend health endpoint externally.
+16. Corrected `/auth/complete` routing from backend to storefront, validated and
+    reloaded Caddy, and verified the public callback returns `200`.
 
 HUMAN_CHECKPOINT: done
 
@@ -166,6 +171,7 @@ old backend image: eshop-backend:pre-99b92f4
 backend/storefront containers: running and healthy
 public storefront: HTTPS 200
 public backend /health: HTTPS 200
+public storefront /auth/complete: HTTPS 200
 Caddy: active and enabled
 firewall: HTTP/HTTPS allowed
 ```

@@ -4,6 +4,17 @@ status: active
 ---
 # Changelog
 
+## [2026-08-04] Production OAuth callback routing corrected
+- Fixed: Caddy now routes the storefront-owned `/auth/complete` page to Next.js
+  before the general Medusa `/auth*` handler.
+- Preserved: the replaced configuration is available at
+  `/etc/caddy/Caddyfile.backup-20260804-071458` for route-only rollback.
+- Verified: candidate and installed Caddyfiles are valid; reload succeeded;
+  public callback, storefront root, and backend `/health` return `200`; Caddy
+  remains active with no reload errors and no Docker service was restarted.
+- Recorded T3 markers: `HUMAN_CHECKPOINT: done` and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+
 ## [2026-07-25] Production Caddy, firewall, and HTTPS enabled
 - Configured host-level Caddy routing for Medusa paths and the Next.js
   storefront; candidate and installed configurations passed validation.

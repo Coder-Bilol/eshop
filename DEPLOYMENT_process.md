@@ -17,7 +17,7 @@ of its values, paths, and commands are obsolete.
 ## Current Checkpoint
 
 Preparation started on 2026-07-11. The current server state was checked again on
-2026-07-25:
+2026-08-04:
 
 | Area | Current state |
 |---|---|
@@ -33,7 +33,7 @@ Preparation started on 2026-07-11. The current server state was checked again on
 | Build monitoring | `sysstat` enabled; `sysstat-collect.timer` active |
 | Caddy | `2.11.4`, configured, enabled, and active |
 | Firewall | public zone allows SSH, HTTP, and HTTPS |
-| Application | PostgreSQL, backend, and storefront are healthy; public HTTPS storefront and backend `/health` return `200` |
+| Application | PostgreSQL, backend, and storefront are healthy; public HTTPS storefront, backend `/health`, and storefront `/auth/complete` return `200` |
 
 The current deployment treats this small VPS as the default server profile:
 1 vCPU, about 1.7 GiB RAM, 30 GB disk, and 2.0 GiB swap. Production images are
@@ -479,6 +479,28 @@ Recovery note: restore the timestamped Caddyfile backup and restart Caddy if the
 proxy configuration must be rolled back. Remove only `http` and `https` from the
 public firewalld zone if public access itself must be reverted; do not alter the
 Docker network, PostgreSQL container, or named volume.
+
+OAuth callback routing correction on 2026-08-04:
+
+- A successful Google OAuth return reached
+  `/auth/complete?provider=google&status=success`, but the original `/auth*`
+  matcher sent it to Medusa and returned `404`.
+- Added an exact `/auth/complete` handler to the Next.js storefront before the
+  general Medusa `/auth*` route.
+- Preserved the previous live configuration as
+  `/etc/caddy/Caddyfile.backup-20260804-071458`.
+- The candidate and installed configurations passed `caddy validate`; Caddy was
+  reloaded without restarting Docker containers.
+- External checks returned `200` for `/auth/complete`, the storefront root, and
+  backend `/health`; Caddy remained active and its journal had no reload errors.
+
+HUMAN_CHECKPOINT: done
+
+ROLLBACK_RECOVERY_NOTE: present
+
+Recovery note: restore `/etc/caddy/Caddyfile.backup-20260804-071458` to
+`/etc/caddy/Caddyfile`, validate it, and reload Caddy to revert only this route
+correction. This does not require changing or restarting Docker services.
 
 The committed Compose file uses images built directly on the VPS:
 

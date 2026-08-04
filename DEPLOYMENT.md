@@ -49,9 +49,10 @@ https://eshop.natureonzoom.win
 ```
 
 Caddy routes backend paths to Medusa and all other paths to the Next.js
-storefront.
+storefront. The storefront-owned OAuth completion page `/auth/complete` is an
+explicit exception to the backend `/auth*` route.
 
-Current edge status, verified on 2026-07-25:
+Current edge status, verified on 2026-08-04:
 
 ```text
 Caddy:        active and enabled
@@ -59,6 +60,7 @@ Firewall:     HTTP and HTTPS allowed in the public zone
 HTTP:         redirects to HTTPS
 HTTPS:        public storefront returns 200
 Backend:      public /health returns 200
+OAuth return: public /auth/complete returns 200 from storefront
 Certificate:  Let's Encrypt, valid through 2026-10-23
 ```
 
@@ -356,29 +358,21 @@ curl -fsSI http://127.0.0.1:3000/
 
 This configuration is active on the current VPS. The original package Caddyfile
 was preserved as `/etc/caddy/Caddyfile.backup-20260725-111004` before the first
-production activation.
+production activation. The configuration replaced during the OAuth callback
+route correction is preserved as
+`/etc/caddy/Caddyfile.backup-20260804-071458`.
 
 Create `/etc/caddy/Caddyfile`:
 
 ```caddyfile
 eshop.natureonzoom.win {
-    handle /store* {
-        reverse_proxy 127.0.0.1:9000
+    handle /auth/complete {
+        reverse_proxy 127.0.0.1:3000
     }
 
-    handle /admin* {
-        reverse_proxy 127.0.0.1:9000
-    }
+    @medusa path /store* /admin* /auth* /app* /health
 
-    handle /auth* {
-        reverse_proxy 127.0.0.1:9000
-    }
-
-    handle /app* {
-        reverse_proxy 127.0.0.1:9000
-    }
-
-    handle /health {
+    handle @medusa {
         reverse_proxy 127.0.0.1:9000
     }
 
@@ -392,7 +386,7 @@ Then validate and enable Caddy:
 
 ```bash
 caddy fmt --overwrite /etc/caddy/Caddyfile
-caddy validate --config /etc/caddy/Caddyfile
+caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 systemctl enable --now caddy
 ```
 
@@ -409,7 +403,13 @@ Verify TLS:
 ```bash
 curl -fsSI https://eshop.natureonzoom.win/
 curl -fsS https://eshop.natureonzoom.win/health
+curl -fsS -o /dev/null -w '%{http_code}\n' \
+  'https://eshop.natureonzoom.win/auth/complete?provider=google&status=success'
 ```
+
+The OAuth callback check must return `200`. Keep `/auth/complete` before the
+general backend `/auth*` handler: this page belongs to storefront, while the
+remaining `/auth*` endpoints belong to Medusa.
 
 ## Migration Procedure
 
