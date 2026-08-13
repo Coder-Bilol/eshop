@@ -1,7 +1,7 @@
 {
   "id": "TASK-039",
   "title": "Implement storefront wishlist state",
-  "status": "blocked",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-005",
   "reqs": ["REQ-009"],
@@ -27,7 +27,25 @@
     "Wishlist loads whenever backend current-customer retrieval succeeds using the session, including merge_blocked checkout state.",
     "Add/remove adopt backend response truth, disable duplicate product mutation while pending, and recover on error.",
     "Logout/session expiry clears all in-memory wishlist/customer association and guest state never calls mutations.",
-    "No wishlist product IDs, items, customer IDs, or pending intent are written to local/session storage."
+    "No wishlist product IDs, items, customer IDs, or pending intent are written to local/session storage.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed with no findings; required storefront gates and strict doctor passed.",
+      "evidence": [
+        ".tasks/TASK-039/TASK-039-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-039/TASK-039-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-039/TASK-039-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-039/execute-local-gates.md",
+        ".tasks/TASK-039/rollback-recovery-note.md",
+        ".protocols/TASK-039/verification.md",
+        ".protocols/TASK-039/red-verification.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "rollback_recovery": "If storefront wishlist state regresses, revert the scoped client/state/provider/layout/test-runner changes and redeploy the previous storefront build. No backend schema, auth/session behavior, secret, token, or browser wishlist storage key was introduced; preserve backend wishlist records and rerun storefront typecheck, full regression, and independent verification before re-enabling."
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Wishlist client/state test output.", "Current-customer capability, merge_blocked independence, pending/error, logout/session-expiry assertions.", "Browser storage non-persistence assertions.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

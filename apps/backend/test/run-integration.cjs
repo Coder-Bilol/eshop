@@ -17,6 +17,14 @@ const suites = {
   "cart-merge-lifecycle": "./src/scripts/smoke-cart-merge-lifecycle.ts",
   "cart-merge-api": "./src/scripts/smoke-cart-merge-api.ts",
   "cart-merge-acceptance": "./src/scripts/smoke-cart-merge-acceptance.ts",
+  "wishlist-product-id": [
+    "./src/scripts/smoke-catalog.ts",
+    "./src/scripts/smoke-product-detail.ts",
+  ],
+  "wishlist-persistence": "./src/scripts/smoke-wishlist-persistence.ts",
+  "wishlist-workflows": "./src/scripts/smoke-wishlist-workflows.ts",
+  "wishlist-api": "./src/scripts/smoke-wishlist-api.ts",
+  "wishlist-acceptance": "./src/scripts/smoke-wishlist-acceptance.ts",
   "auth-vkid": "./src/scripts/smoke-auth-vkid.ts",
   "auth-completion": "./src/scripts/smoke-auth-completion.ts",
   "auth-acceptance": "./src/scripts/smoke-auth-acceptance.ts",
@@ -35,12 +43,26 @@ function main() {
   }
 
   for (const name of selected) {
+    if (name === "wishlist-product-id") {
+      for (const script of suites[name]) {
+        runMedusaScript(script);
+      }
+      continue;
+    }
     if (name === "cart-merge-persistence") {
       runCartMergePersistenceSuite(suites[name]);
       continue;
     }
     if (name === "auth-acceptance") {
       runAuthAcceptanceSuite(suites[name]);
+      continue;
+    }
+    if (name === "wishlist-persistence") {
+      runWishlistPersistenceSuite(suites[name]);
+      continue;
+    }
+    if (name === "wishlist-acceptance") {
+      runWishlistAcceptanceSuite(suites[name]);
       continue;
     }
     if (name.startsWith("auth-")) {
@@ -59,6 +81,18 @@ function main() {
   }
   if (selected.includes("auth-acceptance")) {
     sourceBoundary = "medusa-auth-customer-postgresql";
+  }
+  if (selected.includes("wishlist-persistence")) {
+    sourceBoundary = "medusa-module-postgresql";
+  }
+  if (selected.includes("wishlist-workflows")) {
+    sourceBoundary = "wishlist-module-query-graph";
+  }
+  if (selected.includes("wishlist-api")) {
+    sourceBoundary = "medusa-route-workflow-module-postgresql";
+  }
+  if (selected.includes("wishlist-acceptance")) {
+    sourceBoundary = "medusa-store-routes-workflows-module-postgresql";
   }
 
   process.stdout.write(
@@ -82,6 +116,54 @@ function runCartMergePersistenceSuite(script) {
       CART_MERGE_PERSISTENCE_PHASE: phase,
       CART_MERGE_PERSISTENCE_SOURCE_CART_ID: sourceCartId,
     });
+  }
+}
+
+function runWishlistPersistenceSuite(script) {
+  const runId = `task035${process.pid.toString(36)}${Date.now().toString(36)}`;
+  const phaseEnv = { WISHLIST_PERSISTENCE_RUN_ID: runId };
+
+  try {
+    for (const phase of ["write", "read", "delete"]) {
+      runMedusaScript(script, {
+        ...phaseEnv,
+        WISHLIST_PERSISTENCE_PHASE: phase,
+      });
+    }
+  } finally {
+    runMedusaScript(script, {
+      ...phaseEnv,
+      WISHLIST_PERSISTENCE_PHASE: "cleanup",
+    });
+  }
+}
+
+function runWishlistAcceptanceSuite(script) {
+  const runId = `task041${process.pid.toString(36)}${Date.now().toString(36)}`;
+  const stateFile = path.join(
+    os.tmpdir(),
+    `${runId}-wishlist-acceptance-state.json`
+  );
+  const phaseEnv = {
+    WISHLIST_ACCEPTANCE_RUN_ID: runId,
+    WISHLIST_ACCEPTANCE_STATE_FILE: stateFile,
+  };
+
+  try {
+    runMedusaScript(script, {
+      ...phaseEnv,
+      WISHLIST_ACCEPTANCE_PHASE: "write",
+    });
+    runMedusaScript(script, {
+      ...phaseEnv,
+      WISHLIST_ACCEPTANCE_PHASE: "read",
+    });
+  } finally {
+    runMedusaScript(script, {
+      ...phaseEnv,
+      WISHLIST_ACCEPTANCE_PHASE: "cleanup",
+    });
+    fs.rmSync(stateFile, { force: true });
   }
 }
 

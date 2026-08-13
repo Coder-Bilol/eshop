@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-041-R2",
+  "packet_id": "PACKET-TASK-041-R3",
   "task_id": "TASK-041",
-  "created_at": "2026-07-16T16:00:00+03:00",
-  "source_task_hash": "sha256:400724b53f2428f69beadd86d94cc66b06a95c37a3b629cf77ca1d71901f536a",
+  "created_at": "2026-08-08T13:18:17+03:00",
+  "source_task_hash": "sha256:838ab8071d90cc11155eab7c27c0e8ae30413a088f291e631ec4d442610ddca2",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove wishlist persistence and authorization against real backend boundaries before browser acceptance.",

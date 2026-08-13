@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-044-R1",
+  "task_id": "TASK-044",
+  "created_at": "2026-08-10T15:10:34+03:00",
+  "source_task_hash": "sha256:23020e55331202d0b4ee005a3b4a3041769692f7ae6bf64107a8db87de372397",
+  "status": "ready",
+  "tier": "T2",
+  "purpose": "Provide a safe acceptance-only retention handoff so TASK-042 can prove buyer-visible wishlist lifecycle projections in a real browser.",
+  "success_outcome": "TASK-042 can read retained synthetic hidden, restored, and out-of-stock favorites through the real browser boundary and cleanup remains deterministic.",
+  "anti_goals": [
+    "Do not change production wishlist/auth/catalog behavior.",
+    "Do not add a production bearer path or browser persistence.",
+    "Do not use real PII, credentials, tokens, cookies, session IDs, secrets, or production data."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-044.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-005-authenticated-wishlist.md",
+      ".memory-bank/domains/wishlist-data.md",
+      ".memory-bank/contracts/wishlist-api-security.md",
+      ".memory-bank/contracts/auth-session-security.md",
+      ".memory-bank/states/customer-auth-session.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/constitution.md"
+    ],
+    "guides": [
+      ".memory-bank/workflows/tier-policy.md",
+      ".tasks/TASK-041/acceptance-evidence.md",
+      ".tasks/TASK-041/gate-results.md",
+      ".tasks/TASK-041/TASK-041-S-VERIFY-final-report-code-01.md",
+      ".tasks/TASK-041/TASK-041-S-RED-VERIFY-final-report-docs-01.md",
+      ".tasks/TASK-041/rollback-recovery-note.md",
+      ".tasks/TASK-042/TASK-042-S-IMPL-final-report-code-02.md",
+      ".tasks/TASK-042/TASK-042-S-VERIFY-final-report-code-02.md",
+      ".tasks/TASK-042/TASK-042-S-RED-VERIFY-final-report-docs-01.md",
+      ".tasks/TASK-042/remediation-gate-results.md",
+      ".tasks/TASK-042/evidence-privacy-scan.md",
+      ".tasks/TASK-042/rollback-recovery-note.md"
+    ],
+    "protocols": [
+      ".protocols/FT-005/plan.md",
+      ".protocols/FT-005/decision-log.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/scripts/smoke-wishlist-acceptance.ts",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production wishlist/auth/catalog behavior",
+      "storefront",
+      "auth providers",
+      "bearer transport",
+      "database schema",
+      "production data",
+      "live providers"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- wishlist-acceptance",
+      "npm --workspace apps/backend run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "A browser-customer-bound retention/setup phase keeps synthetic hidden, restored, and out-of-stock rows available for the real browser read.",
+      "Hidden rows remain durable and omitted, restored products reappear, and visible out-of-stock products remain listable with is_available false until browser-positive assertions complete.",
+      "The existing TASK-041 write/read/cleanup acceptance behavior remains covered, and unconditional cleanup removes all synthetic rows and fixtures on success or interruption.",
+      "The standard local customer ownership handoff is used without direct database/module insertion, production auth changes, or a new bearer path."
+    ],
+    "evidence_required": [
+      "Real local Medusa/PostgreSQL retention and cleanup output using synthetic IDs/content only.",
+      "Browser-compatible customer ownership handoff plus browser-positive hidden omission, restored visibility, and out-of-stock is_available=false assertions.",
+      "Integration, backend typecheck, Memory Bank lint, privacy scan, and rollback/recovery evidence showing no production wishlist/auth/catalog or bearer boundary changes.",
+      "Substantive evidence stored under .tasks/TASK-044/."
+    ]
+  },
+  "stop_conditions": [
+    "The existing harness cannot safely hand off a synthetic browser customer actor.",
+    "Retention would require weakening hidden-product privacy or changing production routes/workflows.",
+    "Cleanup cannot be guaranteed on success and interruption.",
+    "The fix requires edits outside the acceptance harness and changelog without an additional owner decision.",
+    "The existing TASK-041 acceptance write/read/cleanup coverage regresses or requires production data, live providers, credentials, cookies, bearer values, tokens, session IDs, or secrets."
+  ],
+  "required_handoff": [
+    "Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.",
+    "Preserve the existing TASK-041 evidence baseline and record the retention handoff and unconditional cleanup evidence.",
+    "Do not change TASK-042 lifecycle, task status, task records, protocols, or scheduler decision.",
+    "Run /verify TASK-044 after implementation; T2 scheduler closure still requires full protocol, this packet, and VERDICT: PASS."
+  ]
+}

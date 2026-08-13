@@ -4,8 +4,8 @@ status: active
 ---
 # Bugs
 
-- [TASK-034 callback session](TASK-034-callback-session-gap.md): active real browser callback-to-session acceptance blocker.
-- [TASK-034 evidence sanitization](TASK-034-evidence-sanitization-gap.md): active raw callback/cart identifier evidence blocker.
+- [TASK-034 callback session](TASK-034-callback-session-gap.md): resolved regenerated-session callback blocker.
+- [TASK-034 evidence sanitization](TASK-034-evidence-sanitization-gap.md): resolved raw callback/cart identifier evidence blocker.
 - [TASK-033 interrupted-run cleanup](TASK-033-interrupted-run-cleanup-gap.md): resolved stale temp-state and fixture recovery gap.
 - [TASK-033 session restart acceptance](TASK-033-session-restart-acceptance-gap.md): resolved real cookie/restart evidence gap.
 - [FT-003 backend acceptance fixture reproducibility](FT-003-backend-acceptance-fixture-reproducibility.md): resolved source-runtime acceptance blocker.

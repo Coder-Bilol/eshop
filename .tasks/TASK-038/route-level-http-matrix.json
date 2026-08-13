@@ -1,0 +1,55 @@
+{
+  "suite": "wishlist-session-boundary",
+  "status": "ok",
+  "authTransport": "session-cookie",
+  "guestStatus": 401,
+  "authStartStatus": 200,
+  "callbackStatus": 302,
+  "currentCustomerStatus": 200,
+  "addStatus": 201,
+  "listStatus": 200,
+  "removeStatus": 200,
+  "repeatedRemoveStatus": 200,
+  "logoutStatus": 200,
+  "afterLogoutWishlistStatus": 401,
+  "routeLevelMatrix": {
+    "hiddenCases": [
+      {
+        "case": "missing",
+        "addStatus": 404,
+        "addErrorCode": "wishlist_product_not_found",
+        "listStatus": 200,
+        "listCount": 0
+      },
+      {
+        "case": "unpublished",
+        "addStatus": 404,
+        "addErrorCode": "wishlist_product_not_found",
+        "listStatus": 200,
+        "listCount": 0
+      },
+      {
+        "case": "channel-invisible",
+        "addStatus": 404,
+        "addErrorCode": "wishlist_product_not_found",
+        "listStatus": 200,
+        "listCount": 0
+      },
+      {
+        "case": "inactive-category",
+        "addStatus": 404,
+        "addErrorCode": "wishlist_product_not_found",
+        "listStatus": 200,
+        "listCount": 0
+      }
+    ],
+    "hiddenErrorSignature": "404:wishlist_product_not_found",
+    "outOfStock": {
+      "addStatus": 201,
+      "listStatus": 200,
+      "listCount": 1,
+      "isAvailable": false,
+      "removeStatus": 200
+    }
+  }
+}

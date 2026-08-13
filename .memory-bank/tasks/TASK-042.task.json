@@ -1,7 +1,7 @@
 {
   "id": "TASK-042",
   "title": "Verify browser authenticated wishlist flow",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-005",
   "reqs": ["REQ-009"],
@@ -23,7 +23,59 @@
     "Real browser authenticated session adds from catalog/detail, shows on wishlist/reload, and removes across all views.",
     "Second customer sees no first-customer favorite and cannot affect it; guest click routes to login without persistence.",
     "Missing/unpublished/channel-invisible/inactive-category products are omitted, restored products reappear, and out-of-stock remains visible/unavailable.",
-    "Wishlist remains usable with a valid current customer during merge_blocked while checkout remains blocked; logout/session expiry clears UI state and browser storage."
+    "Wishlist remains usable with a valid current customer during merge_blocked while checkout remains blocked; logout/session expiry clears UI state and browser storage.",
+    {
+      "scheduler_decision": "retry",
+      "reason": "Independent T3 verification found a HIGH false-success gap: browser lifecycle reads occurred after backend cleanup. Operator approved acceptance-only TASK-044 retention/restore follow-up; retry remains within the task failure budget.",
+      "retry": 1,
+      "retry_limit": 2,
+      "evidence": [
+        ".tasks/TASK-042/TASK-042-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-042/TASK-042-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-044/TASK-044-S-IMPL-final-report-code-01.md",
+        ".protocols/TASK-044/handoff.md"
+      ],
+      "follow_up_task": "TASK-044",
+      "functional_verdict": "FAIL",
+      "semantic_verdict": "semantic-fail"
+    },
+    {
+      "scheduler_decision": "retry",
+      "reason": "Retry 1 reached a real runtime sales-channel mismatch after TASK-044 retention setup. TASK-045 acceptance-only channel alignment passed independently; this is the final bounded retry within the task budget.",
+      "retry": 2,
+      "retry_limit": 2,
+      "evidence": [
+        ".tasks/TASK-042/TASK-042-S-IMPL-final-report-code-03.md",
+        ".tasks/TASK-042/retry-browser-boundary.md",
+        ".tasks/TASK-045/TASK-045-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-045/TASK-045-S-VERIFY-final-report-code-02.md"
+      ],
+      "follow_up_task": "TASK-045",
+      "functional_verdict": "PENDING",
+      "semantic_verdict": "PENDING"
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "Final T3 retry 2/2 passed independently after TASK-044 retention and TASK-045 publishable-key channel alignment; browser-positive lifecycle, privacy, cleanup, and all required gates passed.",
+      "retry": 2,
+      "retry_limit": 2,
+      "evidence": [
+        ".tasks/TASK-042/TASK-042-S-IMPL-final-report-code-04.md",
+        ".tasks/TASK-042/TASK-042-S-VERIFY-final-report-code-03.md",
+        ".tasks/TASK-042/TASK-042-S-RED-VERIFY-final-report-docs-02.md",
+        ".tasks/TASK-042/playwright/wishlist-browser-report.json",
+        ".tasks/TASK-042/final-gate-results.md",
+        ".tasks/TASK-042/final-privacy-scan.md",
+        ".tasks/TASK-042/rollback-recovery-note.md",
+        ".protocols/TASK-042/verification.md",
+        ".protocols/TASK-042/red-verification.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "rollback_recovery": "If the browser acceptance harness regresses, use the existing unconditional cleanup for synthetic state, then revert only the TASK-042 runner/package/changelog changes and rerun the pre-existing storefront, TASK-041 acceptance, and TASK-045 channel-alignment gates. No production wishlist/auth/catalog source, schema, bearer transport, or migration changed."
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Playwright trace/report for add/view/remove/reload across catalog/detail/wishlist; synthetic product IDs/names and synthetic wishlist contents are allowed as visual proof.", "Two-customer, guest non-persistence, and merge_blocked-independence assertions.", "Product visibility/out-of-stock and logout/session-expiry assertions plus scan excluding real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

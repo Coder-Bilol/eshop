@@ -94,6 +94,7 @@ async function queryProductDetail(
       : null;
 
   return {
+    id: product.id,
     handle: product.handle,
     title: product.title,
     description: product.description,

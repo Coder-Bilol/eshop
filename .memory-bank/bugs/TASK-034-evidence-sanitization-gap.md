@@ -1,7 +1,7 @@
 ---
-description: Active TASK-034 generated browser evidence sanitization failure.
-status: active
-owner: verify
+description: Resolved TASK-034 generated browser evidence sanitization failure.
+status: archived
+owner: execute
 last_updated: 2026-08-04
 source_of_truth:
   - .memory-bank/tasks/TASK-034.task.json
@@ -36,3 +36,17 @@ cart IDs, contrary to the linked auth/cart logging and evidence contracts.
   artifacts without printing matched sensitive values.
 - Repeat the complete browser acceptance and require a clean artifact scan before
   functional PASS.
+
+## Resolution
+
+- Backend stdout/stderr is consumed without persisting raw request output; the
+  generated backend log contains only coarse suppression and process-exit markers.
+- Callback/session diagnostics contain only status codes and booleans, never header,
+  cookie, state, code, customer, or cart values.
+- Tracing starts only after callback cleanup and checkout readiness. Repeated Google
+  and VK traces plus screenshots were regenerated from the passing run.
+- Generated text logs, screenshots, and decompressed trace content pass a count-only
+  privacy scan with zero token, secret, session, raw callback, customer email, or
+  full customer/cart identifier matches.
+- Evidence: `.tasks/TASK-034/execute-remediation-local-gates-code-01.md` and
+  `.tasks/TASK-034/playwright/`.

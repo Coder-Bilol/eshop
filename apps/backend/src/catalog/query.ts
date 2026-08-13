@@ -30,6 +30,7 @@ type CanonicalVariant = {
 };
 
 type CanonicalProduct = {
+  id: string;
   handle: string;
   title: string;
   description: string;
@@ -174,6 +175,7 @@ function mapCatalogProduct(product: CanonicalProduct) {
   const prices = variants.map((variant) => variant.price.amount);
   const representative = variants[0] || product.variants[0];
   return {
+    id: product.id,
     handle: product.handle,
     title: product.title,
     description: product.description,

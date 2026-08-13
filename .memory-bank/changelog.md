@@ -4,6 +4,357 @@ status: active
 ---
 # Changelog
 
+## [2026-08-11] FT-005 lifecycle verification sync
+- Reconciled: FT-005 `lifecycle: verified` from the feature-level review with
+  `SEMANTIC_VERDICT: semantic-pass`, `verdict: APPROVE`, and no findings; all indexed
+  TASK-035..TASK-042, TASK-044, and TASK-045 are scheduler-closed.
+- Updated: REQ-009 and EP-002 to `lifecycle: verified`, and added completion/evidence
+  navigation to the FT-005 feature and implementation plan.
+- Preserved: document `status` values and status taxonomy remain unchanged; no unrelated
+  requirement/feature lifecycle, task/queue lifecycle, or packet state was changed.
+- Evidence: [.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md](../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md).
+
+## [2026-08-11] TASK-042 scheduler closure sync
+- Reconciled: the authoritative TASK-042 record is `done` after final T3 retry 2/2 with
+  functional `PASS`, semantic `semantic-pass`, `HUMAN_CHECKPOINT: done`, and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Linked: all nine final TASK-042 evidence paths resolve under `.tasks/TASK-042/` or
+  `.protocols/TASK-042/`; the RTM and FT-005 implementation plan now reflect the closed
+  browser acceptance slice.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned` pending feature-level semantic
+  verification. No lifecycle, promotion, feature gate, or dependent block/unblock
+  decision was made by `/mb-sync`.
+- Reported: packet `PACKET-TASK-042-R3` has a stale `source_task_hash` after scheduler
+  closure; it was not refreshed.
+- Checked: Memory Bank lint, task/protocol consistency, and evidence-path reconciliation;
+  details are recorded in `.tasks/TASK-042/TASK-042-S-MB-SYNC-final-report-docs-01.md`.
+
+## [2026-08-10] TASK-045 wishlist fixture sales-channel alignment
+- Fixed: the real browser publishable key is passed to the local wishlist acceptance
+  phases, whose synthetic visible/restored/out-of-stock fixtures now use the channel
+  selected through the supported Medusa API-key query boundary.
+- Preserved: browser-positive wishlist checks account for TASK-044 retained rows and wait
+  for specific card removal instead of requiring an empty list prematurely.
+- Preserved: channel-invisible, unpublished, inactive-category, and missing-product
+  omission semantics, TASK-041 write/read/cleanup, TASK-044 retention, unconditional
+  cleanup, session/bearer transport, and production wishlist/auth/catalog behavior.
+- Sanitized: acceptance output records only the resolution source and alignment result;
+  publishable keys, customer/session values, and other sensitive data remain excluded.
+
+## [2026-08-10] TASK-042 final bounded browser lifecycle retry
+- Passed: the real wishlist browser suite consumed TASK-044 `browser-setup` through the
+  TASK-045 publishable-key channel boundary and observed retained hidden, restored, and
+  out-of-stock lifecycle projections through the long-lived Store API.
+- Proved: hidden durable rows were omitted, the restored product reappeared with its
+  current handle, and the visible out-of-stock product exposed `is_available: false`.
+- Covered: authenticated catalog/detail/wishlist add, view, remove, reload, customer
+  isolation, guest routing/non-persistence, merge-blocked wishlist independence with
+  checkout blocked, logout/session expiry cleanup, storage privacy, and unconditional
+  synthetic cleanup with released ports.
+- Checked: storefront regression, workspace typecheck/build, Memory Bank lint, runner
+  syntax, privacy, and direct browser DB/module boundary scans passed.
+- Preserved: no backend source, production behavior, auth/bearer/schema boundary, task
+  status, packet, retry decision, scheduler closure, or T3 marker was changed.
+
+## [2026-08-10] TASK-045 scheduler closure sync
+- Reconciled: the authoritative TASK-045 record is `done` with T2 full protocol,
+  required packet/spec gates, and functional `PASS`.
+- Linked: all seven authoritative evidence paths resolve under `.tasks/TASK-045/` or
+  `.protocols/TASK-045/`; the RTM and FT-005 implementation plan now include the closed
+  acceptance-only sales-channel alignment slice.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-042 remains `in_progress`.
+  The FT-005 feature-level semantic gate remains pending. No lifecycle, promotion, or
+  dependent block/unblock decision was made by `/mb-sync`.
+- Reported: packet `PACKET-TASK-045-R1` has a stale `source_task_hash` after closure;
+  it was not refreshed.
+- Checked: Memory Bank lint, task/protocol consistency, and evidence-path reconciliation;
+  details are recorded in `.tasks/TASK-045/TASK-045-S-MB-SYNC-final-report-docs-01.md`.
+
+## [2026-08-10] TASK-042 bounded browser lifecycle retry
+- Changed: the real wishlist browser suite now obtains the current provider-double
+  customer actor, consumes TASK-044 `browser-setup`, and parses only its sanitized
+  synthetic fixture IDs/handles.
+- Added: fail-closed browser-positive checks for retained hidden-row omission, restored
+  product reappearance with its current handle, and visible out-of-stock
+  `product.is_available === false`.
+- Blocked: the long-lived browser Store API returned `404` for both retained fixture
+  products and an empty wishlist immediately after setup, so the retry emits a
+  STOP_REPORT instead of claiming browser lifecycle proof.
+- Preserved: prior backend acceptance assertions, the FT-004 session-cookie boundary,
+  unconditional synthetic cleanup, privacy scanning, and all production wishlist/auth/
+  catalog behavior.
+
+## [2026-08-10] TASK-044 wishlist browser fixture retention handoff
+- Added: acceptance-only `browser-setup` phase accepts the synthetic browser customer
+  actor from the existing local session boundary and returns sanitized synthetic product
+  IDs/handles for the browser runner.
+- Retained: hidden durable rows are seeded through the local Wishlist Module service and
+  omitted by the Store API; a restored published row and a visible zero-stock row remain
+  available until the existing unconditional cleanup phase.
+- Preserved: TASK-041 `write/read/cleanup/full`, production wishlist/auth/catalog behavior,
+  session/bearer transport, storefront, schema, and scheduler lifecycle remain unchanged.
+
+## [2026-08-10] TASK-044 scheduler closure sync
+- Reconciled: the authoritative TASK-044 record is `done` with T2 full protocol,
+  required packet/spec gates, and functional `PASS`.
+- Linked: all six authoritative evidence paths resolve under `.tasks/TASK-044/` or
+  `.protocols/TASK-044/`; the RTM and FT-005 implementation plan now include the closed
+  acceptance-only retention slice.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-042 remains `in_progress`.
+  The FT-005 feature-level semantic gate remains pending. No lifecycle, promotion, or
+  dependent block/unblock decision was made by `/mb-sync`.
+- Reported: packet `PACKET-TASK-044-R1` has a stale `source_task_hash` after closure;
+  it was not refreshed.
+- Checked: Memory Bank lint and evidence-path reconciliation; details are recorded in
+  `.tasks/TASK-044/TASK-044-S-MB-SYNC-final-report-docs-01.md`.
+
+## [2026-08-09] TASK-042 HIGH-gap remediation preflight
+- Blocked: the existing TASK-041 `write/read/cleanup` phase API cannot retain hidden
+  durable rows or restored/out-of-stock favorites until the TASK-042 browser assertions
+  run; the synchronous `read` phase removes them before returning.
+- Preserved: no TASK-042 source, production behavior, task JSON, packet, scheduler
+  state, status, closure decision, or T3 marker was changed; no direct DB/module bypass
+  was introduced.
+- Handoff: an owner-approved retention-capable TASK-041 acceptance phase or explicit
+  scope change is required before the browser-positive remediation can be implemented.
+
+## [2026-08-09] TASK-042 browser wishlist acceptance harness
+- Added: real-browser wishlist acceptance over the existing FT-004 session-cookie and
+  provider-double boundary, covering catalog/detail/wishlist add, reload, and remove,
+  second-customer isolation, guest login routing without persistence, merge-blocked
+  wishlist independence, logout/session-expiry cleanup, and browser storage scanning.
+- Added: browser Store API checks for unified hidden-product `404`/omission and visible
+  out-of-stock/unavailable state, backed by the existing real Medusa/PostgreSQL
+  synthetic lifecycle fixture harness with unconditional cleanup.
+- Added: `test:e2e:wishlist` package entry; no production wishlist/auth/catalog behavior,
+  live provider, bearer path, credentials, or production data was changed.
+- Pending: independent `/verify`, T3 `/red-verify`, human checkpoint, recovery review,
+  and lifecycle decision remain scheduler-owned.
+
+## [2026-08-08] TASK-041 wishlist backend acceptance harness
+- Added: a local-only phased acceptance harness over real Medusa Store route handlers,
+  wishlist workflows/module, canonical product query, and PostgreSQL persistence.
+- Covered: fresh-process durability plus Store API removal, two-customer isolation,
+  duplicate/concurrent add, repeated remove, guest/malformed input, exact projection,
+  sanitized backend failures, unified hidden-product `404`/list omission, visibility
+  restoration, and visible out-of-stock projection with `is_available: false`.
+- Added: synthetic lifecycle fixtures for publication, sales-channel, active-category,
+  and inventory transitions with unconditional cleanup and no production behavior/data.
+- Historical handoff note: independent `/verify`, T3 `/red-verify`, human checkpoint,
+  rollback/recovery closure markers, lifecycle decision, and `/mb-sync` were
+  scheduler-owned at implementation time; the closure is reconciled below.
+
+## [2026-08-09] TASK-041 scheduler closure sync
+- Reconciled: the authoritative TASK-041 record is `done` with T3 functional `PASS`,
+  semantic `semantic-pass`, `HUMAN_CHECKPOINT: done`, and
+  `ROLLBACK_RECOVERY_NOTE: present`.
+- Linked: all eight authoritative TASK-041 evidence paths resolve under `.tasks/TASK-041/`
+  or `.protocols/TASK-041/`; RTM and the FT-005 implementation plan now reflect the
+  closed backend acceptance slice.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-042 remains `planned`.
+  No dependent task was promoted, unblocked, blocked, or otherwise given a new lifecycle
+  decision by `/mb-sync`.
+- Reported: packet `PACKET-TASK-041-R3` is stale after closure changed the authoritative
+  task-record hash; it was not refreshed.
+- Checked: Memory Bank lint and evidence-path reconciliation; details are recorded in
+  `.tasks/TASK-041/TASK-041-S-MB-SYNC-final-report-docs-01.md`.
+
+## [2026-08-08] TASK-040 scheduler closure sync
+- Reconciled: the indexed authoritative TASK-040 record is `done` with the explicit
+  scheduler decision, T2 full protocol, functional `PASS`, and five linked
+  implementation, verification, protocol, and gate artifacts.
+- Linked: the FT-005 implementation plan and REQ-009 RTM note now reflect the
+  closed TASK-040 slice without inferring feature completion.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-041 remains `ready`
+  and TASK-042 remains `planned` from their existing decisions. No dependent task
+  was promoted, unblocked, blocked, or otherwise given a new lifecycle decision.
+- Reported: packet `PACKET-TASK-040-R3` has a stale pre-closure `source_task_hash`;
+  the packet was not refreshed.
+- Checked: `node scripts/mb-lint.mjs` and evidence-path reconciliation; details are
+  recorded in `.tasks/TASK-040/TASK-040-S-MB-SYNC-final-report-docs-01.md`.
+
+## [2026-08-08] TASK-040 wishlist controls and page execute
+- Added: accessible product-level wishlist controls to catalog and product detail,
+  using opaque product IDs for mutations and current handles only for navigation.
+- Added: guest login routing through the existing safe return-path helper without
+  pending favorite intent, plus authenticated idle/pending/saved/error behavior
+  independent of cart merge readiness.
+- Added: authenticated `/wishlist` loading, empty, products, error, remove, and
+  session-expired views rendering the exact minimal product projection and current
+  product handles.
+- Added: focused wishlist UI contract/state assertions and registered the suite.
+- Pending: feature-level semantic verification after all FT-005 tasks and the
+  downstream backend/browser acceptance tasks; these remain outside TASK-040 closure.
+
+## [2026-08-08] TASK-039 scheduler closure sync
+- Reconciled: the indexed authoritative TASK-039 record is `done` with the explicit
+  scheduler decision, functional `PASS`, semantic `semantic-pass`, exact T3 markers,
+  and seven linked implementation, verification, protocol, and recovery artifacts.
+- Linked: the FT-005 implementation plan, RTM note, and dedicated sync report now
+  reflect the recorded storefront-state closure without inferring feature completion.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-040 and TASK-042
+  remain `planned`, and the existing TASK-041 `ready` decision is unchanged.
+- Preserved: no dependent task was promoted, unblocked, blocked, or otherwise given a
+  new lifecycle decision by `/mb-sync`.
+- Reported: TASK-039 packet `PACKET-TASK-039-R9` has a stale pre-closure
+  `source_task_hash`; the packet was not refreshed.
+- Checked: `node scripts/mb-lint.mjs` passed; hash/evidence details are recorded in
+  `.tasks/TASK-039/TASK-039-S-MB-SYNC-final-report-docs-01.md`.
+
+## [2026-08-08] TASK-039 storefront wishlist state execute
+- Added: session-cookie wishlist client and in-memory state controller for the
+  authenticated current-customer boundary, independent of cart merge/checkout
+  readiness.
+- Added: backend-truth list/add/remove handling, per-product pending/error isolation,
+  duplicate mutation suppression, guest no-op behavior, session-expiry invalidation,
+  logout clearing, and stale-response protection without browser wishlist storage.
+- Added: focused wishlist client/state tests and mounted the provider under the
+  existing storefront AuthProvider boundary; no wishlist markup or backend/auth
+  behavior was changed.
+- Pending: independent `/verify`, T3 `/red-verify`, human checkpoint, rollback/recovery,
+  lifecycle decision, and `/mb-sync` remain owned by the scheduler/reviewer.
+
+## [2026-08-08] TASK-038 scheduler closure sync
+- Reconciled: the indexed authoritative TASK-038 record is `done` with the explicit
+  scheduler decision, functional `PASS`, semantic `semantic-pass`, T3 checkpoint,
+  rollback/recovery marker, and linked verification evidence.
+- Linked: the current task evidence remains the implementation report, independent
+  functional and semantic reports, route-level HTTP matrix, and TASK-038 protocols.
+- Preserved: REQ-009, FT-005, and EP-002 remain `planned` because the remaining
+  wishlist state, UI, backend acceptance, and browser acceptance tasks are incomplete.
+- Preserved: no dependent task was promoted, unblocked, blocked, or otherwise given a
+  new lifecycle decision by `/mb-sync`.
+- Reported: strict doctor detects `TASK_PACKET_STALE` because the scheduler closure
+  changed the task-record hash; the existing packet was not refreshed.
+- Checked: `node scripts/mb-lint.mjs` passed; the strict doctor result is recorded as a
+  consistency gap for the scheduler/packet owner.
+
+## [2026-08-08] TASK-038 bounded remediation evidence
+- Replaced: the wishlist API smoke no longer emits the hardcoded
+  `productionBearerAdded: false` claim. It now asserts the production storefront
+  session-cookie transport, the existing local E2E bearer hook, and standard wishlist
+  middleware methods without adding a production bearer mechanism.
+- Added: a reproducible real local HTTP route-level matrix over synthetic fixtures for
+  missing, unpublished, current-channel-invisible, inactive-category, and visible
+  out-of-stock products. Hidden cases return the same `404 wishlist_product_not_found`;
+  out-of-stock remains listable with `is_available: false`.
+- Preserved: auth providers/session creation, storefront source, wishlist
+  workflow/module semantics, core tables, production data, task status, packet, and
+  T3 closure markers remain unchanged. Independent `/verify` and `/red-verify` remain
+  the next-owner gates.
+
+## [2026-08-08] TASK-038 wishlist Store API execute
+- Added: authenticated Store list/add/remove routes with standard Medusa customer
+  middleware, actor-derived ownership, publishable sales-channel scoping, exact
+  wishlist item responses, idempotent statuses, and sanitized stable errors.
+- Added: local `wishlist-api` integration smoke for middleware registration, guest
+  denial, two-customer isolation, exact projection, duplicate/repeated mutation,
+  malformed input, and non-disclosing missing-product behavior.
+- Pending: independent `/verify` and `/red-verify` plus T3 human checkpoint and
+  rollback/recovery evidence; `/execute` does not close TASK-038.
+
+## [2026-08-08] TASK-037 wishlist workflows
+- Added: wishlist domain service and server-input add/remove workflows over the
+  existing Wishlist Module and canonical Medusa Product query boundary.
+- Added: exact minimal `WishlistProductProjection` with current handle/title/media,
+  active category, lowest valid price, and availability; no product snapshot is stored.
+- Added: visibility handling for publication, active category, current sales channel,
+  missing products, and out-of-stock products; hidden rows remain durable but are
+  omitted from list projections.
+- Verified locally: duplicate/concurrent add convergence, exact add/list projection,
+  customer/product-scoped idempotent remove, hidden-row omission, missing-product
+  rejection, out-of-stock unavailable projection, backend typecheck, Memory Bank lint,
+  strict doctor, and dispatcher safety checks pass.
+- Verified: independent `/verify TASK-037` returned `VERDICT: PASS` after repeating
+  the workflow gate and confirming exact projection, visibility guards, duplicate and
+  concurrent convergence, scoped idempotent removal, hidden-row omission, and
+  out-of-stock visibility.
+- Closed: the operator explicitly assigned manual closure ownership; TASK-037 is
+  `done`. Since TASK-029 is also `done`, TASK-038 is promoted to `ready`. FT-005
+  feature red verification remains pending until all feature tasks complete.
+
+## [2026-08-07] TASK-036 opaque product ID contracts execute
+- Added: catalog and product-detail backend projections expose the canonical opaque
+  Medusa Product ID as additive top-level `id` while preserving handles, variants,
+  filters, prices, availability, and cart handoff semantics.
+- Updated: storefront `CatalogProduct` and `ProductDetail` contracts preserve product
+  ID; handles remain navigation-only and variant IDs remain SKU/cart identity.
+- Added: `wishlist-product-id` integration gate composes the real canonical catalog
+  and product-detail smokes without introducing another product source.
+- Verified locally: combined integration, individual catalog/detail smokes, full
+  storefront regression, workspace typecheck, Memory Bank lint, dispatcher syntax,
+  and diff whitespace checks pass.
+- Verified 2026-08-08: independent `/verify TASK-036` returned `VERDICT: PASS` after
+  repeating all required T2 gates and confirming direct canonical ID mapping,
+  storefront preservation, identity boundaries, and full catalog/detail regression.
+- Closed 2026-08-08: the operator explicitly assigned manual closure ownership;
+  TASK-036 is `done`. Since TASK-035 is also `done`, TASK-037 is promoted to `ready`.
+  FT-005 feature red verification remains pending until all feature tasks complete.
+
+## [2026-08-07] TASK-035 Wishlist Module persistence
+- Added: registered custom Medusa `wishlist` module with one `WishlistItem` model
+  containing only opaque customer/product IDs and standard timestamps.
+- Generated: `Migration20260807134045` creates only `wishlist_item`, a partial unique
+  `(customer_id, product_id)` index, customer/created/id list index, deleted-at index,
+  and no cross-module foreign keys.
+- Proved locally: migration apply/idempotent repeat, real PostgreSQL write, fresh-
+  process read, delete, concurrent duplicate convergence to one row plus recoverable
+  unique conflict, and unconditional synthetic-fixture cleanup.
+- Verified locally: backend typecheck, integration dispatcher syntax, Memory Bank
+  lint, migration/schema/index inspection, and diff whitespace checks pass.
+- Verified: independent `/verify TASK-035` returned `VERDICT: PASS` after repeating all
+  required T2 gates and directly inspecting PostgreSQL schema, indexes, constraints,
+  concurrency behavior, fresh-process persistence, deletion, and fixture cleanup.
+- Closed: the operator explicitly assigned manual closure ownership; TASK-035 is
+  `done`. TASK-037 remains `planned` because TASK-036 is still incomplete. FT-005
+  feature red verification remains pending until all feature tasks are complete.
+
+## [2026-08-07] FT-005 decomposition refreshed
+- Revalidated: feature SDD, data/API/security contracts, implementation plan,
+  TASK-035..TASK-042 coverage, tiers, dependencies, scopes, gates, and required
+  packets remain complete with no blocking design questions.
+- Unblocked for planning: TASK-039 moved from historical auth-blocked state to
+  `planned` because FT-004/TASK-030 are verified; TASK-038 remains its incomplete
+  dependency, so no ready promotion occurred.
+- Preserved: TASK-035 and TASK-036 remain the only ready entry tasks and must
+  serialize their shared changelog write.
+
+## [2026-08-07] TASK-034 and FT-004 verified
+- Reverified: real local browser, Medusa, and PostgreSQL acceptance establishes usable
+  Google/VK customer sessions, cleans callback URLs, enforces checkout readiness, and
+  handles cancel/failure/replay, Google cart conflict/retry, expiry, and both-provider
+  logout cleanup.
+- Confirmed: the regenerated-session correction in `b6e39a0` resolves the original
+  callback-success/current-customer-401 defect without introducing another identity or
+  session boundary.
+- Confirmed: checkout logout waits for AuthStateController confirmation and suppresses
+  the guest redirect race; failure remains retryable.
+- Verified privacy: regenerated logs, decompressed traces, browser storage/console, and
+  screenshots contain no prohibited token, secret, session, callback, customer email,
+  or full customer/cart identifier.
+- Closed: functional verification returned `VERDICT: PASS`; T3 adversarial verification
+  returned `SEMANTIC_VERDICT: semantic-pass`; the direct operator checkpoint and
+  rollback/recovery evidence are recorded; TASK-034 is `done`.
+- Synced: FT-004 and REQ-010/REQ-011/REQ-012 are `verified`. Dependent task promotion
+  remains outside `/mb-sync` ownership.
+
+## [2026-08-04] TASK-034 browser acceptance remediation
+- Confirmed: the approved regenerated-session fix establishes usable Google and VK
+  customer sessions through real local Medusa/PostgreSQL and browser boundaries.
+- Fixed: checkout logout suppresses the guest redirect race, waits for confirmed
+  AuthStateController cleanup, and reaches clean `/login` without recreating the
+  checkout return path; logout failure remains retryable.
+- Refined: browser storage privacy ignores only Next.js-owned
+  `__next_debug_channel:*` keys while continuing to reject every unexpected app
+  session key and sensitive storage value.
+- Verified locally: Google/VK callback cleanup, cancel/failure/replay, cart handoff,
+  conflict/retry, checkout gate, expiry/logout, process cleanup, storefront tests,
+  backend auth-completion regression, workspace typecheck/build, Memory Bank lint,
+  strict doctor, screenshots, and decompressed trace privacy scan pass.
+- Resolved: TASK-034 callback-session and evidence-sanitization bug records. The
+  historical functional FAIL was superseded by the independent repeated PASS and
+  semantic closure recorded on 2026-08-07.
+
 ## [2026-08-04] OAuth regenerated-session remediation
 - Fixed: customer OAuth completion reacquires the active Express session after
   `regenerate()` before writing and saving Medusa customer `auth_context`.

@@ -280,9 +280,12 @@ export function CheckoutAuthGate() {
   };
   const confirmLogout = async () => {
     setLogoutFailed(false);
+    loginNavigationStarted.current = true;
     try {
       await logout();
+      window.location.replace(CHECKOUT_LOGIN_LOCATION);
     } catch {
+      loginNavigationStarted.current = false;
       setLogoutFailed(true);
     }
   };

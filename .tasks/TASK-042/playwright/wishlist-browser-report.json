@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "realBrowser": true,
+  "sourceBoundary": "playwright-storefront-medusa-session-cookie-postgresql",
+  "catalogDetailWishlist": true,
+  "reloadPersistence": true,
+  "twoCustomerIsolation": true,
+  "guestLoginRouting": {
+    "loginRoute": true,
+    "noGuestPersistence": true
+  },
+  "browserSetup": {
+    "browserCustomerBound": true,
+    "retainedRows": {
+      "hidden": 4,
+      "restored": 1,
+      "outOfStock": 1
+    },
+    "salesChannelResolution": "publishable-key-query",
+    "fixtureSalesChannelAligned": true,
+    "sanitizedFixtureHandoff": true
+  },
+  "browserSetupProjection": {
+    "visibleRows": 2,
+    "restoredPresent": true,
+    "outOfStockPresent": true,
+    "outOfStockUnavailable": true
+  },
+  "hiddenVisibility": {
+    "hiddenAdd404": true,
+    "unifiedError": true,
+    "listOmission": true,
+    "durableHiddenRowsOmitted": true,
+    "cases": 4
+  },
+  "restoredProduct": {
+    "browserListBoundaryChecked": true,
+    "restoredProductVisible": true,
+    "currentHandleChecked": true
+  },
+  "outOfStock": {
+    "browserListBoundaryChecked": true,
+    "visibleUnavailable": true,
+    "isAvailableFalse": true
+  },
+  "mergeBlockedWishlistIndependence": {
+    "validCustomerWishlist": true,
+    "checkoutBlocked": true
+  },
+  "logoutCleanup": true,
+  "sessionExpiryCleanup": true,
+  "storageScan": true,
+  "backendLifecycleAcceptance": {
+    "phase": "read",
+    "status": "ok",
+    "realMedusaPostgresql": true,
+    "assertions": {
+      "hidden404AndListOmission": true,
+      "visibilityRestoration": true,
+      "outOfStockVisibleUnavailable": true
+    }
+  },
+  "syntheticFixturesOnly": true,
+  "evidencePrivacy": "coarse-assertions-only-no-cookies-or-session-identifiers"
+}

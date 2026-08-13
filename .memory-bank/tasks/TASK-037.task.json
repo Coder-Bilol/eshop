@@ -1,7 +1,7 @@
 {
   "id": "TASK-037",
   "title": "Implement wishlist workflows and product projection",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-005",
   "reqs": ["REQ-009"],
@@ -11,6 +11,7 @@
     "apps/backend/src/workflows/wishlist/add-wishlist-item.ts",
     "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts",
     "apps/backend/src/scripts/smoke-wishlist-workflows.ts",
+    "apps/backend/test/run-integration.cjs",
     "apps/backend/package.json",
     ".memory-bank/changelog.md"
   ],
@@ -24,7 +25,25 @@
     "Add validates exists plus published plus current-sales-channel plus active-category visibility and converges under duplicate/concurrent calls.",
     "Remove filters by customer_id plus product_id and is idempotent when absent.",
     "List and add return the same exact minimal WishlistItem and WishlistProductProjection contract.",
-    "Missing, unpublished, channel-invisible, or inactive-category products are omitted without deletion; out-of-stock remains visible with is_available false."
+    "Missing, unpublished, channel-invisible, or inactive-category products are omitted without deletion; out-of-stock remains visible with is_available false.",
+    {
+      "stage": "verify",
+      "verdict": "VERDICT: PASS",
+      "verified_at": "2026-08-08",
+      "mode": "manual",
+      "closure_owner": "GENERAL",
+      "closed_at": "2026-08-08",
+      "closure_status": "done",
+      "evidence": [
+        ".protocols/TASK-037/verification.md",
+        ".tasks/TASK-037/TASK-037-S-VERIFY-final-report-code-01.md",
+        ".tasks/TASK-037/execute-wishlist-workflows.md",
+        ".tasks/TASK-037/execute-typecheck.md",
+        ".tasks/TASK-037/execute-mb-lint.md",
+        ".tasks/TASK-037/execute-local-safety.md"
+      ],
+      "summary": "Real workflow integration confirms canonical product visibility validation, exact current projection, duplicate/concurrent convergence, customer/product-scoped idempotent removal, hidden-row omission, missing-product rejection, and out-of-stock visibility. Backend typecheck, Memory Bank lint, strict doctor, dispatcher syntax, and scope checks passed. The operator explicitly assigned closure ownership and TASK-037 is done."
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Workflow duplicate/concurrency/idempotency output.", "Exact projection, four hidden cases, and out-of-stock visibility assertions.", "Backend typecheck and Memory Bank lint output."],
@@ -39,7 +58,7 @@
   "runtime_context": {
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-037.packet.json",
-    "allowed_write_scope": ["apps/backend/src/wishlist/service.ts", "apps/backend/src/workflows/wishlist/add-wishlist-item.ts", "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts", "apps/backend/src/scripts/smoke-wishlist-workflows.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/backend/src/wishlist/service.ts", "apps/backend/src/workflows/wishlist/add-wishlist-item.ts", "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts", "apps/backend/src/scripts/smoke-wishlist-workflows.ts", "apps/backend/test/run-integration.cjs", "apps/backend/package.json", ".memory-bank/changelog.md"],
     "forbidden_scope": ["HTTP/auth middleware", "storefront", "product lifecycle hooks", "cleanup jobs/events", "Medusa Core"],
     "stop_conditions": ["Product publication, sales-channel, active-category, price, or availability cannot be resolved through supported query boundaries.", "Concurrent idempotency would require a distributed lock instead of database uniqueness.", "Exact projection would need a stored product snapshot or full catalog/detail copy."]
   }

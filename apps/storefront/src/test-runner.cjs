@@ -11,6 +11,9 @@ const suites = {
   "cart-view": path.join(__dirname, "cart-view.test.cjs"),
   "checkout-auth-gate": path.join(__dirname, "checkout-auth-gate.test.cjs"),
   "product-detail": path.join(__dirname, "product-detail.test.cjs"),
+  "wishlist-client": path.join(__dirname, "wishlist-client.test.cjs"),
+  "wishlist-state": path.join(__dirname, "wishlist-state.test.cjs"),
+  "wishlist-ui": path.join(__dirname, "wishlist-ui.test.cjs"),
 };
 
 async function main() {

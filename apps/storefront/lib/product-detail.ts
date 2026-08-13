@@ -31,6 +31,7 @@ export type ProductDetailSelectionSource = {
 };
 
 export type ProductDetail = ProductDetailSelectionSource & {
+  id: string;
   handle: string;
   title: string;
   description: string;

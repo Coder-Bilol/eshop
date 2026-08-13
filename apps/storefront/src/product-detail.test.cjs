@@ -187,6 +187,7 @@ async function run() {
           "valid cart handoff includes product handle, SKU, quantity, and validation state",
           "product cards summarize backend-provided variant dimensions",
           "product detail fetch maps not-found and unpublished contract errors",
+          "product detail fetch preserves opaque backend product ID alongside navigation handle",
           "product detail media remains a string URL across the fetch boundary",
           "product detail route exposes required loading, selection, and handoff states",
         ],
@@ -241,6 +242,7 @@ async function verifyProductDetailFetchContract() {
   const originalFetch = global.fetch;
   process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY = "pk_test_product_detail";
   const product = {
+    id: "prod_fixture_curtain_rod",
     handle: "curtain-rod",
     title: "Curtain rod",
     description: "A configurable product.",
@@ -281,6 +283,7 @@ async function verifyProductDetailFetchContract() {
       });
     };
     const fetched = await fetchProductDetail("curtain-rod");
+    assert.equal(fetched.id, "prod_fixture_curtain_rod");
     assert.equal(fetched.handle, "curtain-rod");
     assert.equal(fetched.variants.length, 3);
     assert.deepEqual(fetched.media, [

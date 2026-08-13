@@ -11,6 +11,7 @@
     "test:e2e": "node e2e/run-real-medusa-e2e.cjs",
     "test:e2e:auth": "node e2e/run-real-medusa-e2e.cjs auth",
     "test:e2e:cart": "node e2e/run-real-medusa-e2e.cjs cart",
+    "test:e2e:wishlist": "node e2e/run-real-medusa-e2e.cjs wishlist",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

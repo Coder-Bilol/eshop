@@ -29,6 +29,11 @@ export default async function smokeCatalog({ container }: ExecArgs) {
     true
   );
   assert.ok(
+    base.products.every((product: { id: string }) =>
+      product.id.startsWith("prod_")
+    )
+  );
+  assert.ok(
     base.products.every((product: { variants: Array<{ id: string }> }) =>
       product.variants.every((variant) => variant.id.startsWith("variant_"))
     )
@@ -119,6 +124,7 @@ export default async function smokeCatalog({ container }: ExecArgs) {
         suite: "catalog",
         status: "ok",
         sourceBoundary: "medusa-query-graph",
+        productIdentity: "canonical-medusa-product-id",
         productCount: base.products.length,
         salesChannelId,
       },

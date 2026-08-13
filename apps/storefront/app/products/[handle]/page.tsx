@@ -1,4 +1,5 @@
 import { ProductDetailSelector } from "../../../components/product-detail-selector";
+import { WishlistToggle } from "../../../components/wishlist-toggle";
 import {
   ProductDetailFetchError,
   fetchProductDetail,
@@ -55,6 +56,7 @@ function ProductDetailView({ product }: { product: ProductDetail }) {
           <p className="detailType">{product.product_type}</p>
           <p className="detailDescription">{product.description}</p>
 
+          <WishlistToggle productId={product.id} productTitle={product.title} />
           <ProductDetailSelector product={product} />
         </div>
       </section>

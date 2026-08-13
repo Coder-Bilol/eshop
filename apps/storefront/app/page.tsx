@@ -11,6 +11,7 @@ import {
   readSearchParam,
   selectedCatalogFilters,
 } from "../lib/catalog";
+import { WishlistToggle } from "../components/wishlist-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,9 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
           <p className="eyebrow">Eshop catalog</p>
           <h1>Home goods</h1>
         </div>
+        <a className="productDetailLink" href="/wishlist">
+          Wishlist
+        </a>
         {catalog ? (
           <p className="catalogCount">
             {catalog.pagination.total} products from backend catalog
@@ -313,6 +317,10 @@ function ProductResults({
                 >
                   View product
                 </a>
+                <WishlistToggle
+                  productId={product.id}
+                  productTitle={product.title}
+                />
               </div>
             </article>
           );

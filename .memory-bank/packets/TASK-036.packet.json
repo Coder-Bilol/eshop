@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-036-R1",
+  "packet_id": "PACKET-TASK-036-R4",
   "task_id": "TASK-036",
-  "created_at": "2026-07-16T14:00:00+03:00",
-  "source_task_hash": "sha256:0b64ba4fb3bb88d0444dc0ec7b4dfc7bdcb75ff8906c0fa10612706eac529109",
+  "created_at": "2026-08-08T09:00:15+03:00",
+  "source_task_hash": "sha256:da7238a4e48f3e641d42d8d1574cbc3c3bd8ec1e3c8762cf0bbafe20c1473b63",
   "status": "ready",
   "tier": "T2",
   "purpose": "Provide the opaque product identity required by wishlist mutations without replacing current catalog/detail contracts.",
@@ -17,7 +17,7 @@
     "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
   },
   "scope": {
-    "allowed_write_scope": ["apps/backend/src/catalog/query.ts", "apps/backend/src/catalog/product-detail.ts", "apps/backend/src/scripts/smoke-catalog.ts", "apps/backend/src/scripts/smoke-product-detail.ts", "apps/storefront/lib/catalog.ts", "apps/storefront/lib/product-detail.ts", "apps/storefront/src/catalog-ui.test.cjs", "apps/storefront/src/product-detail.test.cjs", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/backend/src/catalog/query.ts", "apps/backend/src/catalog/product-detail.ts", "apps/backend/src/scripts/smoke-catalog.ts", "apps/backend/src/scripts/smoke-product-detail.ts", "apps/backend/test/run-integration.cjs", "apps/storefront/lib/catalog.ts", "apps/storefront/lib/product-detail.ts", "apps/storefront/src/catalog-ui.test.cjs", "apps/storefront/src/product-detail.test.cjs", ".memory-bank/changelog.md"],
     "forbidden_scope": ["wishlist storage/routes/UI", "catalog filter/search redesign", "variant/cart behavior", "Medusa Core"]
   },
   "verification": {

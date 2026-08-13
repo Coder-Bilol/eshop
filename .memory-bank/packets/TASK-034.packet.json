@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-034-R3",
+  "packet_id": "PACKET-TASK-034-R5",
   "task_id": "TASK-034",
-  "created_at": "2026-08-04T09:45:00+03:00",
-  "source_task_hash": "sha256:154d8c692d2ed58c55af519dc2e4a4be8bbccba24f10c3cfbe97cc76829e1c6d",
+  "created_at": "2026-08-07T15:25:00+03:00",
+  "source_task_hash": "sha256:eccd34b1e4155cedabe26a64edd36e70b17ca4f60eba66f639dd894d9686aa1a",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove the complete buyer-visible login-before-payment and cart-continuity behavior in a real browser without live providers.",

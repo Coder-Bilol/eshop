@@ -1,7 +1,7 @@
 {
   "id": "TASK-038",
   "title": "Expose authenticated wishlist Store API",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-005",
   "reqs": ["REQ-009"],
@@ -26,7 +26,26 @@
     "GET/POST/DELETE routes require standard Medusa customer actor context; production storefront uses session cookie only.",
     "Customer ID is derived only from auth context and never accepted from request input.",
     "List/add use the same exact item/projection shape; all hidden product cases use indistinguishable 404 wishlist_product_not_found while out-of-stock remains visible.",
-    "Two-customer tests prove one actor cannot list or remove the other's favorite; synthetic bearer is limited to the existing local harness and adds no production mechanism."
+    "Two-customer tests prove one actor cannot list or remove the other's favorite; synthetic bearer is limited to the existing local harness and adds no production mechanism.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed after one bounded remediation retry; packet and strict doctor gates passed.",
+      "retry": 1,
+      "retry_limit": 2,
+      "evidence": [
+        ".tasks/TASK-038/TASK-038-S-IMPL-final-report-code-04.md",
+        ".tasks/TASK-038/TASK-038-S-VERIFY-final-report-code-05.md",
+        ".tasks/TASK-038/TASK-038-S-RED-VERIFY-final-report-docs-03.md",
+        ".tasks/TASK-038/route-level-http-matrix.json",
+        ".protocols/TASK-038/verification.md",
+        ".protocols/TASK-038/red-verification.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "rollback_recovery": "If the wishlist boundary regresses, disable the three wishlist Store routes by reverting the scoped middleware/routes/smoke changes and redeploy the previous backend build. No wishlist schema or production data migration was introduced; preserve existing Wishlist records and rerun the session-cookie, ownership, hidden-visibility, and out-of-stock probes before re-enabling."
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Guest and production-style session API integration output, plus existing local harness synthetic-bearer coverage where needed.", "Two-customer ownership and non-disclosure assertions.", "Exact item shape, unified hidden 404, out-of-stock, and idempotency assertions.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

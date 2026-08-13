@@ -64,5 +64,20 @@ export default defineMiddlewares({
         authenticate("customer", ["session", "bearer"]),
       ],
     },
+    {
+      method: ["GET"],
+      matcher: "/store/wishlist",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
+    {
+      method: ["POST"],
+      matcher: "/store/wishlist/items",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
+    {
+      method: ["DELETE"],
+      matcher: "/store/wishlist/items/:product_id",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
   ],
 });

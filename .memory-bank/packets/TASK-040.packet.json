@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-040-R2",
+  "packet_id": "PACKET-TASK-040-R3",
   "task_id": "TASK-040",
-  "created_at": "2026-07-16T16:00:00+03:00",
-  "source_task_hash": "sha256:ded4167b7685bdca549fd8c7fddbebdbbf08beb27c5d6dcde029c4283596253a",
+  "created_at": "2026-08-08T13:37:30+03:00",
+  "source_task_hash": "sha256:569316ac2378a680344bb8378f209351d677a7e00b48953187e849f3930a9c21",
   "status": "ready",
   "tier": "T2",
   "purpose": "Expose the authenticated wishlist value through existing catalog/detail surfaces and one focused wishlist page.",
@@ -12,7 +12,7 @@
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-040.task.json",
     "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
-    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md"],
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/tech-specs/FT-001-catalog-browsing-filtering-search.md", ".memory-bank/tech-specs/FT-002-product-detail-variant-selection.md"],
     "guides": [],
     "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
   },
@@ -22,8 +22,8 @@
   },
   "verification": {
     "commands": ["npm --workspace apps/storefront run test -- wishlist-ui", "npm --workspace apps/storefront run typecheck", "npm --workspace apps/storefront run build", "node scripts/mb-lint.mjs"],
-    "success_checks": ["Catalog/detail controls use opaque product ID and accessible states.", "Guest routes to login with no persisted intent; valid current customer remains enabled during merge_blocked.", "Wishlist page renders only exact minimal projection across loading/empty/products/error/remove/session-expired."],
-    "evidence_required": ["UI state/accessibility and merge_blocked tests.", "Guest no-intent and exact projection assertions.", "Build, typecheck, and lint output."]
+    "success_checks": ["Catalog and product-detail render accessible product-level favorite controls using opaque product ID.", "Guest control routes to login with safe current return path and creates no pending favorite intent.", "Valid-current-customer control remains usable during merge_blocked, renders idle/pending/saved/error, and prevents duplicate mutation while pending.", "Wishlist page renders only the exact minimal projection and handles loading/empty/products/error/remove/session-expired with current handles."],
+    "evidence_required": ["Wishlist component/page state tests including merge_blocked access.", "Guest login routing and no-intent assertions.", "Exact projection rendering, accessibility labels/disabled pending, and current-handle assertions.", "Storefront build/typecheck and Memory Bank lint output."]
   },
   "stop_conditions": ["Existing product surfaces do not expose opaque product ID from TASK-036.", "Guest login routing would require persisted favorite intent.", "UI requires fields outside exact WishlistProductProjection.", "Wishlist UI would be disabled solely because cart merge is blocked."],
   "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-040/.", "Run /verify TASK-040 before closure; T2 feature completion later requires feature-level red verification."]

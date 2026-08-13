@@ -1,7 +1,7 @@
 {
   "id": "TASK-041",
   "title": "Verify wishlist backend ownership and persistence",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-005",
   "reqs": ["REQ-009"],
@@ -23,7 +23,26 @@
     "Real Medusa/PostgreSQL flow persists favorite across fresh process query and removes it through Store API.",
     "Two authenticated customers remain isolated for list/add/remove under product ID reuse.",
     "Duplicate/concurrent add, repeated remove, guest denial, malformed input, exact item shape, and backend failure match contract.",
-    "Missing, unpublished, channel-invisible, and inactive-category add use the same 404 and list omission; out-of-stock remains visible/unavailable."
+    "Missing, unpublished, channel-invisible, and inactive-category add use the same 404 and list omission; out-of-stock remains visible/unavailable.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 functional and semantic verification passed with no findings; real backend acceptance, privacy, cleanup, and strict doctor gates passed.",
+      "evidence": [
+        ".tasks/TASK-041/TASK-041-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-041/TASK-041-S-VERIFY-final-report-code-01.md",
+        ".tasks/TASK-041/TASK-041-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-041/acceptance-evidence.md",
+        ".tasks/TASK-041/gate-results.md",
+        ".tasks/TASK-041/rollback-recovery-note.md",
+        ".protocols/TASK-041/verification.md",
+        ".protocols/TASK-041/red-verification.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "rollback_recovery": "If the acceptance harness regresses, rerun its unconditional synthetic cleanup and revert only the TASK-041 script/dispatcher/package/changelog changes, then rerun the existing TASK-038 API/workflow matrix. No production wishlist behavior, schema, credentials, or data migration changed."
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Real Medusa/PostgreSQL persistence/restart output using synthetic identifiers/content where useful.", "Two-customer ownership and concurrency assertions without real PII or credential values.", "Exact projection, unified hidden 404, visibility restoration, and out-of-stock assertions.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."],

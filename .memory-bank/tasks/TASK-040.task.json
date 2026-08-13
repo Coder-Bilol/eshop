@@ -1,7 +1,7 @@
 {
   "id": "TASK-040",
   "title": "Add wishlist controls and page",
-  "status": "planned",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-005",
   "reqs": ["REQ-009"],
@@ -28,7 +28,20 @@
     "Catalog and product-detail render accessible product-level favorite controls using opaque product ID.",
     "Guest control routes to login with safe current return path and creates no pending favorite intent.",
     "Valid-current-customer control remains usable during merge_blocked, renders idle/pending/saved/error, and prevents duplicate mutation while pending.",
-    "Wishlist page renders only the exact minimal projection and handles loading/empty/products/error/remove/session-expired with current handles."
+    "Wishlist page renders only the exact minimal projection and handles loading/empty/products/error/remove/session-expired with current handles.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T2 full protocol, required packet gate, and independent functional verification passed with no findings.",
+      "evidence": [
+        ".tasks/TASK-040/TASK-040-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-040/TASK-040-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-040/execute-local-gates.md",
+        ".tasks/TASK-040/wishlist-ui-evidence.md",
+        ".protocols/TASK-040/verification.md"
+      ],
+      "functional_verdict": "PASS",
+      "feature_semantic_gate": "pending_until_all_FT-005_tasks_are_done"
+    }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
   "evidence_required": ["Wishlist component/page state tests including merge_blocked access.", "Guest login routing and no-intent assertions.", "Exact projection rendering, accessibility labels/disabled pending, and current-handle assertions.", "Storefront build/typecheck and Memory Bank lint output."],

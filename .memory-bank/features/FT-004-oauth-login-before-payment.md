@@ -1,7 +1,7 @@
 ---
 description: Feature FT-004 - OAuth login before payment.
 status: draft
-lifecycle: planned
+lifecycle: verified
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-004-oauth-login-before-payment.md

@@ -4,6 +4,17 @@ status: active
 ---
 # FT-005 Decision Log
 
+## 2026-08-07 - Decomposition refresh after FT-004 closure
+
+- Confirmed: feature-level SDD remains complete with no unresolved design markers,
+  duplicate specs, or changes to the existing TASK-035..TASK-042 slicing.
+- Confirmed: FT-004 and TASK-030 now provide the verified current-customer/session
+  capability required by wishlist state.
+- Decision: clear the historical TASK-039 auth blocker to `planned`; do not promote it
+  to `ready` until TASK-038 is done.
+- Consequence: TASK-035 and TASK-036 remain the only ready FT-005 entry tasks; all
+  required packets stay derivative and hash-matched after refresh.
+
 ## 2026-07-16 - Manual review capability and contract correction
 
 - Decision: wishlist capability is successful backend current-customer retrieval,

@@ -172,6 +172,14 @@
     {
       "id": "TASK-043",
       "file": "TASK-043.task.json"
+    },
+    {
+      "id": "TASK-044",
+      "file": "TASK-044.task.json"
+    },
+    {
+      "id": "TASK-045",
+      "file": "TASK-045.task.json"
     }
   ]
 }

@@ -22,6 +22,8 @@
     "smoke:cart-merge-acceptance": "medusa exec ./src/scripts/smoke-cart-merge-acceptance.ts",
     "smoke:auth-config": "node -r ts-node/register ./src/scripts/smoke-auth-config.ts",
     "smoke:auth-vkid": "node -r ts-node/register ./src/scripts/smoke-auth-vkid.ts auth-vkid",
+    "smoke:wishlist-api": "medusa exec ./src/scripts/smoke-wishlist-api.ts",
+    "smoke:wishlist-acceptance": "node test/run-integration.cjs wishlist-acceptance",
     "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },

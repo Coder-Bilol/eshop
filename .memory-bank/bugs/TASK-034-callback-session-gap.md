@@ -1,7 +1,7 @@
 ---
-description: Active TASK-034 real browser callback-to-session acceptance failure.
-status: active
-owner: verify
+description: Resolved TASK-034 real browser callback-to-session acceptance failure.
+status: archived
+owner: execute
 last_updated: 2026-08-04
 source_of_truth:
   - .memory-bank/tasks/TASK-034.task.json
@@ -46,8 +46,12 @@ current-customer request returns `401`.
   writing and saving customer `auth_context`.
 - A focused regression simulates Express replacing the session object and rejects
   any save through the stale object.
-- This bug remains active until the corrected backend is deployed and the real
-  browser callback/current-customer boundary is repeated successfully.
+- Repeated real-browser Google and VK callbacks now return a usable signed customer
+  session: current-customer succeeds, cart handoff runs, and downstream checkout,
+  replay, expiry, and logout acceptance completes.
+- Focused backend auth-completion integration and full browser acceptance pass. The
+  historical TASK-034 functional FAIL remains authoritative until independent
+  `/verify TASK-034` is repeated.
 
 ## Root Cause
 
@@ -63,3 +67,12 @@ current-customer request returns `401`.
 - Correct remediation must use the refreshed `req.session` object after regeneration
   and add a regression assertion; this is backend auth behavior outside the current
   TASK-034 write scope.
+
+## Resolution Evidence
+
+- Commit `b6e39a0` implements the operator-approved bounded production fix and stale
+  session-object regression.
+- `.tasks/TASK-034/playwright/real-runtime-progress.log` records coarse successful
+  callback/session/merge diagnostics without identifiers.
+- `.tasks/TASK-034/TASK-034-S-IMPL-final-report-code-01.md` records the repeated local
+  gates and independent-verification handoff.

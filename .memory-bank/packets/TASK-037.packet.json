@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-037-R2",
+  "packet_id": "PACKET-TASK-037-R6",
   "task_id": "TASK-037",
-  "created_at": "2026-07-16T16:00:00+03:00",
-  "source_task_hash": "sha256:3595e8aecd2448efaad5284d1a0080f6314b2cf734b9ae91793be0558d8a9f3c",
+  "created_at": "2026-08-08T10:16:05+03:00",
+  "source_task_hash": "sha256:bd149c46e3ff05c0c93302a6bf496923a1080b657460ed4d1e438e9f3dc0e381",
   "status": "ready",
   "tier": "T2",
   "purpose": "Implement deterministic wishlist domain behavior between persistence and authenticated HTTP routes.",
@@ -17,7 +17,7 @@
     "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
   },
   "scope": {
-    "allowed_write_scope": ["apps/backend/src/wishlist/service.ts", "apps/backend/src/workflows/wishlist/add-wishlist-item.ts", "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts", "apps/backend/src/scripts/smoke-wishlist-workflows.ts", "apps/backend/package.json", ".memory-bank/changelog.md"],
+    "allowed_write_scope": ["apps/backend/src/wishlist/service.ts", "apps/backend/src/workflows/wishlist/add-wishlist-item.ts", "apps/backend/src/workflows/wishlist/remove-wishlist-item.ts", "apps/backend/src/scripts/smoke-wishlist-workflows.ts", "apps/backend/test/run-integration.cjs", "apps/backend/package.json", ".memory-bank/changelog.md"],
     "forbidden_scope": ["HTTP/auth middleware", "storefront", "product lifecycle hooks", "cleanup jobs/events", "Medusa Core"]
   },
   "verification": {

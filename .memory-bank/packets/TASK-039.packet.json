@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-039-R7",
+  "packet_id": "PACKET-TASK-039-R10",
   "task_id": "TASK-039",
-  "created_at": "2026-07-18T14:58:52+03:00",
-  "source_task_hash": "sha256:2c56ce5ee033eb6e2063df5af9f3ebd5bfaeed44b0c675895a4118add998e550",
+  "created_at": "2026-08-08T13:34:03+03:00",
+  "source_task_hash": "sha256:bdf5bd94693e8b604df8a11c49893bca2eedf1adbacf61f6697d2a5267edbe65",
   "status": "ready",
   "tier": "T3",
   "purpose": "Provide one deterministic session-aware wishlist state boundary for all buyer-facing controls and pages.",
@@ -12,9 +12,9 @@
   "source_refs": {
     "task": ".memory-bank/tasks/TASK-039.task.json",
     "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
-    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/auth-session-security.md"],
+    "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/contracts/auth-session-security.md"],
     "guides": [],
-    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md", ".protocols/TASK-039/plan.md", ".protocols/TASK-039/verification.md", ".protocols/TASK-039/red-verification.md"]
   },
   "scope": {
     "allowed_write_scope": ["apps/storefront/lib/wishlist.ts", "apps/storefront/lib/wishlist-state.ts", "apps/storefront/components/wishlist-provider.tsx", "apps/storefront/app/layout.tsx", "apps/storefront/src/wishlist-client.test.cjs", "apps/storefront/src/wishlist-state.test.cjs", "apps/storefront/src/test-runner.cjs", ".memory-bank/changelog.md"],
@@ -22,9 +22,9 @@
   },
   "verification": {
     "commands": ["npm --workspace apps/storefront run test -- wishlist-client", "npm --workspace apps/storefront run test -- wishlist-state", "npm --workspace apps/storefront run typecheck", "node scripts/mb-lint.mjs"],
-    "success_checks": ["Successful current-customer retrieval permits wishlist even during merge_blocked.", "Per-product pending/error and backend truth adoption are deterministic.", "Guest/current-customer 401/logout/session-expiry retain no in-memory or browser-stored wishlist data."],
-    "evidence_required": ["Client/state tests.", "Current-customer capability, merge_blocked independence, and storage assertions.", "Typecheck, lint, T3 human checkpoint, and recovery note."]
+    "success_checks": ["Wishlist loads whenever backend current-customer retrieval succeeds using the session, including merge_blocked checkout state.", "Add/remove adopt backend response truth, disable duplicate product mutation while pending, and recover on error.", "Logout/session expiry clears all in-memory wishlist/customer association and guest state never calls mutations.", "No wishlist product IDs, items, customer IDs, or pending intent are written to local/session storage."],
+    "evidence_required": ["Wishlist client/state test output.", "Current-customer capability, merge_blocked independence, pending/error, logout/session-expiry assertions, and browser storage non-persistence assertions.", "T3 closure evidence: .tasks/TASK-039/TASK-039-S-IMPL-final-report-code-01.md, .tasks/TASK-039/TASK-039-S-VERIFY-final-report-code-02.md, .tasks/TASK-039/TASK-039-S-RED-VERIFY-final-report-docs-01.md, .tasks/TASK-039/execute-local-gates.md, .tasks/TASK-039/rollback-recovery-note.md, .protocols/TASK-039/verification.md, and .protocols/TASK-039/red-verification.md.", "HUMAN_CHECKPOINT: done and ROLLBACK_RECOVERY_NOTE: present."]
   },
   "stop_conditions": ["FT-004 cannot provide a truthful current-customer success/401 capability signal.", "Wishlist would become coupled to cart-merge or checkout readiness.", "Backend contract cannot return authoritative mutation state.", "Implementation requires browser-persisted wishlist data."],
-  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-039/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-039/.", "Preserve the authoritative scheduler decision, evidence, and T3 markers; do not change task lifecycle status."]
 }

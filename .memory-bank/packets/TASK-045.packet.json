@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-045-R1",
+  "task_id": "TASK-045",
+  "created_at": "2026-08-10T21:30:32+03:00",
+  "source_task_hash": "sha256:952dd68e4f2212c8a5ff99c1819268ab62d64a5ad1146b24b55d6095364b6309",
+  "status": "ready",
+  "tier": "T2",
+  "purpose": "Remove the acceptance-only sales-channel mismatch blocking browser-positive wishlist lifecycle verification.",
+  "success_outcome": "TASK-042 browser acceptance observes the retained synthetic restored and out-of-stock fixtures through the real Store API while hidden rows remain omitted.",
+  "anti_goals": [
+    "Do not change production wishlist/auth/catalog behavior.",
+    "Do not add a production bearer path or direct browser database/module access.",
+    "Do not use real PII, credentials, tokens, cookies, session IDs, secrets, or production data."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-045.task.json",
+    "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-005-authenticated-wishlist.md",
+      ".memory-bank/domains/wishlist-data.md",
+      ".memory-bank/contracts/wishlist-api-security.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/constitution.md"
+    ],
+    "guides": [
+      ".memory-bank/tasks/plans/IMPL-FT-005.md",
+      ".memory-bank/workflows/tier-policy.md",
+      ".tasks/TASK-042/retry-browser-boundary.md",
+      ".tasks/TASK-042/retry-gate-results.md",
+      ".tasks/TASK-042/TASK-042-S-IMPL-final-report-code-03.md",
+      ".tasks/TASK-044/acceptance-evidence.md",
+      ".tasks/TASK-044/gate-results.md",
+      ".tasks/TASK-044/privacy-scope-evidence.md",
+      ".tasks/TASK-044/rollback-recovery-note.md",
+      ".tasks/TASK-044/TASK-044-S-IMPL-final-report-code-01.md"
+    ],
+    "protocols": [
+      ".protocols/TASK-042/handoff.md",
+      ".protocols/TASK-044/handoff.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/scripts/smoke-wishlist-acceptance.ts",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "production wishlist/auth/catalog behavior",
+      "production routes/workflows",
+      "auth providers",
+      "bearer transport",
+      "database schema",
+      "production data",
+      "live providers",
+      "browser direct DB/module access",
+      "TASK-042 lifecycle, retry boundary, task status, protocols, or scheduler decisions",
+      "source or task-record edits outside the listed acceptance files"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- wishlist-acceptance",
+      "npm --workspace apps/storefront run test:e2e -- wishlist",
+      "npm run typecheck",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Browser setup resolves the actual sales channel selected by the publishable key and binds visible, restored, and out-of-stock fixtures to it without changing hidden-case semantics.",
+      "The browser Store API observes retained fixtures through the same long-lived runtime; no process restart, direct browser database/module bypass, or auth/session workaround is used.",
+      "Existing TASK-041 and TASK-044 acceptance phases remain green and unconditional cleanup removes all synthetic state on success and failure.",
+      "No production wishlist/auth/catalog behavior, bearer path, schema, or live provider configuration changes."
+    ],
+    "evidence_required": [
+      "Sanitized publishable-key/fixture-channel alignment evidence.",
+      "Real browser positive hidden omission, restored visibility, and out-of-stock unavailable projection evidence.",
+      "Existing acceptance regression, cleanup, privacy, typecheck, and lint evidence."
+    ]
+  },
+  "stop_conditions": [
+    "The publishable-key channel cannot be resolved through the supported local query boundary.",
+    "Alignment requires production behavior, auth changes, direct browser database/module access, or a new bearer path.",
+    "Existing TASK-041 or TASK-044 cleanup or acceptance regresses.",
+    "The fix requires edits outside the listed acceptance files without another owner decision.",
+    "Required evidence would contain real PII, credentials, cookies, bearer values, OAuth tokens, session IDs, secrets, or production data."
+  ],
+  "required_handoff": [
+    "Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.",
+    "Record sanitized publishable-key/fixture-channel alignment and browser-positive lifecycle evidence.",
+    "Preserve TASK-041 and TASK-044 acceptance/cleanup semantics and do not change TASK-042 lifecycle, retry, protocols, task status, or scheduler decisions.",
+    "T2 closure requires full protocol, this required packet, linked spec gates, and /verify VERDICT: PASS; lifecycle decisions remain scheduler-owned."
+  ]
+}

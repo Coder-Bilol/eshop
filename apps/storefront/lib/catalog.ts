@@ -7,6 +7,7 @@ export type CatalogCategory = {
 };
 
 export type CatalogProduct = {
+  id: string;
   handle: string;
   title: string;
   description: string;

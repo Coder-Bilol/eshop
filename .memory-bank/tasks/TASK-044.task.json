@@ -1,0 +1,56 @@
+{
+  "id": "TASK-044",
+  "title": "Retain wishlist lifecycle fixtures for browser acceptance",
+  "status": "done",
+  "wave": "W3-fix",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-041"],
+  "touched_files": [
+    "apps/backend/src/scripts/smoke-wishlist-acceptance.ts",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "wishlist acceptance retention", "command": "npm --workspace apps/backend run test:integration -- wishlist-acceptance", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "A browser-customer-bound retention/setup phase keeps synthetic hidden, restored, and out-of-stock rows available for the real browser read.",
+    "Hidden rows remain durable and omitted, restored products reappear, and visible out-of-stock products remain listable with is_available false until cleanup.",
+    "The existing unconditional cleanup removes all synthetic rows and fixtures after success or interruption without production data access.",
+    "No production wishlist/auth/catalog behavior or bearer/auth boundary is changed.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T2 full protocol, required packet gate, and independent functional verification passed with no findings.",
+      "evidence": [
+        ".tasks/TASK-044/TASK-044-S-IMPL-final-report-code-01.md",
+        ".protocols/TASK-044/verification.md",
+        ".tasks/TASK-044/acceptance-evidence.md",
+        ".tasks/TASK-044/gate-results.md",
+        ".tasks/TASK-044/privacy-scope-evidence.md",
+        ".tasks/TASK-044/rollback-recovery-note.md"
+      ],
+      "functional_verdict": "PASS",
+      "feature_semantic_gate": "pending_until_all_FT-005_tasks_are_done"
+    }
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Real local Medusa/PostgreSQL retention and cleanup output using synthetic IDs only.", "Browser-compatible customer ownership handoff and lifecycle assertions.", "Typecheck, integration, lint, privacy, and rollback/recovery evidence."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md", ".tasks/TASK-042/TASK-042-S-RED-VERIFY-final-report-docs-01.md"],
+  "normative_inputs": [".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md", ".memory-bank/constitution.md"],
+  "constraints": ["Acceptance-only change; do not modify production wishlist behavior, auth, bearer transport, storefront, schema, or live provider configuration.", "Use only synthetic local fixtures and a browser-customer actor handoff supplied by the existing local harness.", "Keep cleanup unconditional and preserve the existing TASK-041 write/read/cleanup acceptance behavior."],
+  "invariants": ["Hidden rows are retained for browser omission checks but never exposed in the response.", "Restored and out-of-stock rows remain available until browser-positive assertions complete.", "Cleanup removes all synthetic rows and fixtures even after failure."],
+  "verification_targets": [".memory-bank/domains/wishlist-data.md#verification-targets", ".memory-bank/contracts/wishlist-api-security.md#verification-rules", ".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#verification-targets"],
+  "purpose": "Provide a safe acceptance-only retention handoff so TASK-042 can prove buyer-visible lifecycle projections in a real browser.",
+  "success_outcome": "TASK-042 can read retained synthetic hidden/restored/out-of-stock favorites through the real browser boundary and cleanup remains deterministic.",
+  "anti_goals": ["Do not change production wishlist/auth/catalog behavior.", "Do not add a production bearer path or browser persistence.", "Do not use real PII, credentials, tokens, cookies, session IDs, secrets, or production data."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-044.packet.json",
+    "allowed_write_scope": ["apps/backend/src/scripts/smoke-wishlist-acceptance.ts", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production wishlist/auth/catalog behavior", "storefront", "auth providers", "bearer transport", "database schema", "production data", "live providers"],
+    "stop_conditions": ["The existing harness cannot safely hand off a synthetic browser customer actor.", "Retention would require weakening hidden-product privacy or changing production routes/workflows.", "Cleanup cannot be guaranteed on success and interruption.", "The fix requires edits outside the acceptance harness and changelog without an additional owner decision."]
+  }
+}

@@ -11,11 +11,14 @@
 - Success outcome: both provider doubles establish a usable signed session, cart
   conflict/retry converges before checkout, replay/expiry/logout fail safely, and
   generated evidence contains no callback/session/PII identifiers.
-- Anti-goals: no live provider, production data, backend behavior change, checkout
-  fields, orders, inventory, or payments.
+- Anti-goals: no live provider, production data, further backend behavior change
+  beyond the approved regenerated-session fix, checkout fields, orders, inventory,
+  or payments.
 - Allowed write scope: task/packet-listed storefront harness, logout control, focused
-  test, package, changelog, protocol, and evidence artifacts.
-- Forbidden scope: backend auth/cart behavior and all task-record forbidden areas.
+  test, package, changelog, protocol, and evidence artifacts, plus the already
+  approved focused session remediation and regression in commit `b6e39a0`.
+- Forbidden scope: backend cart behavior, any additional backend auth behavior, and
+  all other task-record forbidden areas.
 - Stop conditions: provider double bypasses production callback/session, real browser
   boundaries cannot be exercised, or privacy-safe artifacts cannot be generated.
 
@@ -33,7 +36,8 @@
 ## Steps
 
 1. Diagnose callback response and browser-cookie state using coarse booleans/status.
-2. Correct harness/runtime composition without editing backend behavior.
+2. Confirm the approved production session fix, then correct only harness/storefront
+   issues exposed by the repeated browser run.
 3. Prove Google and VK negative/success paths, merge conflict/retry, checkout, replay,
    expiry, and confirmed logout.
 4. Scan generated artifacts without printing matched sensitive values.

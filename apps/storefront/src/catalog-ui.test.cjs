@@ -26,6 +26,7 @@ function compileTypeScript(module, filename) {
 const firstCatalogResponse = {
   products: [
     {
+      id: "prod_fixture_dynamic_rod",
       handle: "fixture-dynamic-rod",
       title: "Fixture Dynamic Rod",
       description: "Backend supplied curtain fixture for render proof.",
@@ -207,6 +208,7 @@ async function run() {
     { ok: true, status: 200, body: emptyCatalogResponse },
     { ok: true, status: 200, body: missingAttributesCatalogResponse },
     { ok: false, status: 503, body: null },
+    { ok: true, status: 200, body: firstCatalogResponse },
   ];
   global.fetch = async (url, init) => {
     fetchCalls.push({ url: String(url), init });
@@ -223,6 +225,7 @@ async function run() {
     buildCatalogHref,
     buildCatalogQueryParams,
     catalogProductVariantSummary,
+    fetchCatalog,
     readSearchParam,
     selectedCatalogFilters,
   } = require("../lib/catalog.ts");
@@ -356,6 +359,10 @@ async function run() {
   assert.match(loadingHtml, /Loading catalog/);
   assert.match(loadingHtml, /aria-busy="true"/);
 
+  const fetchedCatalog = await fetchCatalog({});
+  assert.equal(fetchedCatalog.products[0].id, "prod_fixture_dynamic_rod");
+  assert.equal(fetchedCatalog.products[0].handle, "fixture-dynamic-rod");
+
   const pageSource = fs.readFileSync(path.join(__dirname, "..", "app", "page.tsx"), "utf8");
   assert.equal(pageSource.includes("steel-telescopic-curtain-rod"), false);
   assert.equal(pageSource.includes("wooden-classic-curtain-rod"), false);
@@ -390,6 +397,7 @@ async function run() {
         edgeTracePath: process.env.ESHOP_CATALOG_EDGE_TRACE_PATH || null,
         assertions: [
           "storefront requests backend store catalog route with explicit query params",
+          "catalog fetch preserves opaque backend product ID alongside navigation handle",
           "product cards render from backend response data",
           "category navigation is visible",
           "search input and required filters are visible",

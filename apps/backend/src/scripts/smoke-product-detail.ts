@@ -19,6 +19,7 @@ export default async function smokeProductDetail({ container }: ExecArgs) {
   );
 
   assert.equal(configurable.title, "Steel telescopic curtain rod");
+  assert.ok(configurable.id.startsWith("prod_"));
   assert.deepEqual(configurable.media, [
     "/seed/steel-telescopic-curtain-rod.svg",
   ]);
@@ -123,6 +124,7 @@ export default async function smokeProductDetail({ container }: ExecArgs) {
         suite: "product-detail",
         status: "ok",
         sourceBoundary: "medusa-query-graph",
+        productIdentity: "canonical-medusa-product-id",
         variantCount: configurable.variants.length,
         salesChannelId,
       },

@@ -32,6 +32,9 @@
 
 - Runtime writes stay in the TASK-034 browser harness, local provider double,
   buyer-visible checkout logout control, focused test, package script, and changelog.
-- Backend auth/cart behavior is read-only.
+- The operator-approved prerequisite remediation in commit `b6e39a0` corrected only
+  the production callback session regeneration defect and its focused backend
+  regression. No further backend behavior change is included in this retry.
+- Backend cart behavior remains read-only.
 - Live providers, credentials, production data, checkout fields, orders, inventory,
   and payments remain forbidden.

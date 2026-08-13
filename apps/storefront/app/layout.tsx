@@ -2,6 +2,7 @@ import "./globals.css";
 import type { ReactNode } from "react";
 import { AuthProvider } from "../components/auth-provider";
 import { CartProvider } from "../components/cart-provider";
+import { WishlistProvider } from "../components/wishlist-provider";
 
 export const metadata = {
   title: "Eshop",
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="ru">
       <body>
         <CartProvider restoreOnMount={false}>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <WishlistProvider>{children}</WishlistProvider>
+          </AuthProvider>
         </CartProvider>
       </body>
     </html>

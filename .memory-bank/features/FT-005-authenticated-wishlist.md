@@ -1,7 +1,7 @@
 ---
 description: Feature FT-005 - authenticated wishlist.
 status: draft
-lifecycle: planned
+lifecycle: verified
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-005-authenticated-wishlist.md
@@ -53,6 +53,15 @@ spec_design_links:
 - API tests prove unauthenticated denial and actor-derived ownership.
 - Browser E2E proves authenticated add/view/remove from catalog, product detail,
   and wishlist page, plus no guest persistence.
+
+## Verification Status
+
+- Lifecycle: `verified` after all indexed FT-005 tasks (TASK-035..TASK-042, TASK-044,
+  TASK-045) reached scheduler-owned `done` and the feature-level semantic review returned
+  `SEMANTIC_VERDICT: semantic-pass`, `verdict: APPROVE`, and no findings.
+- Evidence: [.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md](../../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md).
+- Task and RTM navigation: [IMPL-FT-005](../tasks/plans/IMPL-FT-005.md) and
+  [requirements RTM](../requirements.md).
 
 ## Source Artifacts
 

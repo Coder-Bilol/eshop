@@ -1,7 +1,7 @@
 ---
 description: Epic EP-002 - customer identity, cart, and wishlist.
 status: draft
-lifecycle: planned
+lifecycle: verified
 ---
 # EP-002 Customer Identity Cart And Wishlist
 
@@ -33,6 +33,13 @@ Let buyers build carts before login while preserving customer identity, cart con
 - Covers REQ-006 through REQ-012.
 - Cart merge sums identical variants/SKU.
 - Payment cannot proceed before authentication.
+
+## Verification Status
+
+- Lifecycle: `verified`; FT-003, FT-004, and FT-005 are all `verified`.
+- Evidence navigation: [FT-003](../features/FT-003-guest-cart-persistence-merge.md),
+  [FT-004](../features/FT-004-oauth-login-before-payment.md), and
+  [FT-005](../features/FT-005-authenticated-wishlist.md).
 
 ## Constraints / Invariants
 

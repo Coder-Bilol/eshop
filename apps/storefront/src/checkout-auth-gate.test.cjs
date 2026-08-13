@@ -263,6 +263,8 @@ function verifyScopedUiBoundary() {
   assert.match(gate, /data-checkout-continuation="ft-006-handoff"/);
   assert.match(gate, /does not replace customer authorization on backend/);
   assert.match(gate, /const \{ state: authState, restoreSession, logout \} = useAuth\(\)/);
+  assert.match(gate, /loginNavigationStarted\.current = true;\s+try \{\s+await logout\(\);\s+window\.location\.replace\(CHECKOUT_LOGIN_LOCATION\)/);
+  assert.match(gate, /catch \{\s+loginNavigationStarted\.current = false;/);
   assert.match(gate, /await logout\(\)/);
   assert.match(gate, /"Log out"/);
   assert.match(gate, /Sign-out could not be confirmed\. Try again\./);

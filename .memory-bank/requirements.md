@@ -2,7 +2,7 @@
 description: Requirements (REQ IDs) and traceability matrix for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-07-13
+last_updated: 2026-08-11
 source_of_truth:
   - .memory-bank/prd.md
 ---
@@ -67,10 +67,10 @@ source_of_truth:
 | REQ-006 | EP-002 | FT-003 | e2e: guest cart update | verified |
 | REQ-007 | EP-002 | FT-003 | e2e: cart persistence | verified |
 | REQ-008 | EP-002 | FT-003 | unit/integration: cart merge | verified |
-| REQ-009 | EP-002 | FT-005 | e2e: authenticated wishlist | planned |
-| REQ-010 | EP-002 | FT-004 | integration/e2e: Google OAuth | planned |
-| REQ-011 | EP-002 | FT-004 | integration/e2e: VK ID | planned |
-| REQ-012 | EP-002 | FT-004 | e2e: login before payment | planned |
+| REQ-009 | EP-002 | FT-005 | e2e: authenticated wishlist | verified |
+| REQ-010 | EP-002 | FT-004 | integration/e2e: Google OAuth | verified |
+| REQ-011 | EP-002 | FT-004 | integration/e2e: VK ID | verified |
+| REQ-012 | EP-002 | FT-004 | e2e: login before payment | verified |
 | REQ-013 | EP-003 | FT-006 | e2e: checkout contact fields | planned |
 | REQ-014 | EP-003 | FT-006 | e2e: delivery data fields | planned |
 | REQ-015 | EP-003 | FT-006 | integration/e2e: delivery methods | planned |
@@ -89,3 +89,13 @@ source_of_truth:
 | REQ-028 | EP-003 | FT-008 | integration/e2e: admin order visibility | planned |
 | REQ-029 | EP-003 | FT-008 | e2e: operator order surface | planned |
 | REQ-030 | EP-005 | FT-011 | smoke: Windows native local path | planned |
+
+## RTM Reconciliation
+
+- REQ-009 is `verified`: all indexed FT-005 tasks (TASK-035..TASK-042, TASK-044,
+  TASK-045) are scheduler-closed, and the feature-level review returned
+  `SEMANTIC_VERDICT: semantic-pass`, `verdict: APPROVE`, and no findings.
+- Evidence navigation: [FT-005 feature review](../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md)
+  and [FT-005 implementation plan](tasks/plans/IMPL-FT-005.md).
+- No unrelated requirement lifecycle or document status taxonomy was changed by this
+  reconciliation.

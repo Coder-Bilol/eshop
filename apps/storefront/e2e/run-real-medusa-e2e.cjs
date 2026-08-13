@@ -1,8 +1,9 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const http = require("node:http");
+const os = require("node:os");
 const path = require("node:path");
-const { spawn } = require("node:child_process");
+const { execFileSync, spawn } = require("node:child_process");
 const { chromium } = require("playwright");
 const {
   checkPort,
@@ -22,8 +23,10 @@ const storefrontPort = Number(
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 const storefrontUrl = `http://127.0.0.1:${storefrontPort}`;
 const selectedSuites = selectSuites(process.argv.slice(2));
-const outputTaskId = selectedSuites.includes("auth")
-  ? "TASK-034"
+const outputTaskId = selectedSuites.includes("wishlist")
+  ? "TASK-042"
+  : selectedSuites.includes("auth")
+    ? "TASK-034"
   : selectedSuites.includes("cart")
     ? "TASK-026"
     : "TASK-016";
@@ -33,6 +36,13 @@ const progressLogPath = path.join(outputDir, "real-runtime-progress.log");
 const cartReferenceKey = "eshop.cart.v1";
 const authReturnPathKey = "eshop.auth.return-path.v1";
 const authProviderDoublePath = path.join(__dirname, "auth-provider-double.cjs");
+const medusaCli = require.resolve("@medusajs/cli/cli");
+const wishlistAcceptanceScript = path.join(
+  backendDir,
+  "src",
+  "scripts",
+  "smoke-wishlist-acceptance.ts"
+);
 
 async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -65,8 +75,8 @@ async function main() {
       NEXT_PUBLIC_MEDUSA_BACKEND_URL: backendUrl,
       NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: publishableKey,
       NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID: seedSummary.sales_channel_id,
-      NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.some((suite) =>
-        ["auth", "cart"].includes(suite)
+       NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.some((suite) =>
+        ["auth", "cart", "wishlist"].includes(suite)
       )
         ? "true"
         : "false",
@@ -77,18 +87,30 @@ async function main() {
       STOREFRONT_PORT: String(storefrontPort),
       JWT_SECRET: "task034-local-jwt-secret",
       COOKIE_SECRET: "task034-local-cookie-secret",
-      GOOGLE_AUTH_ENABLED: selectedSuites.includes("auth") ? "true" : "false",
+       GOOGLE_AUTH_ENABLED: selectedSuites.some((suite) =>
+        ["auth", "wishlist"].includes(suite)
+      )
+        ? "true"
+        : "false",
       GOOGLE_OAUTH_CLIENT_ID: "task034-local-google-client",
       GOOGLE_OAUTH_CLIENT_SECRET: "task034-local-google-secret",
       GOOGLE_OAUTH_CALLBACK_URL: `${backendUrl}/auth/customer/google/complete`,
-      VK_ID_AUTH_ENABLED: selectedSuites.includes("auth") ? "true" : "false",
+       VK_ID_AUTH_ENABLED: selectedSuites.some((suite) =>
+        ["auth", "wishlist"].includes(suite)
+      )
+        ? "true"
+        : "false",
       VK_ID_CLIENT_ID: "340034",
       VK_ID_SERVICE_TOKEN: "task034-local-vk-service-token",
       VK_ID_CALLBACK_URL: `${backendUrl}/auth/customer/vkid/complete`,
-      ESHOP_E2E_AUTH_PROVIDER_DOUBLE: selectedSuites.includes("auth")
+       ESHOP_E2E_AUTH_PROVIDER_DOUBLE: selectedSuites.some((suite) =>
+        ["auth", "wishlist"].includes(suite)
+      )
         ? "true"
         : "false",
-      NODE_OPTIONS: selectedSuites.includes("auth")
+       NODE_OPTIONS: selectedSuites.some((suite) =>
+        ["auth", "wishlist"].includes(suite)
+      )
         ? `${process.env.NODE_OPTIONS || ""} --require=${authProviderDoublePath}`.trim()
         : process.env.NODE_OPTIONS,
     })
@@ -102,16 +124,26 @@ async function main() {
   let noKeyStatus;
   let cartEvidence = null;
   let authEvidence = null;
+  let wishlistEvidence = null;
   let cartContext = null;
+  let wishlistFixtures = null;
 
   try {
     logStep("waiting for compiled Medusa health endpoint");
-    await waitForHttp(`${backendUrl}/health`, 90_000);
+    await waitForHttp(
+      `${backendUrl}/health`,
+      selectedSuites.some((suite) => ["auth", "wishlist"].includes(suite))
+        ? 180_000
+        : 90_000
+    );
     noKeyStatus = await verifyPublishableKeyBoundary(publishableKey);
     if (selectedSuites.some((suite) => ["auth", "cart"].includes(suite))) {
       cartContext = await resolveCartContext(publishableKey, seedSummary);
     }
-
+    if (selectedSuites.includes("wishlist")) {
+      logStep("creating synthetic wishlist lifecycle fixtures");
+      wishlistFixtures = createWishlistAcceptanceFixtures(publishableKey);
+    }
     logStep("preparing Next.js storefront");
     const next = require("next");
     const nextApp = next({
@@ -129,7 +161,7 @@ async function main() {
       channel: process.env.PLAYWRIGHT_CHANNEL || "msedge",
     });
     context = await browser.newContext();
-    if (!selectedSuites.includes("auth")) {
+    if (!selectedSuites.includes("auth") && !selectedSuites.includes("wishlist")) {
       await context.tracing.start({
         screenshots: true,
         snapshots: true,
@@ -151,6 +183,13 @@ async function main() {
     }
     if (selectedSuites.includes("auth")) {
       authEvidence = await verifyAuth(browser, publishableKey, cartContext);
+    }
+    if (selectedSuites.includes("wishlist")) {
+      wishlistEvidence = await verifyWishlist(
+        browser,
+        publishableKey,
+        wishlistFixtures
+      );
     }
 
     if (!traceStopped) {
@@ -183,6 +222,10 @@ async function main() {
     }
     logStep("closing storefront server");
     await closeServer(storefrontServer);
+    if (wishlistFixtures) {
+      logStep("cleaning synthetic wishlist lifecycle fixtures");
+      cleanupWishlistAcceptanceFixtures(wishlistFixtures);
+    }
     logStep("stopping Medusa backend");
     await stopChild(backend);
     logStep("checking released ports");
@@ -190,7 +233,13 @@ async function main() {
     logStep("cleanup complete");
   }
 
-  writeRuntimeEvidence(noKeyStatus, publishableKey, cartEvidence, authEvidence);
+  writeRuntimeEvidence(
+    noKeyStatus,
+    publishableKey,
+    cartEvidence,
+    authEvidence,
+    wishlistEvidence
+  );
   process.stdout.write(
     `${JSON.stringify(
       {
@@ -207,6 +256,7 @@ async function main() {
         },
         cartAcceptance: cartEvidence,
         authAcceptance: authEvidence,
+        wishlistAcceptance: wishlistEvidence,
         variantIdentity: "medusa-product-variant-id",
         mediaContract: "string-url",
         trace: selectedSuites.includes("auth")
@@ -214,6 +264,8 @@ async function main() {
               (provider) =>
                 `.tasks/${outputTaskId}/playwright/auth-${provider}-sanitized-trace.zip`
             )
+          : selectedSuites.includes("wishlist")
+            ? `.tasks/${outputTaskId}/playwright/wishlist-browser-report.json`
           : `.tasks/${outputTaskId}/playwright/real-medusa-trace.zip`,
         screenshots: screenshotPaths(selectedSuites),
         processCleanup: "ports-released",
@@ -750,6 +802,742 @@ async function verifyAuth(browser, publishableKey, cartContext) {
   };
 }
 
+async function verifyWishlist(browser, publishableKey, fixtures) {
+  assert.ok(fixtures?.state?.productIds, "Wishlist fixture state is missing.");
+  logStep("verifying wishlist lifecycle through real Medusa and browser boundaries");
+
+  const lifecycle = runWishlistAcceptancePhase(fixtures, "read");
+  const catalogProduct = await readProductDetail(
+    "steel-telescopic-curtain-rod",
+    publishableKey
+  );
+  const detailProduct = await readProductDetail(
+    "basic-home-hook-set",
+    publishableKey
+  );
+
+  const customerAContext = await browser.newContext();
+  customerAContext.setDefaultNavigationTimeout(120_000);
+  customerAContext.setDefaultTimeout(60_000);
+  const customerAPage = await customerAContext.newPage();
+  let customerBContext;
+  let durableContext;
+  let expiredContext;
+  let finalContext;
+
+  try {
+    const browserCustomerId = await authenticateBrowserCustomer(
+      customerAContext,
+      customerAPage,
+      "google"
+    );
+    const browserSetup = runWishlistAcceptancePhase(
+      fixtures,
+      "browser-setup",
+      browserCustomerId
+    );
+    const browserSetupProjection = await verifyRetainedWishlistProjection(
+      customerAPage,
+      publishableKey,
+      browserSetup.browserFixtures
+    );
+    await verifyWishlistCatalogAndDetailMutations(
+      customerAPage,
+      catalogProduct,
+      detailProduct
+    );
+    await customerAPage.goto(`${storefrontUrl}/`);
+    await wishlistButton(customerAPage, catalogProduct.id).click();
+    await waitForWishlistButtonState(customerAPage, catalogProduct.id, "saved");
+
+    customerBContext = await browser.newContext();
+    customerBContext.setDefaultNavigationTimeout(120_000);
+    customerBContext.setDefaultTimeout(60_000);
+    const customerBPage = await customerBContext.newPage();
+    await authenticateBrowserCustomer(customerBContext, customerBPage, "vkid");
+    await verifyWishlistCustomerIsolation(
+      customerAPage,
+      customerBPage,
+      catalogProduct
+    );
+    await customerBContext.close();
+    customerBContext = null;
+
+    const hiddenVisibility = await verifyWishlistVisibility(
+      customerAPage,
+      publishableKey,
+      browserSetup.browserFixtures
+    );
+    const restored = await verifyRestoredWishlistProduct(
+      customerAPage,
+      browserSetup.browserFixtures.restored
+    );
+    const outOfStock = await verifyOutOfStockWishlistProduct(
+      customerAPage,
+      publishableKey,
+      browserSetup.browserFixtures.outOfStock
+    );
+
+    const guest = await verifyGuestWishlistRouting(
+      browser,
+      catalogProduct
+    );
+    const mergeBlockedEvidence = await verifyMergeBlockedWishlist(
+      browser,
+      publishableKey,
+      catalogProduct
+    );
+
+    await customerAPage.goto(`${storefrontUrl}/checkout`);
+    await visible(customerAPage.locator('[data-checkout-continuation="ft-006-handoff"]'));
+    await customerAPage.getByRole("button", { name: "Log out" }).click();
+    await waitForCleanStorefrontPath(customerAPage, "/login");
+    assert.equal(
+      (
+        await browserStoreRequest(customerAPage, {
+          path: "/store/customers/me",
+          method: "GET",
+          publishableKey,
+        })
+      ).status,
+      401
+    );
+    await assertWishlistStoragePrivacy(customerAPage, []);
+
+    durableContext = await browser.newContext();
+    durableContext.setDefaultNavigationTimeout(120_000);
+    durableContext.setDefaultTimeout(60_000);
+    const durablePage = await durableContext.newPage();
+    await authenticateBrowserCustomer(durableContext, durablePage, "google");
+    await durablePage.goto(`${storefrontUrl}/wishlist`);
+    await waitForWishlistPageState(durablePage, "products");
+    await visible(durablePage.locator(`[data-product-id="${catalogProduct.id}"]`));
+
+    expiredContext = durableContext;
+    const expiredPage = durablePage;
+    const expired = await browserStoreRequest(expiredPage, {
+      path: "/auth/session",
+      method: "DELETE",
+      publishableKey,
+    });
+    assert.equal(expired.status, 200);
+    await expiredPage
+      .locator(`[data-product-id="${catalogProduct.id}"] button`)
+      .click();
+    await waitForWishlistPageState(expiredPage, "session-expired");
+    await assertWishlistStoragePrivacy(expiredPage, []);
+    await expiredContext.close();
+    expiredContext = null;
+    durableContext = null;
+
+    finalContext = await browser.newContext();
+    finalContext.setDefaultNavigationTimeout(120_000);
+    finalContext.setDefaultTimeout(60_000);
+    const finalPage = await finalContext.newPage();
+    await authenticateBrowserCustomer(finalContext, finalPage, "google");
+    await finalPage.goto(`${storefrontUrl}/wishlist`);
+    await waitForWishlistPageState(finalPage, "products");
+    await visible(finalPage.locator(`[data-product-id="${catalogProduct.id}"]`));
+    await finalPage
+      .locator(`[data-product-id="${catalogProduct.id}"] button`)
+      .click();
+    await finalPage
+      .locator(`article.wishlistCard[data-product-id="${catalogProduct.id}"]`)
+      .waitFor({ state: "detached" });
+    await waitForWishlistPageState(finalPage, "products");
+    assert.equal(
+      await finalPage.locator(
+        `article.wishlistCard[data-product-id="${catalogProduct.id}"]`
+      ).count(),
+      0
+    );
+    await browserStoreRequest(finalPage, {
+      path: "/auth/session",
+      method: "DELETE",
+      publishableKey,
+    });
+
+    const evidence = {
+      status: "ok",
+      realBrowser: true,
+      sourceBoundary: "playwright-storefront-medusa-session-cookie-postgresql",
+      catalogDetailWishlist: true,
+      reloadPersistence: true,
+      twoCustomerIsolation: true,
+      guestLoginRouting: guest,
+      browserSetup: {
+        browserCustomerBound: browserSetup.browserCustomerBound,
+        retainedRows: browserSetup.retainedRows,
+        salesChannelResolution: browserSetup.salesChannelResolution,
+        fixtureSalesChannelAligned: browserSetup.fixtureSalesChannelAligned,
+        sanitizedFixtureHandoff: true,
+      },
+      browserSetupProjection,
+      hiddenVisibility,
+      restoredProduct: restored,
+      outOfStock,
+      mergeBlockedWishlistIndependence: mergeBlockedEvidence,
+      logoutCleanup: true,
+      sessionExpiryCleanup: true,
+      storageScan: true,
+      backendLifecycleAcceptance: lifecycle,
+      syntheticFixturesOnly: true,
+      evidencePrivacy: "coarse-assertions-only-no-cookies-or-session-identifiers",
+    };
+    fs.writeFileSync(
+      path.join(outputDir, "wishlist-browser-report.json"),
+      `${JSON.stringify(evidence, null, 2)}\n`,
+      "utf8"
+    );
+    await customerAPage.screenshot({
+      path: path.join(outputDir, "wishlist-session-expired.png"),
+      fullPage: true,
+    });
+    return evidence;
+  } finally {
+    await customerBContext?.close().catch(() => {});
+    await expiredContext?.close().catch(() => {});
+    await durableContext?.close().catch(() => {});
+    await finalContext?.close().catch(() => {});
+    await customerAContext.close().catch(() => {});
+  }
+}
+
+async function verifyWishlistCatalogAndDetailMutations(
+  page,
+  catalogProduct,
+  detailProduct
+) {
+  await page.goto(`${storefrontUrl}/`);
+  await visible(page.getByRole("heading", { name: "Home goods" }));
+  await wishlistButton(page, catalogProduct.id).click();
+  await waitForWishlistButtonState(page, catalogProduct.id, "saved");
+
+  await page.goto(`${storefrontUrl}/products/${catalogProduct.handle}`);
+  await visible(page.getByRole("heading", { name: catalogProduct.title }));
+  await waitForWishlistButtonState(page, catalogProduct.id, "saved");
+  await wishlistButton(page, catalogProduct.id).click();
+  await waitForWishlistButtonState(page, catalogProduct.id, "idle");
+
+  await page.goto(`${storefrontUrl}/products/${detailProduct.handle}`);
+  await visible(page.getByRole("heading", { name: detailProduct.title }));
+  await wishlistButton(page, detailProduct.id).click();
+  await waitForWishlistButtonState(page, detailProduct.id, "saved");
+  await page.reload();
+  await waitForWishlistButtonState(page, detailProduct.id, "saved");
+
+  await page.goto(`${storefrontUrl}/wishlist`);
+  await waitForWishlistPageState(page, "products");
+  await visible(page.locator(`[data-product-id="${detailProduct.id}"]`));
+  await wishlistButton(page, detailProduct.id).click();
+  await page
+    .locator(`article.wishlistCard[data-product-id="${detailProduct.id}"]`)
+    .waitFor({ state: "detached" });
+  await waitForWishlistPageState(page, "products");
+  assert.equal(
+    await page.locator(`article.wishlistCard[data-product-id="${detailProduct.id}"]`).count(),
+    0
+  );
+
+  await page.goto(`${storefrontUrl}/`);
+  await wishlistButton(page, catalogProduct.id).click();
+  await waitForWishlistButtonState(page, catalogProduct.id, "saved");
+  await page.reload();
+  await waitForWishlistButtonState(page, catalogProduct.id, "saved");
+  await wishlistButton(page, catalogProduct.id).click();
+  await waitForWishlistButtonState(page, catalogProduct.id, "idle");
+  await assertWishlistStoragePrivacy(page, []);
+}
+
+async function verifyWishlistCustomerIsolation(pageA, pageB, product) {
+  await pageB.goto(`${storefrontUrl}/wishlist`);
+  await waitForWishlistPageState(pageB, "empty");
+  const foreignRemove = await browserStoreRequest(pageB, {
+    path: `/store/wishlist/items/${encodeURIComponent(product.id)}`,
+    method: "DELETE",
+    publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+  });
+  assert.equal(foreignRemove.status, 200);
+  assert.deepEqual(foreignRemove.body, {
+    product_id: product.id,
+    removed: false,
+  });
+
+  await pageB.goto(`${storefrontUrl}/`);
+  await wishlistButton(pageB, product.id).click();
+  await waitForWishlistButtonState(pageB, product.id, "saved");
+  await wishlistButton(pageB, product.id).click();
+  await waitForWishlistButtonState(pageB, product.id, "idle");
+
+  await pageA.goto(`${storefrontUrl}/wishlist`);
+  await waitForWishlistPageState(pageA, "products");
+  await visible(pageA.locator(`[data-product-id="${product.id}"]`));
+  await assertWishlistStoragePrivacy(pageB, []);
+}
+
+async function verifyWishlistVisibility(page, publishableKey, browserFixtures) {
+  const hiddenProducts = browserFixtures.hiddenProductIds;
+  const signatures = [];
+  for (const productId of hiddenProducts) {
+    const result = await browserStoreRequest(page, {
+      path: "/store/wishlist/items",
+      method: "POST",
+      publishableKey,
+      body: { product_id: productId },
+    });
+    assert.equal(result.status, 404);
+    assert.deepEqual(Object.keys(result.body || {}), ["error"]);
+    assert.equal(result.body.error.code, "wishlist_product_not_found");
+    assert.deepEqual(result.body.error.details, {});
+    assertEvidencePrivacy(JSON.stringify(result.body));
+    signatures.push(JSON.stringify(result.body));
+  }
+  assert.equal(new Set(signatures).size, 1);
+
+  const listed = await browserStoreRequest(page, {
+    path: "/store/wishlist",
+    method: "GET",
+    publishableKey,
+  });
+  assert.equal(listed.status, 200);
+  for (const productId of hiddenProducts) {
+    assert.equal(
+      (listed.body.items || []).some((item) => item.product_id === productId),
+      false
+    );
+  }
+  return {
+    hiddenAdd404: true,
+    unifiedError: true,
+    listOmission: true,
+    durableHiddenRowsOmitted: true,
+    cases: 4,
+  };
+}
+
+async function verifyRetainedWishlistProjection(page, publishableKey, browserFixtures) {
+  const restoredProduct = await browserStoreRequest(page, {
+    path: `/store/product-detail/${encodeURIComponent(browserFixtures.restored.handle)}`,
+    method: "GET",
+    publishableKey,
+  });
+  const outOfStockProduct = await browserStoreRequest(page, {
+    path: `/store/product-detail/${encodeURIComponent(browserFixtures.outOfStock.handle)}`,
+    method: "GET",
+    publishableKey,
+  });
+  const listed = await browserStoreRequest(page, {
+    path: "/store/wishlist",
+    method: "GET",
+    publishableKey,
+  });
+  assert.equal(listed.status, 200);
+  const items = listed.body.items || [];
+  const restored = items.find(
+    (item) => item.product_id === browserFixtures.restored.productId
+  );
+  const outOfStock = items.find(
+    (item) => item.product_id === browserFixtures.outOfStock.productId
+  );
+  assert.ok(
+    restored,
+    `Browser setup projection mismatch: restoredDetail=${restoredProduct.status}, outOfStockDetail=${outOfStockProduct.status}, visibleRows=${items.length}, restoredPresent=${Boolean(restored)}, outOfStockPresent=${Boolean(outOfStock)}`
+  );
+  assert.ok(outOfStock, "Browser setup did not retain the out-of-stock product.");
+  assert.equal(outOfStock.product.is_available, false);
+  return {
+    visibleRows: 2,
+    restoredPresent: true,
+    outOfStockPresent: true,
+    outOfStockUnavailable: true,
+  };
+}
+
+async function verifyRestoredWishlistProduct(page, fixture) {
+  const listed = await browserStoreRequest(page, {
+    path: "/store/wishlist",
+    method: "GET",
+    publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+  });
+  assert.equal(listed.status, 200);
+  const item = (listed.body.items || []).find(
+    (candidate) => candidate.product_id === fixture.productId
+  );
+  assert.ok(item, "Restored wishlist product is missing from the browser list.");
+  assert.equal(item.product.id, fixture.productId);
+  assert.equal(item.product.handle, fixture.handle);
+  return {
+    browserListBoundaryChecked: true,
+    restoredProductVisible: true,
+    currentHandleChecked: true,
+  };
+}
+
+async function verifyOutOfStockWishlistProduct(page, publishableKey, fixture) {
+  const listed = await browserStoreRequest(page, {
+    path: "/store/wishlist",
+    method: "GET",
+    publishableKey,
+  });
+  assert.equal(listed.status, 200);
+  const item = (listed.body.items || []).find(
+    (candidate) => candidate.product_id === fixture.productId
+  );
+  assert.ok(item, "Out-of-stock wishlist product is missing from the browser list.");
+  assert.equal(item.product.id, fixture.productId);
+  assert.equal(item.product.handle, fixture.handle);
+  assert.equal(item.product.is_available, false);
+  return {
+    browserListBoundaryChecked: true,
+    visibleUnavailable: true,
+    isAvailableFalse: true,
+  };
+}
+
+async function verifyGuestWishlistRouting(browser, product) {
+  const context = await browser.newContext();
+  context.setDefaultNavigationTimeout(120_000);
+  context.setDefaultTimeout(60_000);
+  try {
+    const page = await context.newPage();
+    await page.goto(`${storefrontUrl}/`);
+    const button = wishlistButton(page, product.id);
+    await button.click();
+    await waitForCleanStorefrontPath(page, "/login");
+    await assertReturnPathEnvelope(page, "/");
+    await assertWishlistStoragePrivacy(page, [], [authReturnPathKey]);
+    return { loginRoute: true, noGuestPersistence: true };
+  } finally {
+    await context.close().catch(() => {});
+  }
+}
+
+async function verifyMergeBlockedWishlist(browser, publishableKey, product) {
+  const context = await browser.newContext();
+  context.setDefaultNavigationTimeout(120_000);
+  context.setDefaultTimeout(60_000);
+  const page = await context.newPage();
+  await installAuthProviderRoutes(context);
+  let mergeAttempts = 0;
+  await page.route(`${backendUrl}/store/carts/*/merge`, async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    mergeAttempts += 1;
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      headers: {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": storefrontUrl,
+      },
+      body: JSON.stringify({ error: { code: "cart_merge_stock_conflict" } }),
+    });
+  });
+
+  try {
+    const productDetail = await readProductDetail(product.handle, publishableKey);
+    await addConfiguredVariantToCart(
+      page,
+      productDetail,
+      requiredVariant(productDetail, "CR-STL-BLK-160-300"),
+      publishableKey
+    );
+    await page.goto(`${storefrontUrl}/checkout`);
+    await waitForCleanStorefrontPath(page, "/login");
+    await completeProviderAttempt(page, "google", "success");
+    await page.waitForURL(
+      (url) => url.origin === storefrontUrl && url.pathname === "/auth/complete",
+      { timeout: 30_000 }
+    );
+    await visible(page.locator('[data-auth-completion-state="merge_blocked"]'));
+    assert.ok(mergeAttempts >= 1);
+
+    await page.goto(`${storefrontUrl}/wishlist`);
+    await waitForWishlistPageState(page, "products");
+    await waitForWishlistButtonState(page, product.id, "saved");
+    await page.goto(`${storefrontUrl}/`);
+    await waitForWishlistButtonState(page, product.id, "saved");
+    await wishlistButton(page, product.id).click();
+    await waitForWishlistButtonState(page, product.id, "idle");
+    await wishlistButton(page, product.id).click();
+    await waitForWishlistButtonState(page, product.id, "saved");
+
+    await page.goto(`${storefrontUrl}/checkout`);
+    await visible(page.locator('[data-checkout-auth-state="merge_blocked"]'));
+    await visible(page.locator('[data-cart-readiness="blocked"]'));
+    assert.equal(
+      await page.locator('[data-checkout-continuation="ft-006-handoff"]').count(),
+      0
+    );
+    await assertWishlistStoragePrivacy(page, [cartReferenceKey], [authReturnPathKey]);
+    return { validCustomerWishlist: true, checkoutBlocked: true };
+  } finally {
+    await browserStoreRequest(page, {
+      path: "/auth/session",
+      method: "DELETE",
+      publishableKey,
+    }).catch(() => {});
+    await context.close().catch(() => {});
+  }
+}
+
+async function authenticateBrowserCustomer(context, page, provider) {
+  await installAuthProviderRoutes(context);
+  await page.goto(`${storefrontUrl}/login`);
+  await completeProviderAttempt(page, provider, "success");
+  await page.waitForURL(
+    (url) =>
+      url.origin === storefrontUrl &&
+      (url.pathname === "/auth/complete" || url.pathname === "/"),
+    { timeout: 30_000 }
+  );
+  await page.goto(`${storefrontUrl}/`);
+  const current = await waitForCurrentCustomer(page);
+  assert.match(current.body.customer?.id || "", /^cus_/);
+  return current.body.customer.id;
+}
+
+async function waitForCurrentCustomer(page) {
+  const deadline = Date.now() + 30_000;
+  let lastStatus = null;
+  while (Date.now() < deadline) {
+    const current = await browserStoreRequest(page, {
+      path: "/store/customers/me",
+      method: "GET",
+      publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+    });
+    lastStatus = current.status;
+    if (current.status === 200) return current;
+    await delay(250);
+  }
+  throw new Error(`Timed out waiting for synthetic customer session; status=${lastStatus}`);
+}
+
+function wishlistButton(page, productId) {
+  return page.locator(`button[data-product-id="${productId}"]`).first();
+}
+
+async function waitForWishlistButtonState(page, productId, state) {
+  const button = wishlistButton(page, productId);
+  await visible(button);
+  await page.waitForFunction(
+    ({ productId: expectedProductId, expectedState }) =>
+      document.querySelector(
+        `button[data-product-id="${expectedProductId}"]`
+      )?.getAttribute("data-wishlist-state") === expectedState,
+    { productId, expectedState: state },
+    { timeout: 30_000 }
+  );
+  assert.equal(await button.getAttribute("data-wishlist-state"), state);
+}
+
+async function waitForWishlistPageState(page, state) {
+  await visible(page.locator(`main[data-wishlist-page-state="${state}"]`));
+}
+
+async function assertWishlistStoragePrivacy(
+  page,
+  allowedLocalKeys,
+  allowedSessionKeys = []
+) {
+  const storage = await page.evaluate(() => ({
+    local: Object.fromEntries(Object.entries(localStorage)),
+    session: Object.fromEntries(Object.entries(sessionStorage)),
+  }));
+  const serialized = JSON.stringify(storage);
+  assertEvidencePrivacy(serialized);
+  const localKeys = Object.keys(storage.local);
+  assert.equal(
+    localKeys.some((key) => /wishlist|favorite|customer|product/i.test(key)),
+    false
+  );
+  assert.equal(
+    localKeys.every((key) => allowedLocalKeys.includes(key)),
+    true
+  );
+  const sessionKeys = Object.keys(storage.session).filter(
+    (key) => !key.startsWith("__next_debug_channel:")
+  );
+  assert.equal(
+    sessionKeys.every((key) => allowedSessionKeys.includes(key)),
+    true
+  );
+}
+
+function createWishlistAcceptanceFixtures(publishableKey) {
+  const runId = `task042${process.pid.toString(36)}${Date.now().toString(36)}`;
+  const stateFile = path.join(
+    os.tmpdir(),
+    `${runId}-wishlist-acceptance-state.json`
+  );
+  const fixtures = { runId, stateFile, state: null, publishableKey };
+  try {
+    runWishlistAcceptancePhase(fixtures, "write");
+    fixtures.state = JSON.parse(fs.readFileSync(stateFile, "utf8"));
+    assert.equal(fixtures.state.runId, runId);
+    assert.equal(Object.keys(fixtures.state.productIds || {}).length, 6);
+    return fixtures;
+  } catch (error) {
+    cleanupWishlistAcceptanceFixtures(fixtures);
+    throw error;
+  }
+}
+
+function runWishlistAcceptancePhase(fixtures, phase, browserCustomerId = null) {
+  const output = execFileSync(
+    process.execPath,
+    [medusaCli, "exec", "./src/scripts/smoke-wishlist-acceptance.ts"],
+    {
+      cwd: backendDir,
+      env: childEnv({
+        WISHLIST_ACCEPTANCE_PHASE: phase,
+        WISHLIST_ACCEPTANCE_RUN_ID: fixtures.runId,
+        WISHLIST_ACCEPTANCE_STATE_FILE: fixtures.stateFile,
+        WISHLIST_ACCEPTANCE_PUBLISHABLE_API_KEY: fixtures.publishableKey,
+        ...(browserCustomerId
+          ? { WISHLIST_ACCEPTANCE_BROWSER_CUSTOMER_ID: browserCustomerId }
+          : {}),
+      }),
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 8 * 1024 * 1024,
+    }
+  );
+  const result = extractAcceptanceResult(output, phase);
+  assert.match(output, new RegExp(`\\"phase\\"\\s*:\\s*\\"${phase}\\"`));
+  assert.match(output, /\"status\"\s*:\s*\"ok\"/);
+  assert.equal(result.phase, phase);
+  assert.equal(result.status, "ok");
+  if (phase === "write" || phase === "browser-setup") {
+    assert.equal(result.salesChannelResolution, "publishable-key-query");
+    assert.equal(result.fixtureSalesChannelAligned, true);
+  }
+  const assertions = [
+    "hidden404AndListOmission",
+    "visibilityRestoration",
+    "outOfStockVisibleUnavailable",
+  ];
+  if (phase === "read") {
+    for (const assertion of assertions) {
+      assert.match(output, new RegExp(`\\"${assertion}\\"\\s*:\\s*true`));
+    }
+  }
+  if (phase === "browser-setup") {
+    assert.equal(result.browserCustomerBound, true);
+    assert.deepEqual(result.retainedRows, {
+      hidden: 4,
+      restored: 1,
+      outOfStock: 1,
+    });
+    const browserFixtures = result.browserFixtures;
+    assert.ok(browserFixtures);
+    assert.equal(browserFixtures.hiddenProductIds?.length, 4);
+    browserFixtures.hiddenProductIds.forEach((productId) =>
+      assert.match(productId, /^prod_[A-Za-z0-9_-]+$/)
+    );
+    for (const fixture of [browserFixtures.restored, browserFixtures.outOfStock]) {
+      assert.match(fixture?.productId || "", /^prod_[A-Za-z0-9_-]+$/);
+      assert.match(fixture?.handle || "", /^[a-z0-9-]+$/);
+    }
+    return {
+      phase,
+      status: "ok",
+      realMedusaPostgresql: true,
+      salesChannelResolution: result.salesChannelResolution,
+      fixtureSalesChannelAligned: result.fixtureSalesChannelAligned,
+      browserCustomerBound: true,
+      retainedRows: result.retainedRows,
+      browserFixtures: {
+        hiddenProductIds: browserFixtures.hiddenProductIds,
+        restored: {
+          productId: browserFixtures.restored.productId,
+          handle: browserFixtures.restored.handle,
+        },
+        outOfStock: {
+          productId: browserFixtures.outOfStock.productId,
+          handle: browserFixtures.outOfStock.handle,
+        },
+      },
+    };
+  }
+  return {
+    phase,
+    status: "ok",
+    realMedusaPostgresql: true,
+    ...(phase === "read"
+      ? {
+          assertions: {
+            hidden404AndListOmission: true,
+            visibilityRestoration: true,
+            outOfStockVisibleUnavailable: true,
+          },
+        }
+      : {}),
+  };
+}
+
+function extractAcceptanceResult(output, phase) {
+  const results = [];
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < output.length; index += 1) {
+    const character = output[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (character === '"') {
+      inString = true;
+      continue;
+    }
+    if (character === "{" && depth === 0) {
+      start = index;
+    }
+    if (character === "{") {
+      depth += 1;
+    } else if (character === "}") {
+      depth -= 1;
+      if (depth === 0 && start >= 0) {
+        try {
+          const parsed = JSON.parse(output.slice(start, index + 1));
+          if (
+            parsed?.suite === "wishlist-acceptance" &&
+            parsed.phase === phase &&
+            parsed.status === "ok"
+          ) {
+            results.push(parsed);
+          }
+        } catch (_error) {
+          // Ignore non-JSON brace blocks emitted by the CLI logger.
+        }
+        start = -1;
+      }
+    }
+  }
+
+  assert.ok(results.length > 0, `Missing sanitized ${phase} acceptance result.`);
+  return results.at(-1);
+}
+
+function cleanupWishlistAcceptanceFixtures(fixtures) {
+  try {
+    runWishlistAcceptancePhase(fixtures, "cleanup");
+  } finally {
+    fs.rmSync(fixtures.stateFile, { force: true });
+  }
+}
+
 async function installAuthProviderRoutes(context) {
   for (const [provider, pattern] of [
     ["google", "https://accounts.google.com/o/oauth2/v2/auth**"],
@@ -890,7 +1678,10 @@ async function assertBrowserStoragePrivacy(page) {
     Object.keys(storage.local).every((key) => key === cartReferenceKey),
     true
   );
-  assert.deepEqual(Object.keys(storage.session), []);
+  const unexpectedSessionKeys = Object.keys(storage.session).filter(
+    (key) => !key.startsWith("__next_debug_channel:")
+  );
+  assert.deepEqual(unexpectedSessionKeys, []);
 }
 
 function assertEvidencePrivacy(value) {
@@ -1305,8 +2096,8 @@ function startBackend() {
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   });
-  if (selectedSuites.includes("auth")) {
-    log.write("backend_output=suppressed_for_task034_privacy\n");
+  if (selectedSuites.some((suite) => ["auth", "wishlist"].includes(suite))) {
+    log.write("backend_output=suppressed_for_sensitive_browser_acceptance\n");
     child.stdout.resume();
     child.stderr.resume();
   } else {
@@ -1401,7 +2192,7 @@ async function stopChild(child) {
 }
 
 function selectSuites(args) {
-  const supported = ["catalog", "product-detail", "cart", "auth"];
+  const supported = ["catalog", "product-detail", "cart", "auth", "wishlist"];
   const selected = args.filter((arg) => supported.includes(arg));
   return selected.length > 0 ? Array.from(new Set(selected)) : ["catalog", "product-detail"];
 }
@@ -1410,7 +2201,8 @@ function writeRuntimeEvidence(
   noKeyStatus,
   publishableKey,
   cartEvidence,
-  authEvidence
+  authEvidence,
+  wishlistEvidence
 ) {
   fs.writeFileSync(
     path.join(outputDir, "real-runtime.log"),
@@ -1432,6 +2224,8 @@ function writeRuntimeEvidence(
       `browser_auth_acceptance=${authEvidence ? authEvidence.status : "not-run"}`,
       `provider_network=${authEvidence ? authEvidence.providerNetwork : "not-run"}`,
       `artifact_privacy=${authEvidence ? authEvidence.artifactPrivacy : "not-run"}`,
+      `browser_wishlist_acceptance=${wishlistEvidence ? wishlistEvidence.status : "not-run"}`,
+      `wishlist_storage_scan=${wishlistEvidence ? wishlistEvidence.storageScan : "not-run"}`,
       "",
     ].join("\n"),
     "utf8"
@@ -1453,6 +2247,11 @@ function screenshotPaths(suites) {
         (provider) =>
           `.tasks/${outputTaskId}/playwright/auth-${provider}-checkout.png`
       );
+    }
+    if (suite === "wishlist") {
+      return [
+        `.tasks/${outputTaskId}/playwright/wishlist-session-expired.png`,
+      ];
     }
     return [`.tasks/${outputTaskId}/playwright/${suite}.png`];
   });

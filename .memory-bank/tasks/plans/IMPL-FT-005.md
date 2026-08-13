@@ -2,7 +2,7 @@
 description: Implementation plan for FT-005 authenticated product wishlist.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-07-16
+last_updated: 2026-08-11
 source_of_truth:
   - .memory-bank/features/FT-005-authenticated-wishlist.md
   - .memory-bank/tech-specs/FT-005-authenticated-wishlist.md
@@ -95,10 +95,36 @@ truth.
 | W2 | TASK-040 | Add catalog/detail controls and authenticated wishlist page states. |
 | W3 | TASK-041 | Add real Medusa/PostgreSQL backend ownership and persistence acceptance. |
 | W3 | TASK-042 | Add real-browser authenticated wishlist and guest-isolation acceptance. |
+| W3-fix | TASK-044 | Retain synthetic wishlist lifecycle fixtures for TASK-042 browser acceptance. |
+| W3-fix | TASK-045 | Align retained wishlist fixtures with the browser publishable-key sales channel. |
 
-TASK-035 and TASK-036 are independently ready because their dependencies are done.
-They both update the shared Memory Bank changelog, so clean-session execution must
-serialize that documentation write even when code scopes are independent.
+TASK-035 through TASK-042, TASK-044, and TASK-045 are verified and closed. TASK-038 completed the
+authenticated Store API boundary, TASK-039 completed the session-aware storefront state
+boundary, TASK-041 completed the real backend ownership/persistence acceptance with
+functional `PASS`, semantic `semantic-pass`, and the required T3 markers, and TASK-044
+completed the acceptance-only browser fixture retention handoff with functional `PASS`.
+TASK-045 completed the acceptance-only browser sales-channel alignment with functional
+`PASS`. TASK-042 completed the final bounded browser lifecycle acceptance retry with
+functional `PASS`, semantic `semantic-pass`, and the required T3 markers.
+
+No dependent task is promoted, unblocked, blocked, or otherwise given a new lifecycle
+decision by `/mb-sync`.
+
+Refresh 2026-08-11: TASK-039 has functional `PASS`, semantic `semantic-pass`, and the
+required T3 checkpoint/recovery markers; TASK-040 is scheduler-closed after the required
+T2 protocol and functional `PASS`; TASK-041 is scheduler-closed after T3 functional
+`PASS`, semantic `semantic-pass`, and the required checkpoint/recovery markers; TASK-044
+is scheduler-closed after the required T2 protocol and functional `PASS`; TASK-045 is
+scheduler-closed after the required T2 protocol and functional `PASS`; TASK-042 is
+scheduler-closed after final T3 retry 2/2 with functional `PASS`, semantic `semantic-pass`,
+and the required checkpoint/recovery markers. The feature-level semantic review is now
+complete with `SEMANTIC_VERDICT: semantic-pass` and `verdict: APPROVE`.
+
+## Completion Navigation
+
+- FT-005, REQ-009, and EP-002 are `verified`; see the [feature-level semantic review](../../../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md).
+- Entity and RTM lifecycle context: [FT-005 feature](../../features/FT-005-authenticated-wishlist.md),
+  [REQ-009 RTM](../../requirements.md), and [EP-002](../../epics/EP-002-customer-identity-cart-wishlist.md).
 
 ## Expected Touched Files
 

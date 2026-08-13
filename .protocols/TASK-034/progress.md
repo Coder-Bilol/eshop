@@ -29,8 +29,9 @@
   contains only coarse suppression and process-exit markers.
 - Callback diagnostics record only response status and boolean cookie properties,
   never header/cookie/state/code values.
-- Session/root-cause remediation is in progress; no backend production behavior has
-  been edited.
+- The operator-approved production fix reacquires `req.session` after regeneration,
+  saves customer auth context through the refreshed object, and adds a stale-session
+  regression (`b6e39a0`).
 
 ## Confirmed Session Root Cause
 
@@ -40,4 +41,52 @@
   failure as the cause.
 - Express session regeneration replaces `req.session`; the production helper writes
   and saves through its stale pre-regeneration Session argument.
-- Fix requires an explicit backend auth scope decision before implementation.
+- The explicit backend auth scope decision was supplied and the bounded fix was
+  implemented in `b6e39a0`.
+
+## Repeated Browser Acceptance
+
+- The first post-fix Google run proved callback `302`, current-customer `200`, and
+  one merge attempt reaching the expected `merge_blocked` state. It then exposed a
+  harness-only false positive from Next.js `__next_debug_channel:*` session keys.
+- The storage assertion now ignores only that framework-owned namespace while still
+  scanning all storage content and rejecting every other unexpected session key.
+- The next full run exposed a real logout race: the checkout guest effect rewrote the
+  `/checkout` return path after confirmed logout had cleared it.
+- Checkout logout now suppresses that guest redirect before awaiting the existing
+  AuthStateController, navigates to clean `/login` only after confirmed success, and
+  restores retry behavior on failure.
+- Repeated Google/VK browser acceptance passes session establishment, callback URL
+  cleanup, cancel/failure/replay handling, checkout gate, Google merge conflict/retry,
+  Google session expiry, and confirmed logout cleanup for both providers.
+
+## Local Gates
+
+- PASS: `npm --workspace apps/storefront run test:e2e -- auth`.
+- PASS: `npm --workspace apps/storefront run test`.
+- PASS: `npm --workspace apps/backend run test:integration -- auth-completion`.
+- PASS: `npm run typecheck` and `npm run build`.
+- PASS: `node scripts/mb-lint.mjs` and `node scripts/mb-doctor.mjs --strict` with only
+  the expected TASK-034 promotion and unrelated TASK-040 upstream warnings.
+- PASS: CommonJS syntax, diff check, process cleanup, screenshot review, generated
+  log scan, and decompressed trace privacy scan (`0` sensitive matches).
+- Evidence: `.tasks/TASK-034/TASK-034-S-IMPL-final-report-code-01.md` and
+  `.tasks/TASK-034/execute-remediation-local-gates-code-01.md`.
+
+## Verification State
+
+- Repeated independent `/verify TASK-034` on 2026-08-07 passed the complete Google/VK
+  browser flow, all packet commands, and an independent decompressed-trace privacy
+  scan.
+- The historical failure remains in `verification.md` as remediation history; the
+  current functional verdict is `VERDICT: PASS`.
+- Required per-task `/red-verify TASK-034` remains the next T3 closure gate.
+
+## Semantic Verification And Closure
+
+- Per-task adversarial verification returned `SEMANTIC_VERDICT: semantic-pass`.
+- Hostile checks covered provider-double boundary fidelity, callback/session false
+  success, cart conflict recovery, logout ordering, artifact privacy, scope drift,
+  operations, and rollback/recovery.
+- Direct operator instruction supplied the manual human checkpoint and explicit
+  standalone ownership; TASK-034 was closed as `done` on 2026-08-07.

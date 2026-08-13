@@ -1,7 +1,7 @@
 {
   "id": "TASK-034",
   "title": "Verify browser OAuth cart and checkout flow",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-004",
   "reqs": ["REQ-010", "REQ-011", "REQ-012"],
@@ -43,6 +43,38 @@
       "red_verify": "skipped_until_functional_pass",
       "human_checkpoint": "pending",
       "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "functional_pass_after_remediation",
+      "reason": "Repeated independent browser verification confirmed usable Google/VK customer sessions, cart conflict/retry before checkout, callback/replay/expiry/logout behavior, clean artifacts, and all required functional gates.",
+      "evidence": [
+        ".protocols/TASK-034/verification.md",
+        ".tasks/TASK-034/verify-functional-gates-code-02.md",
+        ".tasks/TASK-034/TASK-034-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-034/playwright/real-runtime-progress.log",
+        ".tasks/TASK-034/playwright/auth-google-sanitized-trace.zip",
+        ".tasks/TASK-034/playwright/auth-vkid-sanitized-trace.zip"
+      ],
+      "functional_verdict": "PASS",
+      "closure": "pending_red_verify",
+      "red_verify": "required_next",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "verification_decision": "semantic_pass_after_remediation",
+      "reason": "Adversarial verification confirmed real production callback/session/cart/checkout boundaries, fail-closed conflict/logout behavior, clean evidence, bounded scope, and credible recovery without architectural or security drift.",
+      "evidence": [
+        ".protocols/TASK-034/red-verification.md",
+        ".tasks/TASK-034/TASK-034-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "closure": "done_by_explicit_standalone_owner",
+      "status_decision": "done",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "closed_on": "2026-08-07"
     }
   ],
   "docs": [".memory-bank/tasks/plans/IMPL-FT-004.md", ".memory-bank/changelog.md"],

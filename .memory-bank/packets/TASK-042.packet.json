@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-042-R2",
+  "packet_id": "PACKET-TASK-042-R4",
   "task_id": "TASK-042",
-  "created_at": "2026-07-16T16:00:00+03:00",
-  "source_task_hash": "sha256:e7ed1bf2cc90a777b98e66f93af7271c404f2cef50644d802919ec23df69ec43",
+  "created_at": "2026-08-11T10:07:04+03:00",
+  "source_task_hash": "sha256:5190af1cd97dfa482ad0bf38c762a477725c6097a628799434ebdb386df328e5",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove the complete buyer-visible authenticated wishlist in a real browser without live providers or production data.",
@@ -13,8 +13,8 @@
     "task": ".memory-bank/tasks/TASK-042.task.json",
     "feature": ".memory-bank/features/FT-005-authenticated-wishlist.md",
     "specs": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/states/customer-auth-session.md", ".memory-bank/testing/index.md"],
-    "guides": [],
-    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md"]
+    "guides": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/workflows/tier-policy.md"],
+    "protocols": [".protocols/FT-005/plan.md", ".protocols/FT-005/decision-log.md", ".protocols/TASK-042/verification.md", ".protocols/TASK-042/red-verification.md"]
   },
   "scope": {
     "allowed_write_scope": ["apps/storefront/e2e/run-real-medusa-e2e.cjs", "apps/storefront/package.json", ".memory-bank/changelog.md"],
@@ -22,9 +22,9 @@
   },
   "verification": {
     "commands": ["npm --workspace apps/storefront run test:e2e -- wishlist", "npm --workspace apps/storefront run test", "npm run typecheck", "npm run build", "node scripts/mb-lint.mjs"],
-    "success_checks": ["Authenticated add/view/remove/reload works across catalog/detail/wishlist.", "Second customer and guest remain isolated; merge_blocked still permits wishlist while checkout stays blocked.", "Four hidden causes, out-of-stock, logout, and session expiry produce correct UI and policy-compliant artifacts."],
-    "evidence_required": ["Playwright trace/report; synthetic product IDs/names and wishlist contents are allowed visual proof.", "Two-customer/guest/merge-blocked/product/session assertions.", "Scan excluding real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets; regression/build and T3 closure evidence."]
+    "success_checks": ["Real browser authenticated session adds from catalog/detail, shows on wishlist/reload, and removes across all views.", "Second customer sees no first-customer favorite and cannot affect it; guest click routes to login without persistence.", "Missing/unpublished/channel-invisible/inactive-category products are omitted, restored products reappear, and out-of-stock remains visible/unavailable.", "Wishlist remains usable with a valid current customer during merge_blocked while checkout remains blocked; logout/session expiry clears UI state and browser storage."],
+    "evidence_required": ["Playwright trace/report for add/view/remove/reload across catalog/detail/wishlist; synthetic product IDs/names and synthetic wishlist contents are allowed as visual proof.", "Two-customer, guest non-persistence, and merge_blocked-independence assertions.", "Product visibility/out-of-stock and logout/session-expiry assertions plus scan excluding real PII, production data, cookies, bearer values, OAuth tokens, session IDs, and secrets.", "HUMAN_CHECKPOINT and rollback/recovery evidence required by T3 policy."]
   },
   "stop_conditions": ["E2E cannot exercise real storefront/Medusa/PostgreSQL boundaries.", "Auth harness bypasses standard Medusa ownership semantics or requires a new production bearer path.", "Evidence would require real PII, production data, cookies, bearer values, OAuth tokens, session IDs, or secrets."],
-  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-042/.", "Run /verify and /red-verify; record HUMAN_CHECKPOINT and ROLLBACK_RECOVERY_NOTE before T3 closure."]
+  "required_handoff": ["Report changed_files, commands_run, evidence, scope_compliance, and blockers_or_none.", "Store substantive evidence under .tasks/TASK-042/.", "Preserve the authoritative task record, protocols, scheduler decision, and lifecycle status; do not edit them from packet work.", "T3 handoff requires full protocol, /verify VERDICT: PASS, /red-verify SEMANTIC_VERDICT: semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."]
 }

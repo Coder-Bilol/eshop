@@ -1,0 +1,59 @@
+{
+  "id": "TASK-045",
+  "title": "Align wishlist fixtures with browser sales channel",
+  "status": "done",
+  "wave": "W3-fix",
+  "feature": "FT-005",
+  "reqs": ["REQ-009"],
+  "depends_on": ["TASK-044"],
+  "touched_files": [
+    "apps/backend/src/scripts/smoke-wishlist-acceptance.ts",
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "wishlist acceptance retention", "command": "npm --workspace apps/backend run test:integration -- wishlist-acceptance", "required": true},
+    {"name": "browser wishlist acceptance", "command": "npm --workspace apps/storefront run test:e2e -- wishlist", "required": true},
+    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Browser setup resolves the actual sales channel selected by the publishable key and binds visible/restored/out-of-stock fixtures to it without changing hidden-case semantics.",
+    "The browser Store API observes retained fixtures; no process restart, direct browser DB/module bypass, or auth/session workaround is used.",
+    "Existing TASK-041 and TASK-044 acceptance phases remain green and unconditional cleanup removes all synthetic state.",
+    "No production wishlist/auth/catalog behavior, bearer path, schema, or live provider configuration changes.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T2 full protocol, required packet gate, and independent functional verification passed with no findings; browser channel alignment is acceptance-only.",
+      "evidence": [
+        ".tasks/TASK-045/TASK-045-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-045/TASK-045-S-VERIFY-final-report-code-02.md",
+        ".tasks/TASK-045/acceptance-evidence.md",
+        ".tasks/TASK-045/gate-results.md",
+        ".tasks/TASK-045/privacy-scope-evidence.md",
+        ".tasks/TASK-045/rollback-recovery-note.md",
+        ".protocols/TASK-045/verification.md"
+      ],
+      "functional_verdict": "PASS",
+      "feature_semantic_gate": "pending_until_all_FT-005_tasks_are_done"
+    }
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-005.md", ".memory-bank/changelog.md"],
+  "evidence_required": ["Sanitized publishable-key/fixture-channel alignment evidence.", "Real browser positive hidden omission, restored visibility, and out-of-stock unavailable projection evidence.", "Existing acceptance regression, cleanup, privacy, typecheck, and lint evidence."],
+  "source_artifacts": [".memory-bank/tech-specs/FT-005-authenticated-wishlist.md", ".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md", ".tasks/TASK-042/TASK-042-S-IMPL-final-report-code-03.md", ".tasks/TASK-044/TASK-044-S-IMPL-final-report-code-01.md"],
+  "normative_inputs": [".memory-bank/domains/wishlist-data.md", ".memory-bank/contracts/wishlist-api-security.md", ".memory-bank/testing/index.md", ".memory-bank/constitution.md"],
+  "constraints": ["Acceptance-only alignment for local synthetic fixtures; do not modify production routes/workflows/auth/bearer transport or schema.", "Resolve channel from the actual local publishable key; do not emit key/token/customer values into evidence.", "Preserve TASK-041 write/read/cleanup and TASK-044 browser-setup retention semantics, including hidden privacy and unconditional cleanup."],
+  "invariants": ["Visible browser fixtures are associated with the browser publishable-key channel.", "Hidden products remain non-observable for the same four lifecycle causes.", "No credentials, cookies, tokens, session IDs, or production data appear in evidence or logs.", "Cleanup removes all state-owned fixtures on success and failure."],
+  "verification_targets": [".memory-bank/contracts/wishlist-api-security.md#http-contract", ".memory-bank/contracts/wishlist-api-security.md#verification-rules", ".memory-bank/tech-specs/FT-005-authenticated-wishlist.md#verification-targets"],
+  "purpose": "Remove the acceptance-only sales-channel mismatch blocking browser-positive wishlist lifecycle verification.",
+  "success_outcome": "TASK-042 browser acceptance observes the retained synthetic restored and out-of-stock fixtures through the real Store API while hidden rows remain omitted.",
+  "anti_goals": ["Do not change production wishlist/auth/catalog behavior.", "Do not add a production bearer path or direct browser database/module access.", "Do not use real PII, credentials, tokens, cookies, session IDs, secrets, or production data."],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-045.packet.json",
+    "allowed_write_scope": ["apps/backend/src/scripts/smoke-wishlist-acceptance.ts", "apps/storefront/e2e/run-real-medusa-e2e.cjs", ".memory-bank/changelog.md"],
+    "forbidden_scope": ["production wishlist/auth/catalog behavior", "production routes/workflows", "auth providers", "bearer transport", "database schema", "production data", "live providers", "browser direct DB/module access"],
+    "stop_conditions": ["The publishable-key channel cannot be resolved through the supported local query boundary.", "Alignment requires production behavior, auth changes, direct browser DB/module access, or a new bearer path.", "Existing TASK-041/TASK-044 cleanup or acceptance regresses.", "The fix requires edits outside the listed acceptance files without another owner decision."]
+  }
+}
