@@ -37,6 +37,8 @@ services:
         condition: service_healthy
     ports:
       - "127.0.0.1:9000:9000"
+    volumes:
+      - /opt/eshop/media:/app/apps/backend/.medusa/server/static
     healthcheck:
       test:
         [

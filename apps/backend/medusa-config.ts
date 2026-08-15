@@ -78,6 +78,10 @@ const authCors = explicitCors(
   "AUTH_CORS",
   "http://localhost:3000,http://localhost:9000"
 );
+const mediaBackendUrl =
+  environment === "production"
+    ? requiredProviderEnv("MEDUSA_FILE_URL", "Medusa Local File")
+    : process.env.MEDUSA_FILE_URL?.trim() || "http://localhost:9000/static";
 const secureCookies =
   environment !== "development" ||
   [storeCors, adminCors, authCors].some((cors) =>
@@ -173,6 +177,21 @@ module.exports = defineConfig({
     },
   },
   modules: [
+    {
+      resolve: "@medusajs/medusa/file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/file-local",
+            id: "local",
+            options: {
+              upload_dir: path.join(process.cwd(), "static"),
+              backend_url: mediaBackendUrl,
+            },
+          },
+        ],
+      },
+    },
     {
       resolve: "@medusajs/medusa/auth",
       dependencies: [Modules.CACHE, ContainerRegistrationKeys.LOGGER],

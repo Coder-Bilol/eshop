@@ -37,7 +37,7 @@ Use a modular monolith split by product boundary, not by deployable microservice
 
 - Storefront: Next.js/TypeScript buyer UI.
 - Backend: Medusa v2/TypeScript with custom APIs, workflows, modules, subscribers, and payment/auth/notification integrations.
-- Storage: PostgreSQL as the durable data store for Medusa and custom backend data.
+- Storage: PostgreSQL as the durable data store for Medusa and custom backend data; product media uses the persistent server filesystem through the Medusa File Module.
 - Admin: Medusa Admin as the MVP operator surface.
 - Local runtime: Windows-native npm processes start storefront/backend, and PostgreSQL runs locally on Windows 10 for development and verification.
 
@@ -135,6 +135,8 @@ sequenceDiagram
 ## Storage Decisions
 
 - PostgreSQL is the only durable data store in the MVP.
+- Product media is stored by the Medusa Local File Provider in the deployment-owned `/opt/eshop/media` filesystem and is exposed through the HTTPS `/static` route.
+- Product media MUST NOT depend on the Docker image layer; the backend media directory is mounted as persistent storage and included in operational backups.
 - Browser storage can only hold non-authoritative references or UI state.
 - Custom persistent data should extend Medusa through supported extension mechanisms and migrations, not through Medusa Core edits.
 - Payment webhook idempotency needs durable replay/processed-event state keyed by provider/payment identifiers before webhook tasks can be closed.

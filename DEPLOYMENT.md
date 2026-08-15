@@ -221,6 +221,7 @@ DATABASE_URL=postgres://eshop:<RANDOM_DATABASE_PASSWORD>@postgres:5432/eshop
 STORE_CORS=https://eshop.natureonzoom.win
 ADMIN_CORS=https://eshop.natureonzoom.win
 AUTH_CORS=https://eshop.natureonzoom.win
+MEDUSA_FILE_URL=https://eshop.natureonzoom.win/static
 JWT_SECRET=<RANDOM_SECRET>
 COOKIE_SECRET=<RANDOM_SECRET>
 NODE_OPTIONS=--max-old-space-size=256
@@ -261,6 +262,30 @@ Values containing `fake`, `NOT_REAL`, or `not-real` are placeholders. Replace
 them before enabling the corresponding production feature. `NEXT_PUBLIC_*`
 values are embedded during storefront image build, so rebuild the storefront
 image after changing them.
+
+### Product Media Storage
+
+Product images use Medusa's Local File Provider. The provider URL is public, but
+the files themselves stay on the VPS in a host directory mounted into the
+backend container:
+
+```text
+/opt/eshop/media -> /app/apps/backend/.medusa/server/static
+```
+
+Before the first backend restart after enabling the mount, preserve any files
+from the current container and initialize the host directory:
+
+```bash
+sudo install -d -o 1000 -g 1000 /opt/eshop/media
+docker cp eshop-backend-1:/app/apps/backend/.medusa/server/static/. /opt/eshop/media/
+sudo chown -R 1000:1000 /opt/eshop/media
+```
+
+Back up `/opt/eshop/media` together with the PostgreSQL backup before a
+production update. Product image URLs previously saved as
+`http://localhost:9000/static/...` must be re-uploaded or migrated to
+`https://eshop.natureonzoom.win/static/...` after the public route is enabled.
 
 `apps/backend/medusa-config.ts` explicitly sets
 `databaseDriverOptions.connection.ssl` to `false`. PostgreSQL is reached only
@@ -370,7 +395,7 @@ eshop.natureonzoom.win {
         reverse_proxy 127.0.0.1:3000
     }
 
-    @medusa path /store* /admin* /auth* /app* /health
+    @medusa path /static* /store* /admin* /auth* /app* /health
 
     handle @medusa {
         reverse_proxy 127.0.0.1:9000
