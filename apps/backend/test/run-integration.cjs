@@ -28,6 +28,11 @@ const suites = {
   "auth-vkid": "./src/scripts/smoke-auth-vkid.ts",
   "auth-completion": "./src/scripts/smoke-auth-completion.ts",
   "auth-acceptance": "./src/scripts/smoke-auth-acceptance.ts",
+  "checkout-delivery-options":
+    "./src/scripts/smoke-checkout-delivery-options.ts",
+  "checkout-delivery": "./src/scripts/smoke-checkout-delivery.ts",
+  "checkout-delivery-acceptance":
+    "./src/scripts/smoke-checkout-delivery-acceptance.ts",
 };
 
 function main() {
@@ -93,6 +98,17 @@ function main() {
   }
   if (selected.includes("wishlist-acceptance")) {
     sourceBoundary = "medusa-store-routes-workflows-module-postgresql";
+  }
+  if (selected.includes("checkout-delivery-options")) {
+    sourceBoundary = "medusa-admin-shipping-options-pricing-link";
+  }
+  if (selected.includes("checkout-delivery")) {
+    sourceBoundary =
+      "medusa-http-route-middleware-session-workflow-admin-shipping-options";
+  }
+  if (selected.includes("checkout-delivery-acceptance")) {
+    sourceBoundary =
+      "real-compiled-medusa-http-session-workflow-admin-postgresql";
   }
 
   process.stdout.write(

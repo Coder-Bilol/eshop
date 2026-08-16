@@ -1,0 +1,41 @@
+{
+  "status": "ok",
+  "runId": "task0494vgmsvu5wyc",
+  "authenticatedReadyGate": true,
+  "realMedusaSession": true,
+  "fields": {
+    "contact": [
+      "name",
+      "email",
+      "phone",
+      "city"
+    ],
+    "conditionalAddress": true,
+    "optionalComment": true
+  },
+  "deliveryIds": [
+    "pickup",
+    "city_courier",
+    "transport_company"
+  ],
+  "tariffsRub": [
+    0,
+    500,
+    700
+  ],
+  "paymentIds": [
+    "card",
+    "sbp",
+    "sberpay"
+  ],
+  "invalidFieldRecovery": true,
+  "unavailableRecovery": "422 delivery_method_unavailable then explicit pickup selection",
+  "noSilentSubstitution": true,
+  "noOrderOrProviderRequests": true,
+  "forbiddenRequestCount": 0,
+  "artifactPrivacy": "sanitized-report-and-screenshot; no trace or cookies",
+  "completionMarker": "TASK-049-CHECKOUT-BROWSER-COMPLETE",
+  "artifactsPublishedAfterCleanup": true,
+  "requestBodyPrivacy": "synthetic values asserted in memory; values omitted from report",
+  "productionData": false
+}

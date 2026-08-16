@@ -2,7 +2,7 @@
 description: Requirements (REQ IDs) and traceability matrix for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-08-11
+last_updated: 2026-08-13
 source_of_truth:
   - .memory-bank/prd.md
 ---
@@ -45,6 +45,7 @@ source_of_truth:
 - REQ-028: Medusa Admin must show contacts, products, delivery data, payment status, order status, total amount, and payment method.
 - REQ-029: Operators must be able to use Medusa Admin as the MVP order operations surface.
 - REQ-030: The project must provide a Windows 10 native local development path for storefront/backend/database without requiring Docker containers.
+- REQ-031: When a customer is authenticated, the storefront top-right navigation must show the trusted Telegram username when the authenticated identity provides one; otherwise it must show the customer's email.
 
 ## Out Of Scope
 
@@ -71,11 +72,11 @@ source_of_truth:
 | REQ-010 | EP-002 | FT-004 | integration/e2e: Google OAuth | verified |
 | REQ-011 | EP-002 | FT-004 | integration/e2e: VK ID | verified |
 | REQ-012 | EP-002 | FT-004 | e2e: login before payment | verified |
-| REQ-013 | EP-003 | FT-006 | e2e: checkout contact fields | planned |
-| REQ-014 | EP-003 | FT-006 | e2e: delivery data fields | planned |
-| REQ-015 | EP-003 | FT-006 | integration/e2e: delivery methods | planned |
-| REQ-016 | EP-003 | FT-006 | unit: fixed tariff calculation | planned |
-| REQ-017 | EP-003 | FT-006 | e2e: payment method selection | planned |
+| REQ-013 | EP-003 | FT-006 | e2e: checkout contact fields | verified |
+| REQ-014 | EP-003 | FT-006 | e2e: delivery data fields | verified |
+| REQ-015 | EP-003 | FT-006 | integration/e2e: delivery methods | verified |
+| REQ-016 | EP-003 | FT-006 | unit: fixed tariff calculation | verified |
+| REQ-017 | EP-003 | FT-006 | e2e: payment method selection | verified |
 | REQ-018 | EP-003 | FT-007 | integration: pending order creation | planned |
 | REQ-019 | EP-003 | FT-007 | integration: inventory reservation | planned |
 | REQ-020 | EP-004 | FT-009 | e2e: payment retry | planned |
@@ -89,6 +90,7 @@ source_of_truth:
 | REQ-028 | EP-003 | FT-008 | integration/e2e: admin order visibility | planned |
 | REQ-029 | EP-003 | FT-008 | e2e: operator order surface | planned |
 | REQ-030 | EP-005 | FT-011 | smoke: Windows native local path | planned |
+| REQ-031 | EP-002 | FT-004 | e2e: authenticated identity label in top navigation | planned |
 
 ## RTM Reconciliation
 
@@ -99,3 +101,26 @@ source_of_truth:
   and [FT-005 implementation plan](tasks/plans/IMPL-FT-005.md).
 - No unrelated requirement lifecycle or document status taxonomy was changed by this
   reconciliation.
+
+- FT-006 scheduler reconciliation: TASK-046 through TASK-049 are `done` with the
+  source/projection, authenticated validation, storefront, and real runtime
+  acceptance slices verified. The feature-level semantic gate returned
+  `SEMANTIC_VERDICT: semantic-pass`; REQ-013 through REQ-017 and FT-006 are now
+  `verified`. EP-003 remains `planned` because its downstream order/inventory
+  features are not complete.
+- Evidence navigation: [TASK-046 record](tasks/TASK-046.task.json),
+  [TASK-047 record](tasks/TASK-047.task.json), [TASK-048 record](tasks/TASK-048.task.json),
+  [TASK-049 record](tasks/TASK-049.task.json), [FT-006 feature review](../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md),
+  [TASK-049 execute evidence](../.tasks/TASK-049/TASK-049-S-execute-final-report-code-01.md),
+  [TASK-049 verification](../.tasks/TASK-049/TASK-049-S-VERIFY-final-report-docs-04.md),
+  [TASK-049 semantic verification](../.tasks/TASK-049/TASK-049-S-RED-VERIFY-final-report-docs-02.md),
+  [TASK-046 execute evidence](../.tasks/TASK-046/TASK-046-S-execute-final-report-code-02.md),
+  [TASK-046 verification](../.tasks/TASK-046/TASK-046-S-verify-final-report-docs-01.md),
+  [TASK-046 historical STOP_REPORT](../.tasks/TASK-046/TASK-046-S-execute-stop-report-code-01.md),
+  [TASK-046 handoff](../.protocols/TASK-046/handoff.md),
+  [TASK-046 progress](../.protocols/TASK-046/progress.md), and
+  [TASK-046 sync report](../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md).
+- Historical blocker preserved: the initial provider/configuration scope conflict was
+  resolved through the recorded owner-approved bounded expansion to
+  `apps/backend/medusa-config.ts`; the final gates and independent verification then
+  passed without changing the Admin-managed source boundary.

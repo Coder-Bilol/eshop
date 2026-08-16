@@ -45,6 +45,63 @@ const authStartRateLimit = (provider: "google" | "vkid") =>
     next();
   };
 
+const standardCheckoutAuthentication = authenticate("customer", [
+  "session",
+  "bearer",
+]);
+
+const checkoutAuthentication = async (
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) => {
+  const response = res as MedusaResponse & {
+    json: (body?: unknown) => MedusaResponse;
+  };
+  const originalJson = response.json;
+  let restored = false;
+
+  const restoreJson = () => {
+    if (!restored) {
+      response.json = originalJson;
+      restored = true;
+    }
+  };
+
+  response.json = ((body?: unknown) => {
+    if (response.statusCode === 401 && isNativeUnauthorizedResponse(body)) {
+      return originalJson.call(response, {
+        error: {
+          code: "checkout_auth_required",
+          message: "Authentication is required to continue checkout.",
+          details: {},
+        },
+      });
+    }
+
+    return originalJson.call(response, body);
+  }) as typeof response.json;
+
+  try {
+    await standardCheckoutAuthentication(req, response, (error?: unknown) => {
+      restoreJson();
+      next(error);
+    });
+  } finally {
+    restoreJson();
+  }
+};
+
+function isNativeUnauthorizedResponse(body: unknown): boolean {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    !Array.isArray(body) &&
+    Object.keys(body).length === 1 &&
+    (body as { message?: unknown }).message === "Unauthorized"
+  );
+}
+
 export default defineMiddlewares({
   routes: [
     {
@@ -63,6 +120,11 @@ export default defineMiddlewares({
       middlewares: [
         authenticate("customer", ["session", "bearer"]),
       ],
+    },
+    {
+      method: ["POST"],
+      matcher: "/store/checkout",
+      middlewares: [checkoutAuthentication],
     },
     {
       method: ["GET"],

@@ -12,3 +12,5 @@ status: active
   cart ownership, merge, consumed-source, retry, and recovery lifecycle.
 - [.memory-bank/states/customer-auth-session.md](customer-auth-session.md): FT-004
   OAuth, customer session, cart handoff, checkout gate, and logout lifecycle.
+- [.memory-bank/states/checkout-delivery-validation.md](checkout-delivery-validation.md): FT-006
+  validation, unavailable delivery, retry, and no-order/no-payment transitions.

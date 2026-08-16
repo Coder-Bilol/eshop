@@ -10,13 +10,14 @@ status: active
 - Product brief: [product-brief.md](product-brief.md): draft, decision `proceed`.
 - PRD: [.memory-bank/prd.md](../prd.md): draft, `clarification_status: complete`, `constitution_checked: true`.
 - Feature docs: [features/index.md](../features/index.md): 11 draft features created by `/prd`.
-- Latest brainstorming report: [BR-001](brainstorming/BR-001.md): compact ideation report for the MVP direction.
+- Latest brainstorming report: [BR-002](brainstorming/BR-002.md): FT-006 authenticated checkout/delivery decisions and boundaries.
 - Brownfield app signals: not found from checked source/config entry points.
 
 ## Artifact Links
 
 - [idea.md](../../idea.md): user-provided product idea.
 - [BR-001](brainstorming/BR-001.md): brainstorming report created from the user-provided idea.
+- [BR-002](brainstorming/BR-002.md): FT-006 checkout/delivery brainstorming report.
 - [product-brief.md](product-brief.md): Product Brief input contract for PRD.
 - [.memory-bank/prd.md](../prd.md): clarified PRD.
 - [features/index.md](../features/index.md): feature index with FT-001 through FT-011.
@@ -31,9 +32,7 @@ status: active
 
 ## Recommended Next Step
 
-Recommended next step: /spec-design
-
-L1-L3 decomposition is created, so continue to mandatory `/spec-design`.
+Recommended next step: /brief
 
 ## Open Routing Questions
 

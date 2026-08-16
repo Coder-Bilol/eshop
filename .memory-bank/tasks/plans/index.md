@@ -14,5 +14,8 @@ status: active
   customer login, session, cart handoff, and checkout gate implementation waves.
 - [.memory-bank/tasks/plans/IMPL-FT-005.md](IMPL-FT-005.md): authenticated
   product favorites, PostgreSQL ownership, Store API, and storefront UX waves.
+- [.memory-bank/tasks/plans/IMPL-FT-006.md](IMPL-FT-006.md): authenticated
+  checkout delivery methods, Admin/Shipping Options tariffs, validation, and
+  downstream handoff waves, with scheduler closure/evidence reconciliation.
 - [.memory-bank/tasks/plans/IMPL-FT-011.md](IMPL-FT-011.md): Windows-native
   local development foundation implementation waves.

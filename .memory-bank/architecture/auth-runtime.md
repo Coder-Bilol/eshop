@@ -14,7 +14,7 @@ source_of_truth:
 
 | Component | Responsibility | Constraint |
 |---|---|---|
-| Next.js auth UI/state | Login choices, safe return path, customer/session status, completion UI, logout, checkout gate. | No provider secrets or browser-persisted tokens. |
+| Next.js auth UI/state | Login choices, safe return path, customer/session status, completion UI, logout, checkout gate, and authenticated identity label. | No provider secrets or browser-persisted tokens. |
 | Medusa Auth HTTP routes | Start Google/VK authentication and expose the configured providers. | Customer providers are allowlisted; admin `emailpass` remains available. |
 | Google provider | Medusa v2.16 built-in `@medusajs/medusa/auth-google`. | Callback URL and credentials come from backend environment only. |
 | VK ID provider | One custom provider extending `AbstractAuthModuleProvider` and registered with `ModuleProvider(Modules.AUTH, ...)`. | Authorization Code + PKCE, `state`, `device_id`, server-side exchange, minimal scopes. |
@@ -57,13 +57,18 @@ source_of_truth:
    the fixed storefront `/auth/complete` path with only provider and coarse status.
 8. Storefront retrieves `/store/customers/me`, invokes FT-003 merge when a guest
    reference exists, then consumes the safe return path.
+9. Storefront renders the authenticated top-right identity label from the current
+   customer projection: trusted Telegram username first, email fallback. Guests and
+   expired sessions render no customer identity.
 
 ## VK Provider Mapping
 
 - Provider ID: `vkid`.
 - Entity ID: stable VK ID `user_id`; never email, display name, or access token.
 - Requested data: minimum profile plus email needed for Medusa customer creation.
-- Stored user metadata: normalized email and optional first/last name only.
+- Stored user metadata: normalized email, optional first/last name, and an optional
+  trusted Telegram username only when supplied by a validated Telegram identity
+  source. The username is not accepted from storefront input.
 - Access, refresh, and ID tokens exist only during callback processing and are
   discarded after identity validation. They are never written to Auth metadata,
   customer metadata, logs, evidence, browser state, or URLs.
@@ -94,8 +99,13 @@ source_of_truth:
   session remains.
 - Login can succeed while cart merge fails; the session remains valid, source cart
   remains recoverable, and checkout stays blocked until retry/no-source.
+- The authenticated customer projection may expose only the bounded display label
+  needed by the storefront. It must not expose provider tokens, secrets, or raw
+  provider payloads.
 
 ## Not Applicable
 
 - Custom event bus, queue, webhook, worker, cache, custom auth database, and custom
   token refresh persistence are not applicable to FT-004.
+- Telegram authentication/provider integration is not currently part of the
+  implemented FT-004 runtime; it is a prerequisite/open design input for REQ-031.

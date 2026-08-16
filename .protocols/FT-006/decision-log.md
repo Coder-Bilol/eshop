@@ -1,6 +1,6 @@
 ---
 description: Design decisions and blockers for FT-006 checkout delivery methods.
-status: blocked
+status: active
 ---
 # FT-006 Decision Log
 
@@ -22,8 +22,36 @@ status: blocked
 - Consequence: do not create/update the implementation plan, task records,
   `tasks/index.json`, or packets until the blockers are resolved.
 
+## 2026-08-13 - BR-002 decisions resolve feature design blockers
+
+- Source: [.memory-bank/analysis/brainstorming/BR-002.md](../../.memory-bank/analysis/brainstorming/BR-002.md).
+- Decision: Medusa Admin / Shipping Options is the tariff source. Initial local
+  values are `pickup: 0 RUB`, `city_courier: 500 RUB`, and
+  `transport_company: 700 RUB`.
+- Decision: stable delivery IDs are `pickup`, `city_courier`, and
+  `transport_company`, in that order.
+- Decision: `name`, `email`, `phone`, and `city` are required; `address` is
+  required for courier and transport company but not pickup; `comment` is
+  optional.
+- Decision: backend normalizes input and applies safe length limits before
+  validation. Exact numeric limits remain implementation-owned and are not
+  promoted to a public client contract.
+- Decision: unavailable delivery returns HTTP `422` with code
+  `delivery_method_unavailable`; recovery is retry or choosing another method.
+- Decision: payment IDs are `card`, `sbp`, and `sberpay`.
+- Decision: FT-006 hands a validated checkout snapshot to FT-007 and the selected
+  payment ID to FT-009; FT-006 creates no order and has no payment-provider
+  integration.
+- Decision: exact Medusa v2.16 Shipping Options extension point and exact safe
+  limits are implementation assumptions with explicit stop conditions; downstream
+  physical handoff transport remains owned by FT-007/FT-009.
+- Consequence: feature design is complete and decomposition may create the plan,
+  task records, index links, and required packets. This session still does not
+  execute or verify implementation tasks.
+
 ## Resolution Required
 
-- Product/operator input: FT006-OQ-001 through FT006-OQ-005.
-- Cross-feature contract decision: FT006-OQ-006 and FT006-OQ-007 with FT-007 and
-  FT-009 owners.
+- No blocker remains for FT-006 decomposition.
+- Future implementation owner must confirm the installed Medusa v2.16 Shipping
+  Options boundary and select bounded numeric safe limits without changing the
+  accepted product semantics.

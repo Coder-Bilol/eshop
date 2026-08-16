@@ -205,5 +205,16 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/wishlist",
     },
+    {
+      resolve: "@medusajs/medusa/fulfillment",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/fulfillment-manual",
+            id: "manual",
+          },
+        ],
+      },
+    },
   ],
 });

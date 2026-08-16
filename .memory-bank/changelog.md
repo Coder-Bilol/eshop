@@ -4,6 +4,148 @@ status: active
 ---
 # Changelog
 
+## [2026-08-16] TASK-049 / FT-006 scheduler closure
+- Verified: TASK-049 passed the real compiled Medusa/PostgreSQL backend acceptance,
+  storefront browser acceptance, T3 functional verification, and adversarial
+  semantic verification.
+- Preserved: the standard Medusa parser, Admin/Shipping Options tariff source,
+  authenticated actor-derived ownership, and the no-order/no-payment-provider
+  boundary. Local production data and provider requests remained absent.
+- Reconciled: FT-006 and REQ-013 through REQ-017 are `verified`; EP-003 remains
+  `planned` for its downstream order/inventory features. The full queue is terminal.
+
+## [2026-08-15] TASK-049 final FT-006 runtime acceptance harness
+- Added: real compiled Medusa/PostgreSQL backend acceptance for authenticated
+  checkout, Admin Shipping Options tariffs/order, normalization-before-limit,
+  conditional fields, stable payment IDs, sanitized errors, unavailable
+  delivery, transient handoff, and no order/inventory/payment/provider mutation.
+- Added: real storefront Playwright acceptance through the local Google provider
+  double and Medusa session cookie, including authenticated checkout entry,
+  backend-confirmed tariff/payment responses, live `422 delivery_method_unavailable`
+  recovery, no silent substitution, and sanitized browser evidence.
+- Preserved: standard Medusa body parser and deferred malformed-JSON decision;
+  no production checkout/auth/parser/UI, Medusa Core, FT-007, or FT-009 code was
+  changed. Synthetic Admin fixtures, browser session, server, and ports clean up
+  unconditionally through the acceptance harness paths.
+
+## [2026-08-15] TASK-048 buyer-facing checkout continuation
+- Added: authenticated checkout form/state/client continuation behind the existing
+  `authenticated_ready` gate, covering contact fields, conditional address,
+  stable delivery/payment selections, backend validation, and transient handoff.
+- Added: backend-resolved selected delivery tariff display, sanitized validation and
+  unavailable/error recovery with retry or explicit alternative selection; no client
+  tariff table, browser-authoritative checkout storage, order, or provider call was
+  introduced.
+- Verified: storefront-focused checkout form/state tests and typecheck passed;
+  implementation remains pending independent `/verify TASK-048` and later FT-006
+  feature semantic verification.
+
+## [2026-08-15] TASK-047 real Medusa HTTP checkout evidence
+- Added: compiled Medusa HTTP evidence through the configured synthetic
+  publishable-key boundary for guest, bearer, and session-cookie checkout auth,
+  including actor-derived ownership and client-identity rejection.
+- Preserved: the standard Medusa body parser; custom malformed-JSON response
+  normalization is removed and remains deferred by operator decision.
+- Verified: no order, payment-collection, inventory-reservation, provider request,
+  or production-data mutation during the authenticated checkout proof.
+- Closed: `TASK-047` after independent functional `VERDICT: PASS`, semantic
+  `SEMANTIC_VERDICT: semantic-pass`, and recorded T3 checkpoint/recovery markers;
+  TASK-048 is the next dependency-eligible slice.
+
+## [2026-08-15] TASK-048 authenticated checkout UI
+- Added: authenticated-ready checkout form, normalized client boundary, state
+  controller, conditional address/payment selection, sanitized recovery, and
+  validated-not-order/payment handoff.
+- Verified: focused form/state suites, checkout-auth-gate regression, storefront
+  typecheck, Memory Bank lint, syntax, and diff hygiene all pass.
+- Closed: `TASK-048` as T2; real authenticated browser/no-mutation coverage remains
+  with TASK-049 and FT-006 feature-level semantic verification.
+
+## [2026-08-13] TASK-047 bounded remediation
+- Fixed: unauthenticated `POST /store/checkout` keeps standard Medusa customer
+  session/bearer authentication and now maps only the native middleware 401 to the
+  shared sanitized `checkout_auth_required` envelope.
+- Strengthened: the synthetic checkout smoke now sends authenticated and
+  unauthenticated requests through a real local HTTP route and middleware boundary
+  using synthetic session context, while preserving direct validation assertions.
+- Hardened: every synthetic fixture cleanup step remains unconditional, records
+  cleanup failures without exposing error details, and fails the smoke loudly after
+  all recovery attempts complete.
+
+## [2026-08-13] TASK-047 authenticated checkout validation handoff
+- Added: authenticated `POST /store/checkout` boundary using the standard Medusa
+  customer session/bearer middleware, actor-derived ownership, normalized bounded
+  validation, conditional address rules, stable delivery/payment IDs, and sanitized
+  errors.
+- Added: read-only workflow handoff containing the configured Admin/Shipping Options
+  tariff, transient FT-007 snapshot, and FT-009 payment ID. Unavailable delivery fails
+  closed with `422 delivery_method_unavailable`; no order, inventory, payment, or
+  provider mutation is performed.
+- Added: synthetic `checkout-delivery` integration smoke covering auth, normalization,
+  safe limits, conditional address, stable tariffs/payment IDs, unavailable recovery,
+  sanitized errors, and read-only operation tracing. Production data and secrets are
+  not used.
+
+## [2026-08-13] TASK-046 scheduler closure sync
+- Reconciled: authoritative TASK-046 is `done` after T2 full protocol, required
+  packet/spec gates, execute gates, and independent functional `VERDICT: PASS`.
+- Linked: the FT-006 implementation plan, RTM, feature/epic lifecycle navigation,
+  and changelog now point to the final execute, verification, protocol, and sync
+  evidence without changing the task record.
+- Preserved: the historical provider/configuration blocker and owner-approved bounded
+  `apps/backend/medusa-config.ts` expansion remain in the task decision trail; the
+  Admin-managed Shipping Options source, stable ordering, fail-closed availability,
+  and no-fallback boundary remain unchanged.
+- Preserved: REQ-013 through REQ-017, FT-006, and EP-003 remain `planned`; TASK-047,
+  TASK-048, and TASK-049 retain their recorded blocked decisions. No packet status or
+  hash, source implementation, dependent promotion, scheduler state, or terminal
+  decision was changed by `/mb-sync`.
+- Checked: `node scripts/mb-lint.mjs` passed; strict doctor remains blocked by the
+  existing `TASK_QUEUE_DEADLOCK` and dependent-block warnings, which are scheduler-owned.
+
+## [2026-08-13] TASK-046 bounded provider configuration expansion
+- Registered: the installed Medusa v2.16 built-in manual fulfillment provider is
+  loaded only through the supported Fulfillment module boundary so synthetic
+  Admin/Shipping Options can be exposed locally.
+- Preserved: Admin-managed Shipping Options and linked price sets remain the only
+  delivery source; stable order, fail-closed availability, no fallback, no external
+  provider, and no Medusa Core/order/payment changes remain unchanged.
+- Pending: TASK-046 integration, typecheck, Memory Bank lint rerun, independent
+  verification, scheduler lifecycle decision, dependent promotion, and `/mb-sync`.
+
+## [2026-08-13] TASK-046..TASK-049 scheduler blocking decision sync
+- Reconciled: authoritative TASK-046 is `blocked` on the recorded Admin/Shipping
+  Options integration scope blocker; TASK-047, TASK-048, and TASK-049 retain their
+  recorded blocked dependent decisions.
+- Linked: RTM and FT-006 implementation-plan navigation now point to the task
+  records, canonical packets, TASK-046 STOP_REPORT, and TASK-046 protocol evidence.
+- Preserved: REQ-013 through REQ-017, FT-006, and EP-003 remain `planned`; no task
+  status, lifecycle, promotion, dependent unblock, packet status, or scheduler
+  terminal decision was changed by `/mb-sync`.
+- Reported: the required integration evidence remains blocked because the local
+  application registers no supported fulfillment provider. Approving
+  `apps/backend/medusa-config.ts` scope expansion remains scheduler/operator-owned.
+- Checked: the execute evidence records typecheck, Memory Bank lint, and dispatcher
+  syntax as PASS; integration was blocked before fixture creation and no source
+  implementation or verification rerun was performed by this sync.
+
+## [2026-08-13] TASK-046 Admin-managed checkout delivery options execute
+- Added: one backend projection over installed Medusa v2.16 Fulfillment Shipping
+  Options and the linked Pricing price sets, using Admin `type.code` stable IDs and
+  current context availability rather than a parallel tariff registry.
+- Added: deterministic `pickup`, `city_courier`, `transport_company` projection with
+  configured RUB money values, explicit unavailable state, and fail-closed missing or
+  ambiguous tariffs without hardcoded fallback or external provider calculation.
+- Added: synthetic local integration smoke with unconditional fixture cleanup and
+  sanitized source/order/tariff evidence; no production data, credentials, order,
+  inventory, payment, or provider mutation is used.
+- Blocked: the required real Medusa smoke cannot create synthetic Admin Shipping
+  Options because the local application registers no Fulfillment Provider. Provider
+  registration is outside TASK-046 scope; no hardcoded or parallel tariff fallback
+  was added.
+- Pending: independent `/verify`, feature-level semantic verification, scheduler
+  closure, dependent promotion, and `/mb-sync` remain outside this Implementer run.
+
 ## [2026-08-11] FT-005 lifecycle verification sync
 - Reconciled: FT-005 `lifecycle: verified` from the feature-level review with
   `SEMANTIC_VERDICT: semantic-pass`, `verdict: APPROVE`, and no findings; all indexed

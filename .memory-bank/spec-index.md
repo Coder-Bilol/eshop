@@ -2,7 +2,7 @@
 description: Pure SDD spec registry and planned-spec index.
 status: active
 owner: spec-design
-last_updated: 2026-07-16
+last_updated: 2026-08-13
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-backbone.md
@@ -39,7 +39,11 @@ source_of_truth:
 | FT-005 Authenticated Wishlist | feature_design | [.memory-bank/tech-specs/FT-005-authenticated-wishlist.md](tech-specs/FT-005-authenticated-wishlist.md) | active | /prd-to-tasks FT-005 | Product-level authenticated favorites, storefront states, unavailable-product behavior, and verification. |
 | Wishlist Data | data | [.memory-bank/domains/wishlist-data.md](domains/wishlist-data.md) | active | /prd-to-tasks FT-005 | PostgreSQL record, customer/product ownership, uniqueness, product projection, and migration rules. |
 | Wishlist API And Security | security_contract | [.memory-bank/contracts/wishlist-api-security.md](contracts/wishlist-api-security.md) | active | /prd-to-tasks FT-005 | Authenticated Store API, actor ownership, idempotency, errors, privacy, and concurrency. |
-| FT-006 Checkout Delivery Methods | feature_design | [.memory-bank/tech-specs/FT-006-checkout-delivery-methods.md](tech-specs/FT-006-checkout-delivery-methods.md) | blocked | /prd-to-tasks FT-006 | Feature hub for checkout data, manual delivery options, fixed tariffs, validation boundary, and explicit decomposition blockers. |
+| FT-006 Checkout Delivery Methods | feature_design | [.memory-bank/tech-specs/FT-006-checkout-delivery-methods.md](tech-specs/FT-006-checkout-delivery-methods.md) | active | /prd-to-tasks FT-006 | Feature hub for authenticated checkout data, Admin/Shipping Options tariffs, stable delivery/payment IDs, validation boundary, and downstream handoffs. |
+| FT-006 Checkout Delivery Runtime | architecture | [.memory-bank/architecture/checkout-delivery-runtime.md](architecture/checkout-delivery-runtime.md) | active | /prd-to-tasks FT-006 | Runtime ownership, Admin/Shipping Options source, transient validation flow, and FT-007/FT-009 boundaries. |
+| FT-006 Checkout Delivery API | contract | [.memory-bank/contracts/checkout-delivery-api.md](contracts/checkout-delivery-api.md) | active | /prd-to-tasks FT-006 | Logical checkout input, validation result, stable errors, actor guard, and downstream handoff semantics. |
+| FT-006 Checkout Delivery Data | data | [.memory-bank/domains/checkout-delivery-data.md](domains/checkout-delivery-data.md) | active | /prd-to-tasks FT-006 | Contact fields, conditional address, stable options, initial RUB tariffs, payment IDs, and transient snapshot. |
+| FT-006 Checkout Delivery Validation State | state | [.memory-bank/states/checkout-delivery-validation.md](states/checkout-delivery-validation.md) | active | /prd-to-tasks FT-006 | Checkout blocked/editing/validation/unavailable/recovery states without order or payment lifecycle ownership. |
 | FT-011 Windows Native Local Development | feature_design | [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](tech-specs/FT-011-windows-native-local-development.md) | active | /prd-to-tasks FT-011 | Feature-local Windows-native local runtime, project scaffold, database initialization, env templates, and smoke verification design. |
 | Boundary Map | boundary_hints | [.memory-bank/contracts/boundary-map.md](contracts/boundary-map.md) | active | /spec-init | Responsibility and scope boundary notes. |
 | Lifecycle Map | lifecycle_hints | [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) | active | /spec-init | Initial lifecycle hints retained for traceability. |

@@ -34,6 +34,17 @@ Convert authenticated carts into pending orders with delivery data, fixed delive
 - Delivery methods use fixed tariffs and no external carrier integration.
 - Order lifecycle supports the PRD status model.
 
+## Lifecycle Navigation
+
+- Lifecycle remains `planned`: FT-006 is verified, but FT-007 and FT-008 still own
+  pending-order, inventory, and order-lifecycle work required to complete this
+  epic.
+- Evidence navigation: [FT-006](../features/FT-006-checkout-delivery-methods.md),
+  [IMPL-FT-006](../tasks/plans/IMPL-FT-006.md),
+  [TASK-046 sync report](../../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md),
+  [TASK-047 verification](../../.tasks/TASK-047/TASK-047-S-VERIFY-final-report-docs-03.md),
+  and [FT-006 feature review](../../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md).
+
 ## Constraints / Invariants
 
 - Order and inventory state changes must avoid data loss.

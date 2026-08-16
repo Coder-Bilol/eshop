@@ -18,3 +18,6 @@ status: active
 - [.memory-bank/contracts/wishlist-api-security.md](wishlist-api-security.md):
   FT-005 authenticated Store API, actor ownership, idempotency, privacy, and
   concurrency contract.
+- [.memory-bank/contracts/checkout-delivery-api.md](checkout-delivery-api.md):
+  FT-006 authenticated checkout input, delivery/payment IDs, validation errors,
+  and FT-007/FT-009 handoff semantics.

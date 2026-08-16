@@ -1,0 +1,141 @@
+{
+  "id": "TASK-046",
+  "title": "Resolve Admin-managed checkout delivery options",
+  "status": "done",
+  "wave": "W1",
+  "feature": "FT-006",
+  "reqs": ["REQ-015", "REQ-016"],
+  "depends_on": ["TASK-015"],
+  "touched_files": [
+    "apps/backend/src/checkout/delivery-options.ts",
+    "apps/backend/src/checkout/delivery-tariffs.ts",
+    "apps/backend/src/scripts/smoke-checkout-delivery-options.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/package.json",
+    "apps/backend/medusa-config.ts",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "checkout delivery options integration", "command": "npm --workspace apps/backend run test:integration -- checkout-delivery-options", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "The backend reads delivery configuration from Medusa Admin / Shipping Options rather than a parallel tariff registry or hardcoded runtime fallback.",
+    "The projected options use stable IDs pickup, city_courier, and transport_company in that order and expose initial local tariffs 0 RUB, 500 RUB, and 700 RUB.",
+    "Unavailable configured options are represented so the validation boundary can return delivery_method_unavailable without silently substituting another option.",
+    "Currency and money representation remain compatible with the installed Medusa v2.16 source and no external carrier calculation is added.",
+    {
+      "scheduler_decision": "blocked",
+      "reason": "Required Admin/Shipping Options integration cannot produce truthful local evidence because no supported fulfillment provider is registered in the application configuration.",
+      "blocker_type": "scope_conflict",
+      "evidence": [
+        ".tasks/TASK-046/TASK-046-S-execute-stop-report-code-01.md",
+        ".protocols/TASK-046/handoff.md",
+        ".protocols/TASK-046/progress.md"
+      ],
+      "operator_action": "Approve adding apps/backend/medusa-config.ts to TASK-046 scope for the built-in manual fulfillment provider, then refresh the packet and rerun TASK-046 gates.",
+      "verification_status": "not_run_due_to_blocker"
+    },
+    {
+      "scheduler_decision": "ready",
+      "reason": "Operator approved the bounded scope expansion required to register the built-in manual fulfillment provider and rerun the required integration gate.",
+      "operator_approval": "User approval received in the current orchestrator session.",
+      "scope_change": ["apps/backend/medusa-config.ts"],
+      "evidence": [
+        ".tasks/TASK-046/TASK-046-S-execute-stop-report-code-01.md",
+        ".tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-01.md"
+      ],
+      "next_step": "Refresh the canonical packet, pass strict readiness, then resume TASK-046 execution.",
+      "verification_status": "pending"
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T2 full protocol, required packet/spec gates, execute gates, and independent functional verification passed.",
+      "evidence": [
+        ".tasks/TASK-046/TASK-046-S-execute-final-report-code-02.md",
+        ".tasks/TASK-046/TASK-046-S-verify-final-report-docs-01.md",
+        ".protocols/TASK-046/context.md",
+        ".protocols/TASK-046/plan.md",
+        ".protocols/TASK-046/progress.md",
+        ".protocols/TASK-046/verification.md",
+        ".protocols/TASK-046/handoff.md"
+      ],
+      "functional_verdict": "PASS",
+      "verdict": "VERDICT: PASS",
+      "packet_gate": "PASS",
+      "feature_semantic_gate": "pending_until_all_FT-006_tasks_are_done",
+      "verification_status": "PASS"
+    }
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-006.md", ".memory-bank/changelog.md"],
+  "evidence_required": [
+    "Sanitized Admin / Shipping Options source and option-order output.",
+    "Synthetic local tariff projection showing 0/500/700 RUB.",
+    "Backend typecheck, integration, and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/tech-specs/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/domains/checkout-delivery-data.md",
+    ".memory-bank/tasks/plans/IMPL-FT-006.md",
+    ".memory-bank/analysis/brainstorming/BR-002.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/domains/checkout-delivery-data.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Medusa Admin / Shipping Options is the only tariff and availability source.",
+    "Use stable IDs and order pickup, city_courier, transport_company with initial local values 0/500/700 RUB.",
+    "Do not add external delivery-provider calculation, a custom tariff registry, or Medusa Core changes.",
+    "Stop if the installed Medusa v2.16 boundary cannot expose configured options without a parallel source."
+  ],
+  "invariants": [
+    "A missing or unavailable option is never silently replaced by a hardcoded tariff.",
+    "Delivery option order is deterministic: pickup, city_courier, transport_company.",
+    "FT-006 does not create orders, reservations, payment attempts, or provider state."
+  ],
+  "verification_targets": [
+    ".memory-bank/architecture/checkout-delivery-runtime.md#delivery-source",
+    ".memory-bank/domains/checkout-delivery-data.md#delivery-option-data",
+    ".memory-bank/tech-specs/FT-006-checkout-delivery-methods.md#verification-targets"
+  ],
+  "purpose": "Establish one backend projection over the Admin-managed delivery options and initial local tariffs for all later FT-006 slices.",
+  "success_outcome": "The installed Medusa runtime exposes the three stable delivery options in deterministic order with configured 0/500/700 RUB local values and explicit availability.",
+  "anti_goals": [
+    "Do not implement checkout field validation or storefront UI.",
+    "Do not create an order, inventory reservation, payment attempt, or external delivery integration.",
+    "Do not hardcode runtime tariffs as a fallback when Admin / Shipping Options is unavailable."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-046.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/checkout/delivery-options.ts",
+      "apps/backend/src/checkout/delivery-tariffs.ts",
+      "apps/backend/src/scripts/smoke-checkout-delivery-options.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      "apps/backend/medusa-config.ts",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "Medusa Core modifications",
+      "checkout actor authorization",
+      "order/inventory/payment behavior",
+      "external delivery providers",
+      "production data or credentials"
+    ],
+    "stop_conditions": [
+      "The installed Medusa v2.16 boundary cannot expose Admin / Shipping Options values and availability.",
+      "Correct behavior requires a parallel hardcoded tariff source.",
+      "Money or currency semantics cannot be represented without inventing a new public contract."
+    ]
+  }
+}

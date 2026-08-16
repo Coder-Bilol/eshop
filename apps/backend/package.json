@@ -24,6 +24,9 @@
     "smoke:auth-vkid": "node -r ts-node/register ./src/scripts/smoke-auth-vkid.ts auth-vkid",
     "smoke:wishlist-api": "medusa exec ./src/scripts/smoke-wishlist-api.ts",
     "smoke:wishlist-acceptance": "node test/run-integration.cjs wishlist-acceptance",
+    "smoke:checkout-delivery-options": "node test/run-integration.cjs checkout-delivery-options",
+    "smoke:checkout-delivery": "node test/run-integration.cjs checkout-delivery",
+    "smoke:checkout-delivery-acceptance": "node test/run-integration.cjs checkout-delivery-acceptance",
     "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },

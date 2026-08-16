@@ -27,9 +27,11 @@ const outputTaskId = selectedSuites.includes("wishlist")
   ? "TASK-042"
   : selectedSuites.includes("auth")
     ? "TASK-034"
-  : selectedSuites.includes("cart")
-    ? "TASK-026"
-    : "TASK-016";
+    : selectedSuites.includes("checkout-delivery")
+      ? "TASK-049"
+      : selectedSuites.includes("cart")
+        ? "TASK-026"
+        : "TASK-016";
 const outputDir = path.join(rootDir, ".tasks", outputTaskId, "playwright");
 const backendLogPath = path.join(outputDir, "medusa-backend.log");
 const progressLogPath = path.join(outputDir, "real-runtime-progress.log");
@@ -43,9 +45,20 @@ const wishlistAcceptanceScript = path.join(
   "scripts",
   "smoke-wishlist-acceptance.ts"
 );
+const checkoutAcceptanceScript = path.join(
+  backendDir,
+  "src",
+  "scripts",
+  "smoke-checkout-delivery-acceptance.ts"
+);
+const checkoutCompletionMarker = "TASK-049-CHECKOUT-BROWSER-COMPLETE";
+let backendStartupDiagnostics = "";
 
 async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
+  if (selectedSuites.includes("checkout-delivery")) {
+    invalidateCheckoutSuccessArtifacts();
+  }
   fs.writeFileSync(progressLogPath, "", "utf8");
   await assertPortsAvailable();
 
@@ -75,7 +88,9 @@ async function main() {
       NEXT_PUBLIC_MEDUSA_BACKEND_URL: backendUrl,
       NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: publishableKey,
       NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID: seedSummary.sales_channel_id,
-       NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.some((suite) =>
+      MEDUSA_FILE_URL:
+        process.env.MEDUSA_FILE_URL?.trim() || `${backendUrl}/static`,
+      NEXT_PUBLIC_E2E_CART_HANDOFF: selectedSuites.some((suite) =>
         ["auth", "cart", "wishlist"].includes(suite)
       )
         ? "true"
@@ -87,29 +102,29 @@ async function main() {
       STOREFRONT_PORT: String(storefrontPort),
       JWT_SECRET: "task034-local-jwt-secret",
       COOKIE_SECRET: "task034-local-cookie-secret",
-       GOOGLE_AUTH_ENABLED: selectedSuites.some((suite) =>
-        ["auth", "wishlist"].includes(suite)
+      GOOGLE_AUTH_ENABLED: selectedSuites.some((suite) =>
+        ["auth", "wishlist", "checkout-delivery"].includes(suite)
       )
         ? "true"
         : "false",
       GOOGLE_OAUTH_CLIENT_ID: "task034-local-google-client",
       GOOGLE_OAUTH_CLIENT_SECRET: "task034-local-google-secret",
       GOOGLE_OAUTH_CALLBACK_URL: `${backendUrl}/auth/customer/google/complete`,
-       VK_ID_AUTH_ENABLED: selectedSuites.some((suite) =>
-        ["auth", "wishlist"].includes(suite)
+      VK_ID_AUTH_ENABLED: selectedSuites.some((suite) =>
+        ["auth", "wishlist", "checkout-delivery"].includes(suite)
       )
         ? "true"
         : "false",
       VK_ID_CLIENT_ID: "340034",
       VK_ID_SERVICE_TOKEN: "task034-local-vk-service-token",
       VK_ID_CALLBACK_URL: `${backendUrl}/auth/customer/vkid/complete`,
-       ESHOP_E2E_AUTH_PROVIDER_DOUBLE: selectedSuites.some((suite) =>
-        ["auth", "wishlist"].includes(suite)
+      ESHOP_E2E_AUTH_PROVIDER_DOUBLE: selectedSuites.some((suite) =>
+        ["auth", "wishlist", "checkout-delivery"].includes(suite)
       )
         ? "true"
         : "false",
-       NODE_OPTIONS: selectedSuites.some((suite) =>
-        ["auth", "wishlist"].includes(suite)
+      NODE_OPTIONS: selectedSuites.some((suite) =>
+        ["auth", "wishlist", "checkout-delivery"].includes(suite)
       )
         ? `${process.env.NODE_OPTIONS || ""} --require=${authProviderDoublePath}`.trim()
         : process.env.NODE_OPTIONS,
@@ -125,16 +140,22 @@ async function main() {
   let cartEvidence = null;
   let authEvidence = null;
   let wishlistEvidence = null;
+  let checkoutEvidence = null;
   let cartContext = null;
   let wishlistFixtures = null;
+  let checkoutFixtures = null;
+  let checkoutScreenshot = null;
 
   try {
     logStep("waiting for compiled Medusa health endpoint");
     await waitForHttp(
       `${backendUrl}/health`,
-      selectedSuites.some((suite) => ["auth", "wishlist"].includes(suite))
+      selectedSuites.some((suite) =>
+        ["auth", "wishlist", "checkout-delivery"].includes(suite)
+      )
         ? 180_000
-        : 90_000
+        : 90_000,
+      backend
     );
     noKeyStatus = await verifyPublishableKeyBoundary(publishableKey);
     if (selectedSuites.some((suite) => ["auth", "cart"].includes(suite))) {
@@ -143,6 +164,10 @@ async function main() {
     if (selectedSuites.includes("wishlist")) {
       logStep("creating synthetic wishlist lifecycle fixtures");
       wishlistFixtures = createWishlistAcceptanceFixtures(publishableKey);
+    }
+    if (selectedSuites.includes("checkout-delivery")) {
+      logStep("creating synthetic Admin Shipping Options for checkout browser acceptance");
+      checkoutFixtures = createCheckoutAcceptanceFixtures();
     }
     logStep("preparing Next.js storefront");
     const next = require("next");
@@ -161,7 +186,15 @@ async function main() {
       channel: process.env.PLAYWRIGHT_CHANNEL || "msedge",
     });
     context = await browser.newContext();
-    if (!selectedSuites.includes("auth") && !selectedSuites.includes("wishlist")) {
+    if (selectedSuites.includes("checkout-delivery")) {
+      context.setDefaultNavigationTimeout(120_000);
+      context.setDefaultTimeout(60_000);
+    }
+    if (
+      !selectedSuites.some((suite) =>
+        ["auth", "wishlist", "checkout-delivery"].includes(suite)
+      )
+    ) {
       await context.tracing.start({
         screenshots: true,
         snapshots: true,
@@ -191,6 +224,15 @@ async function main() {
         wishlistFixtures
       );
     }
+    if (selectedSuites.includes("checkout-delivery")) {
+      const checkoutResult = await verifyCheckoutDelivery(
+        page,
+        publishableKey,
+        checkoutFixtures
+      );
+      checkoutEvidence = checkoutResult.evidence;
+      checkoutScreenshot = checkoutResult.screenshot;
+    }
 
     if (!traceStopped) {
       await context.tracing.stop({
@@ -199,6 +241,7 @@ async function main() {
       traceStopped = true;
     }
   } catch (error) {
+    invalidateCheckoutSuccessArtifacts();
     const page = context?.pages().at(0);
     await page
       ?.screenshot({
@@ -208,6 +251,7 @@ async function main() {
       .catch(() => {});
     throw error;
   } finally {
+    let checkoutCleanupFailure = null;
     logStep("cleanup started");
     if (context && !traceStopped) {
       await context.tracing
@@ -222,6 +266,14 @@ async function main() {
     }
     logStep("closing storefront server");
     await closeServer(storefrontServer);
+    if (checkoutFixtures) {
+      logStep("cleaning synthetic checkout Shipping Options");
+      try {
+        cleanupCheckoutAcceptanceFixtures(checkoutFixtures);
+      } catch (error) {
+        checkoutCleanupFailure = error;
+      }
+    }
     if (wishlistFixtures) {
       logStep("cleaning synthetic wishlist lifecycle fixtures");
       cleanupWishlistAcceptanceFixtures(wishlistFixtures);
@@ -231,6 +283,7 @@ async function main() {
     logStep("checking released ports");
     await waitForPortsReleased();
     logStep("cleanup complete");
+    if (checkoutCleanupFailure) throw checkoutCleanupFailure;
   }
 
   writeRuntimeEvidence(
@@ -238,8 +291,10 @@ async function main() {
     publishableKey,
     cartEvidence,
     authEvidence,
-    wishlistEvidence
+    wishlistEvidence,
+    checkoutEvidence
   );
+  publishCheckoutSuccessArtifacts(checkoutEvidence, checkoutScreenshot);
   process.stdout.write(
     `${JSON.stringify(
       {
@@ -257,6 +312,7 @@ async function main() {
         cartAcceptance: cartEvidence,
         authAcceptance: authEvidence,
         wishlistAcceptance: wishlistEvidence,
+        checkoutDeliveryAcceptance: checkoutEvidence,
         variantIdentity: "medusa-product-variant-id",
         mediaContract: "string-url",
         trace: selectedSuites.includes("auth")
@@ -266,6 +322,8 @@ async function main() {
             )
           : selectedSuites.includes("wishlist")
             ? `.tasks/${outputTaskId}/playwright/wishlist-browser-report.json`
+          : selectedSuites.includes("checkout-delivery")
+            ? `.tasks/${outputTaskId}/playwright/checkout-browser-report.json`
           : `.tasks/${outputTaskId}/playwright/real-medusa-trace.zip`,
         screenshots: screenshotPaths(selectedSuites),
         processCleanup: "ports-released",
@@ -800,6 +858,182 @@ async function verifyAuth(browser, publishableKey, cartContext) {
     providerNetwork: "local-double-only",
     artifactPrivacy: "sanitized-post-callback-traces",
   };
+}
+
+async function verifyCheckoutDelivery(page, publishableKey, fixtures) {
+  assert.match(fixtures?.runId || "", /^task049/);
+  logStep("verifying authenticated checkout delivery through real browser HTTP");
+  const checkoutRequests = [];
+  const forbiddenRequests = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.origin !== backendUrl) return;
+    const pathname = url.pathname;
+    if (pathname === "/store/checkout" && request.method() === "POST") {
+      let body = null;
+      try {
+        body = request.postDataJSON();
+      } catch (_error) {
+        body = null;
+      }
+      checkoutRequests.push({ method: body?.delivery_method, payment: body?.payment_method });
+    }
+    if (/\/store\/(orders|payment|payments)|\/payment\/|yookassa|stripe/i.test(pathname)) {
+      forbiddenRequests.push(pathname);
+    }
+  });
+
+  await page.goto(`${storefrontUrl}/checkout`);
+  await waitForCleanStorefrontPath(page, "/login");
+
+  const customerId = await authenticateBrowserCustomer(
+    page.context(),
+    page,
+    "google"
+  );
+  assert.match(customerId, /^cus_/);
+  const current = await browserStoreRequest(page, {
+    path: "/store/customers/me",
+    method: "GET",
+    publishableKey,
+  });
+  assert.equal(current.status, 200);
+  assert.match(current.body.customer?.id || "", /^cus_/);
+
+  await page.goto(`${storefrontUrl}/checkout`);
+  await waitForCleanStorefrontPath(page, "/checkout");
+  await visible(page.locator('[data-checkout-auth-state="authenticated_ready"]'));
+  await visible(page.locator('[data-checkout-form="ft-006"]'));
+
+  for (const field of ["name", "email", "phone", "city", "comment"]) {
+    assert.equal(await page.locator(`[name="${field}"]`).count(), 1);
+  }
+  assert.equal(await page.locator('[name="address"]').count(), 0);
+  assert.deepEqual(
+    await page.locator('[data-delivery-option] input').evaluateAll((inputs) =>
+      inputs.map((input) => input.value)
+    ),
+    ["pickup", "city_courier", "transport_company"]
+  );
+  assert.deepEqual(
+    await page.locator('[data-payment-option] input').evaluateAll((inputs) =>
+      inputs.map((input) => input.value)
+    ),
+    ["card", "sbp", "sberpay"]
+  );
+
+  await page.locator('[name="name"]').fill(" Synthetic Browser Buyer ");
+  await page.locator('[name="email"]').fill(" SYNTHETIC.BROWSER@EXAMPLE.TEST ");
+  await page.locator('[name="city"]').fill(" Synthetic Browser City ");
+  await page.getByRole("button", { name: "Validate checkout details" }).click();
+  await visible(page.locator('[data-checkout-error="validation"]'));
+  assert.equal(await page.locator('[name="phone"]').getAttribute("aria-invalid"), "true");
+
+  await page.locator('[name="phone"]').fill("+7 900 000 00 00");
+  await page.locator('[name="comment"]').fill("Synthetic browser note");
+  await submitCheckoutFromBrowser(page, "pickup", "card", /0/);
+
+  await page.locator('[data-delivery-option="city_courier"] input').check();
+  await visible(page.locator('[name="address"]'));
+  await page.locator('[name="address"]').fill("Synthetic browser address");
+  await page.locator('[data-payment-option="sbp"] input').check();
+  await submitCheckoutFromBrowser(page, "city_courier", "sbp", /500/);
+
+  await page.locator('[data-delivery-option="transport_company"] input').check();
+  await visible(page.locator('[name="address"]'));
+  await page.locator('[name="address"]').fill("Synthetic browser transport address");
+  await page.locator('[data-payment-option="sberpay"] input').check();
+  await submitCheckoutFromBrowser(page, "transport_company", "sberpay", /700/);
+
+  runBackendAcceptancePhase(fixtures, "browser-disable");
+  const unavailableResponse = page.waitForResponse(
+    (response) =>
+      response.url() === `${backendUrl}/store/checkout` &&
+      response.request().method() === "POST",
+    { timeout: 30_000 }
+  );
+  await page.getByRole("button", { name: "Validate checkout details" }).click();
+  const unavailable = await unavailableResponse;
+  assert.equal(unavailable.status(), 422);
+  const unavailableBody = await unavailable.json();
+  assert.equal(unavailableBody.error?.code, "delivery_method_unavailable");
+  await visible(page.locator('[data-checkout-error="unavailable"]'));
+  assert.equal(
+    await page.locator('[data-delivery-option="transport_company"] input').isChecked(),
+    true
+  );
+  assert.equal(checkoutRequests.at(-1)?.method, "transport_company");
+
+  await page.locator('[data-delivery-option="pickup"] input').check();
+  assert.equal(await page.locator('[name="address"]').count(), 0);
+  await page.locator('[data-payment-option="card"] input').check();
+  await submitCheckoutFromBrowser(page, "pickup", "card", /0/);
+  assert.equal(checkoutRequests.at(-1)?.method, "pickup");
+  assert.equal(forbiddenRequests.length, 0);
+
+  await assertBrowserStoragePrivacy(page);
+  const screenshot = await page.screenshot({ fullPage: true });
+  assert.equal(
+    checkoutRequests.every(
+      (request) =>
+        ["pickup", "city_courier", "transport_company"].includes(request.method) &&
+        ["card", "sbp", "sberpay"].includes(request.payment)
+    ),
+    true
+  );
+  await page.getByRole("button", { name: "Log out" }).click();
+  await waitForCleanStorefrontPath(page, "/login");
+  assert.equal(
+    (await browserStoreRequest(page, {
+      path: "/store/customers/me",
+      method: "GET",
+      publishableKey,
+    })).status,
+    401
+  );
+
+  return {
+    screenshot,
+    evidence: {
+      status: "ok",
+      runId: fixtures.runId,
+      authenticatedReadyGate: true,
+      realMedusaSession: true,
+      fields: {
+        contact: ["name", "email", "phone", "city"],
+        conditionalAddress: true,
+        optionalComment: true,
+      },
+      deliveryIds: ["pickup", "city_courier", "transport_company"],
+      tariffsRub: [0, 500, 700],
+      paymentIds: ["card", "sbp", "sberpay"],
+      invalidFieldRecovery: true,
+      unavailableRecovery: "422 delivery_method_unavailable then explicit pickup selection",
+      noSilentSubstitution: true,
+      noOrderOrProviderRequests: true,
+      forbiddenRequestCount: forbiddenRequests.length,
+      artifactPrivacy: "sanitized-report-and-screenshot; no trace or cookies",
+    },
+  };
+}
+
+async function submitCheckoutFromBrowser(page, deliveryMethod, paymentMethod, tariffPattern) {
+  const responsePromise = page.waitForResponse(
+    (response) =>
+      response.url() === `${backendUrl}/store/checkout` &&
+      response.request().method() === "POST",
+    { timeout: 30_000 }
+  );
+  await page.getByRole("button", { name: "Validate checkout details" }).click();
+  const response = await responsePromise;
+  assert.equal(response.status(), 200);
+  const body = await response.json();
+  assert.equal(body.snapshot?.delivery_method, deliveryMethod);
+  assert.equal(body.payment_id, paymentMethod);
+  await visible(page.locator('[data-checkout-handoff="validated"]'));
+  const selected = page.locator(`[data-delivery-option="${deliveryMethod}"]`);
+  await visible(selected);
+  assert.match(await selected.innerText(), tariffPattern);
 }
 
 async function verifyWishlist(browser, publishableKey, fixtures) {
@@ -1538,6 +1772,66 @@ function cleanupWishlistAcceptanceFixtures(fixtures) {
   }
 }
 
+function createCheckoutAcceptanceFixtures() {
+  const runId = `task049${process.pid.toString(36)}${Date.now().toString(36)}`;
+  const stateFile = path.join(
+    os.tmpdir(),
+    `${runId}-checkout-delivery-state.json`
+  );
+  const fixtures = { runId, stateFile };
+  try {
+    runBackendAcceptancePhase(fixtures, "browser-fixtures");
+    const state = JSON.parse(fs.readFileSync(stateFile, "utf8"));
+    assert.equal(state.runId, runId);
+    assert.equal(state.resourceLedger?.optionIds?.length, 3);
+    return fixtures;
+  } catch (error) {
+    cleanupCheckoutAcceptanceFixtures(fixtures);
+    throw error;
+  }
+}
+
+function runBackendAcceptancePhase(fixtures, phase) {
+  let output;
+  logStep(`starting checkout backend phase: ${phase}`);
+  try {
+    output = execFileSync(
+      process.execPath,
+      [medusaCli, "exec", "./src/scripts/smoke-checkout-delivery-acceptance.ts"],
+      {
+        cwd: backendDir,
+        env: childEnv({
+          CHECKOUT_ACCEPTANCE_PHASE: phase,
+          CHECKOUT_ACCEPTANCE_STATE_FILE: fixtures.stateFile,
+          CHECKOUT_ACCEPTANCE_RUN_ID: fixtures.runId,
+        }),
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+        maxBuffer: 8 * 1024 * 1024,
+        timeout: 240_000,
+      }
+    );
+  } catch (error) {
+    const detail = error instanceof Error ? `: ${error.message}` : "";
+    throw new Error(`TASK-049 checkout fixture phase failed: ${phase}${detail}`);
+  }
+  assert.match(output, new RegExp(`\"phase\"\\s*:\\s*\"${phase}\"`));
+  assert.match(output, /\"status\"\s*:\s*\"ok\"/);
+  logStep(`completed checkout backend phase: ${phase}`);
+}
+
+function cleanupCheckoutAcceptanceFixtures(fixtures) {
+  if (!fs.existsSync(fixtures.stateFile)) return;
+  try {
+    runBackendAcceptancePhase(fixtures, "browser-cleanup");
+    fs.rmSync(fixtures.stateFile, { force: true });
+    fs.rmSync(`${fixtures.stateFile}.tmp`, { force: true });
+  } catch (error) {
+    // Keep the persisted ledger so a later browser-cleanup phase can recover it.
+    throw error;
+  }
+}
+
 async function installAuthProviderRoutes(context) {
   for (const [provider, pattern] of [
     ["google", "https://accounts.google.com/o/oauth2/v2/auth**"],
@@ -2087,6 +2381,7 @@ async function visible(locator) {
 }
 
 function startBackend() {
+  backendStartupDiagnostics = "";
   fs.writeFileSync(backendLogPath, "", "utf8");
   const log = fs.createWriteStream(backendLogPath, { flags: "a" });
   const medusaCli = require.resolve("@medusajs/cli/cli");
@@ -2096,10 +2391,17 @@ function startBackend() {
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   });
-  if (selectedSuites.some((suite) => ["auth", "wishlist"].includes(suite))) {
+  if (
+    selectedSuites.some((suite) =>
+      ["auth", "wishlist", "checkout-delivery"].includes(suite)
+    )
+  ) {
     log.write("backend_output=suppressed_for_sensitive_browser_acceptance\n");
     child.stdout.resume();
-    child.stderr.resume();
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk) => {
+      backendStartupDiagnostics = `${backendStartupDiagnostics}${chunk}`.slice(-8_192);
+    });
   } else {
     child.stdout.pipe(log);
     child.stderr.pipe(log);
@@ -2122,9 +2424,14 @@ function runRequiredNpm(args) {
   return result;
 }
 
-async function waitForHttp(url, timeoutMs) {
+async function waitForHttp(url, timeoutMs, child = null) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    if (child && child.exitCode !== null) {
+      throw new Error(
+        `Backend exited before ${url} became ready.${formatBackendDiagnostics()}`
+      );
+    }
     try {
       const response = await fetch(url);
       if (response.ok) return;
@@ -2133,7 +2440,13 @@ async function waitForHttp(url, timeoutMs) {
     }
     await delay(500);
   }
-  throw new Error(`Timed out waiting for ${url}`);
+  throw new Error(`Timed out waiting for ${url}${formatBackendDiagnostics()}`);
+}
+
+function formatBackendDiagnostics() {
+  const diagnostics = backendStartupDiagnostics.trim();
+  if (!diagnostics) return "";
+  return `\nBackend startup diagnostics:\n${diagnostics}`;
 }
 
 async function assertPortsAvailable() {
@@ -2192,7 +2505,14 @@ async function stopChild(child) {
 }
 
 function selectSuites(args) {
-  const supported = ["catalog", "product-detail", "cart", "auth", "wishlist"];
+  const supported = [
+    "catalog",
+    "product-detail",
+    "cart",
+    "auth",
+    "wishlist",
+    "checkout-delivery",
+  ];
   const selected = args.filter((arg) => supported.includes(arg));
   return selected.length > 0 ? Array.from(new Set(selected)) : ["catalog", "product-detail"];
 }
@@ -2202,7 +2522,8 @@ function writeRuntimeEvidence(
   publishableKey,
   cartEvidence,
   authEvidence,
-  wishlistEvidence
+  wishlistEvidence,
+  checkoutEvidence
 ) {
   fs.writeFileSync(
     path.join(outputDir, "real-runtime.log"),
@@ -2226,10 +2547,70 @@ function writeRuntimeEvidence(
       `artifact_privacy=${authEvidence ? authEvidence.artifactPrivacy : "not-run"}`,
       `browser_wishlist_acceptance=${wishlistEvidence ? wishlistEvidence.status : "not-run"}`,
       `wishlist_storage_scan=${wishlistEvidence ? wishlistEvidence.storageScan : "not-run"}`,
+      `browser_checkout_delivery_acceptance=${checkoutEvidence ? checkoutEvidence.status : "not-run"}`,
+      `checkout_delivery_artifact_privacy=${checkoutEvidence ? checkoutEvidence.artifactPrivacy : "not-run"}`,
+      `checkout_run_id=${checkoutEvidence ? checkoutEvidence.runId : "not-run"}`,
+      `checkout_completion_marker=${checkoutEvidence ? checkoutCompletionMarker : "not-run"}`,
       "",
     ].join("\n"),
     "utf8"
   );
+}
+
+function checkoutSuccessArtifactPaths() {
+  const reportPath = path.join(outputDir, "checkout-browser-report.json");
+  const screenshotPath = path.join(outputDir, "checkout-delivery.png");
+  return {
+    reportPath,
+    screenshotPath,
+    reportTempPath: `${reportPath}.tmp-${process.pid}`,
+    screenshotTempPath: `${screenshotPath}.tmp-${process.pid}`,
+    runtimePath: path.join(outputDir, "real-runtime.log"),
+  };
+}
+
+function invalidateCheckoutSuccessArtifacts() {
+  if (!selectedSuites.includes("checkout-delivery")) return;
+  const paths = checkoutSuccessArtifactPaths();
+  for (const artifactPath of [
+    paths.reportPath,
+    paths.screenshotPath,
+    paths.reportTempPath,
+    paths.screenshotTempPath,
+    paths.runtimePath,
+  ]) {
+    fs.rmSync(artifactPath, { force: true });
+  }
+}
+
+function publishCheckoutSuccessArtifacts(checkoutEvidence, screenshot) {
+  if (!checkoutEvidence) return;
+  assert.ok(Buffer.isBuffer(screenshot), "Checkout screenshot was not captured in memory.");
+  assert.equal(checkoutEvidence.status, "ok");
+  assert.match(checkoutEvidence.runId || "", /^task049/);
+
+  const paths = checkoutSuccessArtifactPaths();
+  const report = {
+    ...checkoutEvidence,
+    completionMarker: checkoutCompletionMarker,
+    artifactsPublishedAfterCleanup: true,
+    requestBodyPrivacy:
+      "synthetic values asserted in memory; values omitted from report",
+    productionData: false,
+  };
+  try {
+    fs.writeFileSync(paths.screenshotTempPath, screenshot, { mode: 0o600 });
+    fs.writeFileSync(
+      paths.reportTempPath,
+      JSON.stringify(report, null, 2),
+      { encoding: "utf8", mode: 0o600 }
+    );
+    fs.renameSync(paths.screenshotTempPath, paths.screenshotPath);
+    fs.renameSync(paths.reportTempPath, paths.reportPath);
+  } catch (error) {
+    invalidateCheckoutSuccessArtifacts();
+    throw error;
+  }
 }
 
 function screenshotPaths(suites) {
@@ -2251,6 +2632,12 @@ function screenshotPaths(suites) {
     if (suite === "wishlist") {
       return [
         `.tasks/${outputTaskId}/playwright/wishlist-session-expired.png`,
+      ];
+    }
+    if (suite === "checkout-delivery") {
+      return [
+        `.tasks/${outputTaskId}/playwright/checkout-delivery.png`,
+        `.tasks/${outputTaskId}/playwright/checkout-browser-report.json`,
       ];
     }
     return [`.tasks/${outputTaskId}/playwright/${suite}.png`];
@@ -2285,6 +2672,7 @@ function withTimeout(promise, timeoutMs) {
 main().then(
   () => process.exit(0),
   (error) => {
+    invalidateCheckoutSuccessArtifacts();
     console.error(
       error && (error.stack || error.message)
         ? error.stack || error.message

@@ -1,0 +1,141 @@
+{
+  "id": "TASK-047",
+  "title": "Implement authenticated checkout validation handoff",
+  "status": "done",
+  "wave": "W2",
+  "feature": "FT-006",
+  "reqs": ["REQ-013", "REQ-014", "REQ-015", "REQ-016", "REQ-017"],
+  "depends_on": ["TASK-046", "TASK-029"],
+  "touched_files": [
+    "apps/backend/src/checkout/validation.ts",
+    "apps/backend/src/workflows/checkout/validate-checkout.ts",
+    "apps/backend/src/api/store/checkout/route.ts",
+    "apps/backend/src/api/store/checkout/validators.ts",
+    "apps/backend/src/scripts/smoke-checkout-delivery.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "checkout delivery backend integration", "command": "npm --workspace apps/backend run test:integration -- checkout-delivery", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "The route requires an authenticated Medusa customer actor and never accepts customer identity, tariff amount, order identity, or provider payment identity from request input.",
+    "Backend normalization occurs before safe length checks; name, email, phone, and city are required, address is conditional by delivery method, and comment is optional.",
+    "Only pickup, city_courier, and transport_company plus card, sbp, and sberpay are accepted.",
+    "An unavailable method returns HTTP 422 with code delivery_method_unavailable and no silent replacement; configured tariff failures fail closed.",
+    "Success returns a validated transient checkout snapshot to FT-007 and the selected payment ID to FT-009 without creating an order, reservation, payment attempt, or provider request.",
+    "Route and workflow errors for syntactically valid JSON use the sanitized shared envelope and do not expose raw Medusa errors, customer PII, credentials, tokens, or provider payloads. Malformed JSON parser responses remain Medusa-owned and are deferred from this task's closure scope.",
+    {
+      "scheduler_decision": "done",
+      "reason": "T3 implementation, required packet/spec gates, independent functional verification, semantic verification, and explicit closure markers passed.",
+      "evidence": [
+        ".tasks/TASK-047/TASK-047-S-execute-remediation-final-report-code-04.md",
+        ".tasks/TASK-047/TASK-047-S-VERIFY-final-report-docs-03.md",
+        ".tasks/TASK-047/TASK-047-S-RED-VERIFY-final-report-docs-03.md",
+        ".protocols/TASK-047/context.md",
+        ".protocols/TASK-047/plan.md",
+        ".protocols/TASK-047/progress.md",
+        ".protocols/TASK-047/verification.md",
+        ".protocols/TASK-047/red-verification.md",
+        ".protocols/TASK-047/handoff.md"
+      ],
+      "functional_verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "closure_owner": "ORCHESTRATOR",
+      "operator_basis": "User explicitly instructed to keep the standard Medusa parser, defer server-side malformed-JSON normalization, update the task card, and continue.",
+      "packet_gate": "PASS",
+      "verification_status": "PASS"
+    }
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-006.md", ".memory-bank/changelog.md"],
+  "evidence_required": [
+    "Authenticated and unauthenticated request matrix with actor-derived ownership.",
+    "Synthetic field normalization, safe-limit, conditional-address, option/payment-ID, and unavailable-method output.",
+    "Proof that the success path does not create an order or call a payment provider.",
+    "T3 verification, semantic, human-checkpoint, and rollback/recovery evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/tech-specs/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/domains/checkout-delivery-data.md",
+    ".memory-bank/states/checkout-delivery-validation.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/tasks/plans/IMPL-FT-006.md",
+    ".memory-bank/analysis/brainstorming/BR-002.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/contracts/auth-session-security.md",
+    ".memory-bank/states/checkout-delivery-validation.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use standard Medusa customer actor context and preserve API -> Workflows -> Modules.",
+    "Keep the standard Medusa body parser for POST /store/checkout; do not add a route-scoped parser or custom malformed-JSON adapter in TASK-047.",
+    "Normalize strings before applying bounded server-side safe limits; do not expose numeric limits as client authority.",
+    "Use TASK-046 Admin / Shipping Options output; never hardcode a fallback tariff.",
+    "Pass only validated semantic snapshot/payment ID to FT-007/FT-009; do not implement their order or provider behavior.",
+    "Do not modify Medusa Core or log real customer data, credentials, tokens, or provider payloads."
+  ],
+  "invariants": [
+    "Backend actor validation remains authoritative even after the FT-004 storefront gate.",
+    "Address is required for city_courier and transport_company, but not pickup.",
+    "delivery_method_unavailable is a stable 422 recovery state, not a successful substitution.",
+    "FT-006 success cannot be interpreted as order or payment success."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/checkout-delivery-api.md#errors",
+    ".memory-bank/contracts/checkout-delivery-api.md#security-and-scope-invariants",
+    ".memory-bank/states/checkout-delivery-validation.md#allowed-transitions",
+    ".memory-bank/architecture/checkout-delivery-runtime.md#runtime-flow"
+  ],
+  "purpose": "Create the authenticated backend boundary that turns checkout input into a validated FT-007 snapshot and FT-009 payment selection.",
+  "success_outcome": "Synthetic authenticated requests receive deterministic validation, current configured tariff data, stable route/workflow errors for syntactically valid JSON, and correct downstream handoff without any order or provider mutation; malformed JSON parser normalization is deferred.",
+  "anti_goals": [
+    "Do not create orders, inventory reservations, payment attempts, or payment-provider calls.",
+    "Do not add customer/password auth, a new token mechanism, or client-selected ownership.",
+    "Do not introduce a durable checkout snapshot table or external delivery integration."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-047.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/checkout/validation.ts",
+      "apps/backend/src/workflows/checkout/validate-checkout.ts",
+      "apps/backend/src/api/store/checkout/route.ts",
+      "apps/backend/src/api/store/checkout/validators.ts",
+      "apps/backend/src/scripts/smoke-checkout-delivery.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      "apps/backend/src/api/middlewares.ts",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "Medusa Core",
+      "auth provider/session creation",
+      "FT-007 order/inventory persistence",
+      "FT-009 payment-provider integration",
+      "external delivery providers",
+      "production data or secrets"
+    ],
+    "stop_conditions": [
+      "Authenticated actor cannot be derived through standard Medusa middleware.",
+      "The installed Shipping Options adapter cannot provide current availability/tariff truth.",
+      "A truthful bounded length policy cannot be selected without changing the accepted scope.",
+      "The handoff requires implementing downstream order/payment contracts or creates mutation side effects.",
+      "Verification cannot prove no order or payment-provider call occurs."
+    ]
+  }
+}

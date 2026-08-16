@@ -27,6 +27,14 @@ source_of_truth:
 - `auth_failed`: no new valid session was established.
 - `logging_out`: session destruction is in progress.
 
+Authenticated identity display:
+
+- In `authenticated_ready` and `merge_blocked`, the top-right navigation may show a
+  bounded identity label from the current customer projection.
+- A trusted Telegram username has precedence when available; otherwise show email.
+- In `guest`, `auth_failed`, and after confirmed logout/session expiry, no previous
+  customer label may remain visible.
+
 ## Allowed Transitions
 
 | From | To | Trigger | Guard/effect |

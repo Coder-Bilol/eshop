@@ -10,6 +10,8 @@ const suites = {
   "cart-state": path.join(__dirname, "cart-state.test.cjs"),
   "cart-view": path.join(__dirname, "cart-view.test.cjs"),
   "checkout-auth-gate": path.join(__dirname, "checkout-auth-gate.test.cjs"),
+  "checkout-form": path.join(__dirname, "checkout-form.test.cjs"),
+  "checkout-state": path.join(__dirname, "checkout-state.test.cjs"),
   "product-detail": path.join(__dirname, "product-detail.test.cjs"),
   "wishlist-client": path.join(__dirname, "wishlist-client.test.cjs"),
   "wishlist-state": path.join(__dirname, "wishlist-state.test.cjs"),

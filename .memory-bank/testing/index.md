@@ -40,6 +40,18 @@ status: active
 - Pending order -> simulated ЮKassa webhook -> order/payment status visible.
 - Return page waiting/result behavior without authoritative confirmation.
 
+## FT-006 Checkout Delivery
+
+- Unit/integration: Medusa Admin / Shipping Options resolution, stable delivery
+  order, initial `0/500/700 RUB` tariffs, normalization-before-limit behavior,
+  conditional address validation, stable payment IDs, and
+  `422 delivery_method_unavailable` recovery.
+- Backend acceptance: authenticated actor validation and validated snapshot/payment
+  handoff with no order creation or payment-provider call.
+- Browser acceptance: authenticated-ready gate, contact/delivery/payment fields,
+  tariff display from backend, unavailable retry/alternative selection, and safe
+  synthetic evidence without real PII.
+
 ## Anti-cheat Rules
 
 - Do not mark payment success from return page alone.

@@ -1,0 +1,148 @@
+{
+  "id": "TASK-048",
+  "title": "Build checkout delivery and payment selection UI",
+  "status": "done",
+  "wave": "W2",
+  "feature": "FT-006",
+  "reqs": ["REQ-013", "REQ-014", "REQ-015", "REQ-016", "REQ-017"],
+  "depends_on": ["TASK-047", "TASK-032"],
+  "touched_files": [
+    "apps/storefront/app/checkout/page.tsx",
+    "apps/storefront/components/checkout-form.tsx",
+    "apps/storefront/lib/checkout.ts",
+    "apps/storefront/lib/checkout-state.ts",
+    "apps/storefront/src/checkout-form.test.cjs",
+    "apps/storefront/src/checkout-state.test.cjs",
+    "apps/storefront/src/test-runner.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "checkout form tests", "command": "npm --workspace apps/storefront run test -- checkout-form", "required": true},
+    {"name": "checkout state tests", "command": "npm --workspace apps/storefront run test -- checkout-state", "required": true},
+    {"name": "storefront typecheck", "command": "npm --workspace apps/storefront run typecheck", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Only the existing authenticated_ready gate renders the FT-006 form; UI state never substitutes for backend actor authorization.",
+    "The form collects name, email, phone, city, conditional address, optional comment, one of the three backend-provided delivery methods, and one of card/sbp/sberpay.",
+    "Delivery methods render in stable order and show backend-resolved tariffs rather than client constants.",
+    "Field validation, conditional address, delivery_method_unavailable, retry, alternative selection, and sanitized unexpected failure states are rendered deterministically.",
+    "The client sends normalized contract input through the backend boundary and does not call an order or payment provider directly.",
+    "A successful response is represented as validated FT-007/FT-009 handoff, not order/payment success.",
+    {
+      "scheduler_decision": "blocked",
+      "reason": "Direct dependency TASK-047 is blocked by upstream TASK-046 and cannot provide the backend contract required for this UI task.",
+      "evidence": [".memory-bank/tasks/TASK-046.task.json", ".memory-bank/tasks/TASK-047.task.json"],
+      "operator_action": "Resolve TASK-046, then execute TASK-047 before promoting TASK-048.",
+      "verification_status": "not_started"
+    },
+    {
+      "scheduler_decision": "ready",
+      "reason": "Direct dependencies TASK-047 and TASK-032 are done; TASK-047 backend contract and independent T3 gates are closed.",
+      "evidence": [
+        ".memory-bank/tasks/TASK-047.task.json",
+        ".tasks/TASK-047/TASK-047-S-VERIFY-final-report-docs-03.md",
+        ".tasks/TASK-047/TASK-047-S-RED-VERIFY-final-report-docs-03.md"
+      ],
+      "operator_basis": "Scheduler promotion after TASK-047 closure and strict-doctor deadlock diagnosis.",
+      "verification_status": "ready"
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "T2 implementation, required packet/spec gates, full protocol, and independent functional verification passed.",
+      "evidence": [
+        ".tasks/TASK-048/TASK-048-S-execute-final-report-code-01.md",
+        ".tasks/TASK-048/TASK-048-S-VERIFY-final-report-docs-01.md",
+        ".protocols/TASK-048/context.md",
+        ".protocols/TASK-048/plan.md",
+        ".protocols/TASK-048/progress.md",
+        ".protocols/TASK-048/verification.md",
+        ".protocols/TASK-048/handoff.md"
+      ],
+      "functional_verdict": "PASS",
+      "packet_gate": "PASS",
+      "verification_status": "PASS",
+      "feature_semantic_gate": "pending_until_all_FT-006_tasks_are_done"
+    }
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-006.md", ".memory-bank/changelog.md"],
+  "evidence_required": [
+    "Storefront state matrix and field/conditional-address test output.",
+    "Synthetic UI evidence for stable options/tariffs, unavailable recovery, and payment IDs.",
+    "Storefront typecheck and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/tech-specs/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/states/checkout-delivery-validation.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/tasks/plans/IMPL-FT-006.md",
+    ".memory-bank/analysis/brainstorming/BR-002.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/states/checkout-delivery-validation.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Reuse the FT-004 checkout auth gate and do not redesign authentication or cart merge.",
+    "Use backend option/tariff truth; do not duplicate or hardcode the tariff table in the client.",
+    "Keep payment selection to card, sbp, and sberpay without provider integration.",
+    "Do not create orders, inventory reservations, payment attempts, or browser-authoritative checkout records.",
+    "Keep UI errors sanitized and avoid rendering customer PII from backend failures."
+  ],
+  "invariants": [
+    "Only authenticated_ready may render checkout continuation.",
+    "Pickup does not require address; courier and transport-company do.",
+    "Unavailable delivery requires retry or explicit alternative selection.",
+    "Local UI success cannot bypass backend validation or imply order/payment success."
+  ],
+  "verification_targets": [
+    ".memory-bank/states/checkout-delivery-validation.md#states",
+    ".memory-bank/states/checkout-delivery-validation.md#allowed-transitions",
+    ".memory-bank/contracts/checkout-delivery-api.md#boundary",
+    ".memory-bank/states/customer-auth-session.md#checkout-gate"
+  ],
+  "purpose": "Provide the buyer-facing authenticated checkout continuation for the FT-006 contract.",
+  "success_outcome": "An authenticated buyer can enter valid checkout data, see current configured delivery tariffs, select a payment ID, recover from unavailable delivery, and receive a validated handoff state without provider/order behavior.",
+  "anti_goals": [
+    "Do not implement OAuth, cart merge, order creation, inventory, or payment-provider integration.",
+    "Do not store authoritative checkout data or tariff values in browser storage.",
+    "Do not mark a local form submit as order/payment success."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-048.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/app/checkout/page.tsx",
+      "apps/storefront/components/checkout-form.tsx",
+      "apps/storefront/lib/checkout.ts",
+      "apps/storefront/lib/checkout-state.ts",
+      "apps/storefront/src/checkout-form.test.cjs",
+      "apps/storefront/src/checkout-state.test.cjs",
+      "apps/storefront/src/test-runner.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "auth provider/session implementation",
+      "cart merge semantics",
+      "backend order/inventory/payment behavior",
+      "direct database/provider access",
+      "browser authoritative storage",
+      "production secrets or data"
+    ],
+    "stop_conditions": [
+      "The backend contract cannot provide current option/tariff data and stable errors.",
+      "The existing authenticated_ready gate cannot isolate checkout continuation.",
+      "UI behavior requires direct order/payment-provider calls or browser authority.",
+      "Unavailable recovery would silently replace the selected method."
+    ]
+  }
+}

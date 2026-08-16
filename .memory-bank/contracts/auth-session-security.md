@@ -81,6 +81,22 @@ uses redirects with coarse status only and never reflects raw query/error values
 - Automatic email linking, unlinking, account merge/delete/recovery, and provider
   token retention are forbidden in MVP.
 
+## Authenticated Identity Label
+
+- The storefront top-right navigation may display one bounded label for the current
+  authenticated customer.
+- If the backend has a trusted, validated Telegram username for the current identity,
+  that username is displayed first. Otherwise the customer's email is displayed.
+- The label is derived only from the authenticated current-customer response or an
+  equivalent backend-owned projection. Query parameters, browser storage, and client
+  submitted identity fields are never trusted.
+- Guests, `401` responses, session expiry, and confirmed logout expose no prior
+  customer's label. Provider tokens, raw provider payloads, and unrelated customer
+  PII are not included in the projection.
+- Telegram username support remains planned until a trusted Telegram identity source
+  or provider contract is added; this section does not enable Telegram authentication
+  by itself.
+
 ## Access Matrix
 
 | Action | Guest | Authenticated customer | Guard |
@@ -92,6 +108,7 @@ uses redirects with coarse status only and never reflects raw query/error values
 | Use authenticated wishlist | denied | allowed when current-customer retrieval succeeds | Independent of cart-merge result. |
 | Continue checkout/payment UI | denied | allowed after merge success/no-source | Storefront gate plus later backend actor guard. |
 | Logout | no-op/allowed | allowed | Current session only. |
+| Read authenticated identity label | denied | own bounded label only | Current customer actor/session. |
 
 Feature capability rule: a successful `/store/customers/me` response proves the
 current customer capability used by wishlist and similar authenticated features.

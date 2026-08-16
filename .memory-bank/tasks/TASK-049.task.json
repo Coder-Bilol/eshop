@@ -1,0 +1,163 @@
+{
+  "id": "TASK-049",
+  "title": "Verify authenticated checkout delivery runtime",
+  "status": "done",
+  "wave": "W3",
+  "feature": "FT-006",
+  "reqs": ["REQ-013", "REQ-014", "REQ-015", "REQ-016", "REQ-017"],
+  "depends_on": ["TASK-047", "TASK-048", "TASK-034"],
+  "touched_files": [
+    "apps/backend/src/scripts/smoke-checkout-delivery-acceptance.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    "apps/storefront/package.json",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "checkout delivery backend acceptance", "command": "npm --workspace apps/backend run test:integration -- checkout-delivery-acceptance", "required": true},
+    {"name": "checkout delivery browser acceptance", "command": "npm --workspace apps/storefront run test:e2e -- checkout-delivery", "required": true},
+    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
+    {"name": "workspace build", "command": "npm run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Real local Medusa/PostgreSQL/backend and storefront runtime proves authenticated checkout entry, option ordering, initial 0/500/700 RUB tariffs, field rules, conditional address, optional comment, and all three payment IDs.",
+    "Acceptance proves backend normalization-before-limit behavior and sanitized field/unavailable errors using synthetic values only.",
+    "Browser recovery proves HTTP 422 delivery_method_unavailable leads to retry or explicit alternative selection without silent substitution.",
+    "Backend handoff evidence proves validated snapshot/payment-ID output and proves no order, inventory reservation, payment attempt, or payment-provider request is created by FT-006.",
+    "Evidence contains no real PII, credentials, cookies, tokens, provider payloads, session IDs, or production data.",
+    "T3 verification includes semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present before closure.",
+    {
+      "scheduler_decision": "blocked",
+      "reason": "Upstream TASK-047 and TASK-048 are blocked; the complete FT-006 runtime cannot be exercised until their prerequisites close.",
+      "evidence": [".memory-bank/tasks/TASK-046.task.json", ".memory-bank/tasks/TASK-047.task.json", ".memory-bank/tasks/TASK-048.task.json"],
+      "operator_action": "Resolve and close TASK-046, TASK-047, and TASK-048 before promoting TASK-049.",
+      "verification_status": "not_started"
+    },
+    {
+      "scheduler_decision": "ready",
+      "reason": "Direct dependencies TASK-047, TASK-048, and TASK-034 are done; the final FT-006 runtime acceptance task is executable.",
+      "evidence": [
+        ".memory-bank/tasks/TASK-047.task.json",
+        ".memory-bank/tasks/TASK-048.task.json",
+        ".memory-bank/tasks/TASK-034.task.json"
+      ],
+      "operator_basis": "Scheduler promotion after TASK-048 closure and strict-doctor dependency reconciliation.",
+      "verification_status": "ready"
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "TASK-049 passed final functional and semantic T3 closure gates.",
+      "evidence": [
+        ".tasks/TASK-049/TASK-049-S-VERIFY-final-report-docs-04.md",
+        ".tasks/TASK-049/TASK-049-S-RED-VERIFY-final-report-docs-02.md",
+        ".tasks/TASK-049/playwright/checkout-browser-report.json",
+        ".protocols/TASK-049/verification.md",
+        ".protocols/TASK-049/red-verification.md"
+      ],
+      "verification_status": "verified",
+      "verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "Memory Bank reconciliation completed after TASK-049 and FT-006 closure.",
+      "evidence": [
+        ".tasks/TASK-049/TASK-049-S-MB-SYNC-final-report-docs-01.md",
+        ".tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md",
+        ".protocols/AUTONOMOUS-RUN/status.md"
+      ],
+      "verification_status": "synced",
+      "verdict": "PASS",
+      "semantic_verdict": "semantic-pass"
+    }
+  ],
+  "docs": [".memory-bank/tasks/plans/IMPL-FT-006.md", ".memory-bank/changelog.md"],
+  "evidence_required": [
+    "Real local backend integration output with synthetic authenticated actor and sanitized option/tariff/validation assertions.",
+    "Playwright browser trace/screenshots or equivalent for authenticated checkout and unavailable recovery.",
+    "No-order/no-payment-provider negative evidence and runtime cleanup evidence.",
+    "Privacy scan, typecheck/build/lint output, T3 semantic, human-checkpoint, and rollback/recovery evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/tech-specs/FT-006-checkout-delivery-methods.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/domains/checkout-delivery-data.md",
+    ".memory-bank/states/checkout-delivery-validation.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/tasks/plans/IMPL-FT-006.md",
+    ".memory-bank/analysis/brainstorming/BR-002.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/states/checkout-delivery-validation.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/states/customer-auth-session.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/constitution.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use real local Medusa/PostgreSQL and storefront boundaries with synthetic actors/data; do not use live providers or production data.",
+    "Preserve FT-004 authenticated session/cart gate and do not bypass it with test-only auth or direct database access.",
+    "Do not create order/inventory/payment state or invoke a payment provider from FT-006 acceptance.",
+    "Keep evidence sanitized and cleanup unconditional on success or interruption.",
+    "Feature-level semantic closure remains a later owner gate after all FT-006 tasks are implemented."
+  ],
+  "invariants": [
+    "Only authenticated_ready reaches the checkout form.",
+    "Configured delivery availability and tariffs are backend/Admin-owned.",
+    "Unavailable method returns 422 delivery_method_unavailable and is recoverable without silent substitution.",
+    "FT-006 validation never creates order, reservation, payment, or provider state.",
+    "No sensitive or production values appear in evidence."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-006-checkout-delivery-methods.md#verification-targets",
+    ".memory-bank/architecture/checkout-delivery-runtime.md#verification-targets",
+    ".memory-bank/contracts/checkout-delivery-api.md#errors",
+    ".memory-bank/testing/index.md#ft-006-checkout-delivery",
+    ".memory-bank/workflows/tier-policy.md#t3-critical--security--production--irreversible"
+  ],
+  "purpose": "Replace unit-only confidence with real authenticated backend and browser evidence for the complete FT-006 boundary.",
+  "success_outcome": "The local runtime demonstrates truthful authenticated checkout delivery validation and handoff while proving no FT-006 order or payment-provider mutation and no evidence privacy breach.",
+  "anti_goals": [
+    "Do not implement or verify FT-007 order/inventory behavior or FT-009 provider behavior.",
+    "Do not use live OAuth/payment/delivery providers, production secrets, or production data.",
+    "Do not bypass the storefront/backend/auth boundaries with direct database or fake-server acceptance."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-049.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/scripts/smoke-checkout-delivery-acceptance.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      "apps/storefront/package.json",
+      "apps/backend/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "FT-007 order/inventory implementation",
+      "FT-009 payment-provider implementation",
+      "auth provider/session behavior",
+      "direct browser database/module access",
+      "live providers",
+      "production data, credentials, tokens, or secrets"
+    ],
+    "stop_conditions": [
+      "Real local runtime cannot exercise the authenticated storefront/backend boundary.",
+      "Acceptance requires live provider credentials, production data, or unredacted sensitive evidence.",
+      "No-order/no-payment-provider non-mutation cannot be observed credibly.",
+      "Cleanup cannot be guaranteed after success or interruption.",
+      "The implementation requires changing FT-007/FT-009 contracts or FT-004 auth behavior."
+    ]
+  }
+}
