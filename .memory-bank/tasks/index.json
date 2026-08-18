@@ -196,6 +196,18 @@
     {
       "id": "TASK-049",
       "file": "TASK-049.task.json"
+    },
+    {
+      "id": "TASK-050",
+      "file": "TASK-050.task.json"
+    },
+    {
+      "id": "TASK-051",
+      "file": "TASK-051.task.json"
+    },
+    {
+      "id": "TASK-052",
+      "file": "TASK-052.task.json"
     }
   ]
 }

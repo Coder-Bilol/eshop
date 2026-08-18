@@ -52,6 +52,19 @@ status: active
   tariff display from backend, unavailable retry/alternative selection, and safe
   synthetic evidence without real PII.
 
+## FT-007 Pending Order And Inventory
+
+- Unit: UTC 72-hour expiry calculation, logical/native status guards,
+  idempotency-key normalization, and reservation-to-order-line mapping.
+- Integration: authenticated cart-to-order creation through real Medusa/PostgreSQL,
+  native reservation creation, stock-conflict compensation, duplicate request
+  reconciliation, cancellation, and reservation release.
+- Runtime/E2E: one pending order from the real checkout boundary, same-order retry,
+  no payment-provider traffic, controlled expiry/cancel, and released reservations.
+- Anti-cheat: do not trust client items/tariffs, do not mark payment successful,
+  do not cancel paid/non-pending orders, and do not claim expiry without observing
+  reservation cleanup.
+
 ## Anti-cheat Rules
 
 - Do not mark payment success from return page alone.

@@ -1,0 +1,155 @@
+{
+  "id": "TASK-050",
+  "title": "Create authenticated pending order and reserve inventory atomically",
+  "status": "done",
+  "wave": "W1",
+  "feature": "FT-007",
+  "reqs": ["REQ-018", "REQ-019"],
+  "depends_on": ["TASK-049"],
+  "touched_files": [
+    "apps/backend/src/api/middlewares.ts",
+    "apps/backend/src/api/store/checkout/order/route.ts",
+    "apps/backend/src/api/store/checkout/order/validators.ts",
+    "apps/backend/src/checkout/pending-order.ts",
+    "apps/backend/src/workflows/checkout/create-pending-order.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/src/scripts/smoke-pending-order.ts",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "pending order integration",
+      "command": "npm --workspace apps/backend run test:integration -- pending-order",
+      "required": true
+    },
+    {
+      "name": "workspace build",
+      "command": "npm run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "Authenticated customer actor and active cart ownership are enforced at the order boundary.",
+    "The backend revalidates checkout fields, current delivery option/tariff, cart lines, prices, region, sales channel, and inventory links; client totals and snapshots are not trusted.",
+    "One native Medusa order is created with status pending and logical metadata checkout_state=pending_payment plus a server-computed 72-hour UTC expiry.",
+    "Every inventory-managed order line receives one native reservation item linked by line_item_id, with no direct stock quantity mutation.",
+    "Repeated requests with the same actor/cart/idempotency key return the same order and do not create duplicate orders or reservations.",
+    "Reservation or order failure compensates to no successful partial pending order; provider traffic remains absent.",
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+    {
+      "scheduler_decision": "done",
+      "reason": "TASK-050 passed final functional and semantic T3 closure gates after bounded remediation.",
+      "evidence": [
+        ".tasks/TASK-050/TASK-050-S-VERIFY-final-report-docs-03.md",
+        ".tasks/TASK-050/TASK-050-S-RED-VERIFY-final-report-docs-03.md",
+        ".tasks/TASK-050/TASK-050-S-IMPL-final-report-code-04.md",
+        ".tasks/TASK-050/pending-order-integration.log",
+        ".protocols/TASK-050/verification.md",
+        ".protocols/TASK-050/red-verification.md",
+        ".protocols/TASK-050/handoff.md"
+      ],
+      "verification_status": "verified",
+      "verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Real local Medusa/PostgreSQL integration output for authenticated order creation and reservation items.",
+    "Duplicate idempotency request evidence with unchanged order/reservation counts.",
+    "Stock-conflict and compensation evidence with sanitized errors and no provider request.",
+    "Typecheck/build/lint output and full T3 protocol, semantic, checkpoint, and rollback evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/epics/EP-003-checkout-order-inventory.md",
+    ".memory-bank/requirements.md",
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/contracts/pending-order-api.md",
+    ".memory-bank/domains/pending-order-inventory-data.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md",
+    ".memory-bank/states/customer-auth-session.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/constitution.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/boundary-map.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Do not modify Medusa Core or trust client customer/cart totals, tariff, inventory, or payment data.",
+    "Use createOrderWorkflow and reserveInventoryStep through API -> Workflow -> Medusa modules/core-flow boundaries.",
+    "Do not call YooKassa or implement FT-008 lifecycle/Admin behavior.",
+    "Ambiguous multi-location reservation must fail closed; do not choose a hardcoded location."
+  ],
+  "invariants": [
+    "Only an authenticated actor owning the active cart can create the order.",
+    "A successful pending order has reservations for all inventory-managed lines.",
+    "Duplicate idempotency requests cannot create a second order or reservation set.",
+    "Failed order/reservation composition cannot be reported as successful."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/pending-order-api.md#success",
+    ".memory-bank/architecture/pending-order-runtime.md#creation-flow",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md#verification-matrix",
+    ".memory-bank/testing/index.md#ft-007-pending-order-and-inventory"
+  ],
+  "purpose": "Create the first durable order and stock-hold boundary after FT-006 validation without invoking payment.",
+  "success_outcome": "A real authenticated cart produces exactly one pending-payment order and matching native reservation items, with safe retry and compensation evidence.",
+  "anti_goals": [
+    "Do not create a payment attempt or call a provider.",
+    "Do not implement complete order lifecycle, webhook, or Admin replacement.",
+    "Do not add a custom inventory database or direct stock quantity mutation."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-050.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/api/middlewares.ts",
+      "apps/backend/src/api/store/checkout/order/route.ts",
+      "apps/backend/src/api/store/checkout/order/validators.ts",
+      "apps/backend/src/checkout/pending-order.ts",
+      "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/src/scripts/smoke-pending-order.ts",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "FT-009 payment-provider calls, webhook, or credentials",
+      "FT-008 complete lifecycle/Admin projection",
+      "Medusa Core source changes",
+      "production data, secrets, direct browser database access"
+    ],
+    "stop_conditions": [
+      "The authenticated cart/order boundary cannot be exercised through real Medusa/PostgreSQL.",
+      "Reservation allocation requires an unresolved multi-location policy.",
+      "Compensation cannot prove no successful partial order/reservation state.",
+      "Implementation requires changing FT-006 auth or FT-009 provider contracts."
+    ]
+  }
+}

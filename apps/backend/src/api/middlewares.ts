@@ -127,6 +127,11 @@ export default defineMiddlewares({
       middlewares: [checkoutAuthentication],
     },
     {
+      method: ["POST"],
+      matcher: "/store/checkout/order",
+      middlewares: [checkoutAuthentication],
+    },
+    {
       method: ["GET"],
       matcher: "/store/wishlist",
       middlewares: [authenticate("customer", ["session", "bearer"])],

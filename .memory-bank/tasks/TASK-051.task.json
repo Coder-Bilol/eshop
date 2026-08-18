@@ -1,0 +1,146 @@
+{
+  "id": "TASK-051",
+  "title": "Expire pending orders and release reservations idempotently",
+  "status": "in_progress",
+  "wave": "W2",
+  "feature": "FT-007",
+  "reqs": ["REQ-019", "REQ-021"],
+  "depends_on": ["TASK-050"],
+  "touched_files": [
+    "apps/backend/src/workflows/checkout/expire-pending-order.ts",
+    "apps/backend/src/jobs/expire-pending-orders.ts",
+    "apps/backend/src/checkout/pending-order.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "pending order expiry integration",
+      "command": "npm --workspace apps/backend run test:integration -- pending-order-expiry",
+      "required": true
+    },
+    {
+      "name": "workspace build",
+      "command": "npm run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "The Medusa cron job finds only native pending orders with logical pending_payment metadata and an expired UTC timestamp.",
+    "Expiration cancels the order through the supported Medusa workflow and releases reservations by order line without direct stock mutation.",
+    "Paid, canceled, non-pending, and not-yet-expired orders are unchanged.",
+    "Repeated job/workflow execution is idempotent and completes cleanup after a simulated partial failure.",
+    "The 72-hour window is calculated in UTC with deterministic clock/test coverage and sanitized operational evidence.",
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+    {
+      "scheduler_decision": "ready",
+      "reason": "TASK-050 is done and the only direct dependency is satisfied; TASK-051 is the next sequential FT-007 task.",
+      "evidence": [
+        ".memory-bank/tasks/TASK-050.task.json",
+        ".tasks/TASK-050/TASK-050-S-MB-SYNC-final-report-docs-02.md",
+        ".memory-bank/packets/TASK-051.packet.json"
+      ],
+      "operator_basis": "Scheduler promotion after TASK-050 T3 closure, packet readiness, and post-sync strict-doctor PASS.",
+      "verification_status": "ready"
+    },
+    {
+      "scheduler_decision": "in_progress",
+      "reason": "TASK-051 packet gate passed and the scheduler selected it for sequential implementation after TASK-050 closure.",
+      "evidence": [
+        ".memory-bank/packets/TASK-051.packet.json",
+        ".tasks/TASK-051/TASK-051-S-PACKET-final-report-docs-01.md",
+        ".memory-bank/tasks/TASK-050.task.json"
+      ],
+      "operator_basis": "Scheduler wrote ready -> in_progress before fresh Implementer delegation.",
+      "verification_status": "in_progress"
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Integration evidence for expired, paid, canceled, and partial-cleanup fixtures.",
+    "Reservation count/stock evidence before and after cancellation with no duplicate release.",
+    "Cron/workflow retry evidence and sanitized logs without customer data or secrets.",
+    "Typecheck/build/lint output and full T3 protocol, semantic, checkpoint, and rollback evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/domains/pending-order-inventory-data.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
+    ".memory-bank/states/order-payment-inventory.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/constitution.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/boundary-map.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Never cancel a paid or non-pending order from the expiry job.",
+    "Cancel first and release reservations through native APIs so partial cleanup remains retryable.",
+    "Do not add a custom queue, scheduler service, inventory ledger, or payment-provider behavior.",
+    "Do not use wall-clock behavior without deterministic expiry calculation tests."
+  ],
+  "invariants": [
+    "Unpaid pending orders expire after exactly 72 hours according to server UTC time.",
+    "Each reservation is released at most once.",
+    "Terminal order state and reservation cleanup are safe to retry.",
+    "Ambiguous payment/order state stops automatic mutation."
+  ],
+  "verification_targets": [
+    ".memory-bank/architecture/pending-order-runtime.md#expiration-flow",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md#recovery",
+    ".memory-bank/testing/index.md#ft-007-pending-order-and-inventory"
+  ],
+  "purpose": "Provide the durable 72-hour timeout and reservation-release boundary required by pending-payment orders.",
+  "success_outcome": "Expired pending orders are canceled and their holds released exactly once, with safe retries and no effect on paid orders.",
+  "anti_goals": [
+    "Do not implement YooKassa webhook or payment retry behavior.",
+    "Do not finalize reservations on payment success; that downstream handoff belongs to FT-009.",
+    "Do not hide partial cleanup failures or claim success from a job log alone."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-051.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/workflows/checkout/expire-pending-order.ts",
+      "apps/backend/src/jobs/expire-pending-orders.ts",
+      "apps/backend/src/checkout/pending-order.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "FT-009 payment-provider calls, webhook, or credentials",
+      "FT-008 complete lifecycle/Admin projection",
+      "Medusa Core source changes",
+      "production data, secrets, direct browser database access"
+    ],
+    "stop_conditions": [
+      "The job cannot distinguish logical pending_payment from paid/non-pending orders.",
+      "Reservation cleanup is not retryable after a partial failure.",
+      "The installed Medusa cancellation/reservation APIs contradict the linked specs.",
+      "Verification cannot prove unchanged paid-order state."
+    ]
+  }
+}

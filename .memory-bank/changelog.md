@@ -4,6 +4,48 @@ status: active
 ---
 # Changelog
 
+## [2026-08-16] TASK-050 scheduler closure sync
+- Reconciled: authoritative TASK-050 state as `done` with `VERDICT: PASS`,
+  `SEMANTIC_VERDICT: semantic-pass`, `HUMAN_CHECKPOINT: done`, and
+  `ROLLBACK_RECOVERY_NOTE: present` across task, protocol, packet, and evidence
+  links.
+- Updated: REQ-018 and REQ-019 RTM lifecycle to `verified`; FT-007 lifecycle to
+  `implemented` while REQ-021 and the feature-level completion remain pending
+  TASK-051/TASK-052.
+- Preserved: EP-003 lifecycle and TASK-051/TASK-052 statuses; no dependent
+  promotion, implementation source/test change, or closure decision was inferred.
+
+## [2026-08-16] TASK-050 post-order reservation compensation harness
+- Added: a local-only workflow seam and real Medusa/PostgreSQL smoke scenario
+  that reaches native order creation, forces the native reservation step to fail,
+  and verifies native compensation leaves order and reservation counts unchanged.
+- Preserved: the Store API does not expose or pass the harness flag; normal
+  customer/cart idempotency behavior, native Medusa boundaries, and no-provider
+  behavior remain unchanged.
+
+## [2026-08-16] TASK-050 pending-order implementation handoff
+- Added: authenticated `POST /store/checkout/order` middleware/route validation,
+  server-owned pending-order metadata, native Medusa order creation, inventory
+  reservation linkage, idempotency replay, sanitized conflicts, and compensation
+  handling without payment-provider traffic or direct stock mutation.
+- Added: real Medusa/PostgreSQL pending-order smoke coverage for guest rejection,
+  one pending order, 72-hour expiry, one line-linked reservation, same-key retry,
+  changed-key retry, mismatched-body conflict, stock conflict, and no partial
+  state.
+- Fixed/verified: customer/cart-scoped workflow locking and pending-order lookup
+  prevent a second idempotency key from creating a second pending order for one
+  active checkout; root and backend Medusa builds, backend typecheck, pending-order
+  integration, and Memory Bank lint pass. Task status remains `in_progress`.
+
+## [2026-08-16] FT-007 feature design and task decomposition
+- Added: FT-007 SDD hub plus pending-order runtime, API, durable data, and
+  lifecycle specs based on the installed Medusa v2.16 workflows/modules.
+- Decided: native Medusa order `status: "pending"` maps to product
+  `checkout_state: "pending_payment"`; `reserveInventoryStep` and reservation
+  items own stock holds, with workflow compensation and an hourly expiry job.
+- Added: implementation plan and T3 tasks TASK-050..TASK-052 with required
+  execution packets. No FT-007 implementation or task execution was started.
+
 ## [2026-08-16] TASK-049 / FT-006 scheduler closure
 - Verified: TASK-049 passed the real compiled Medusa/PostgreSQL backend acceptance,
   storefront browser acceptance, T3 functional verification, and adversarial

@@ -77,8 +77,8 @@ source_of_truth:
 | REQ-015 | EP-003 | FT-006 | integration/e2e: delivery methods | verified |
 | REQ-016 | EP-003 | FT-006 | unit: fixed tariff calculation | verified |
 | REQ-017 | EP-003 | FT-006 | e2e: payment method selection | verified |
-| REQ-018 | EP-003 | FT-007 | integration: pending order creation | planned |
-| REQ-019 | EP-003 | FT-007 | integration: inventory reservation | planned |
+| REQ-018 | EP-003 | FT-007 | integration: pending order creation | verified |
+| REQ-019 | EP-003 | FT-007 | integration: inventory reservation | verified |
 | REQ-020 | EP-004 | FT-009 | e2e: payment retry | planned |
 | REQ-021 | EP-003 | FT-007 | unit/integration: 72h timeout | planned |
 | REQ-022 | EP-003 | FT-008 | unit/integration: order lifecycle | planned |
@@ -124,3 +124,17 @@ source_of_truth:
   resolved through the recorded owner-approved bounded expansion to
   `apps/backend/medusa-config.ts`; the final gates and independent verification then
   passed without changing the Admin-managed source boundary.
+
+- FT-007 scheduler reconciliation: TASK-050 is `done` with functional `PASS`,
+  semantic `semantic-pass`, packet readiness, and exact T3 checkpoint/recovery
+  evidence. REQ-018 and REQ-019 are now `verified`; REQ-021 remains `planned`
+  because timeout/cancellation work belongs to TASK-051/TASK-052. EP-003 remains
+  `planned` and no dependent task promotion was performed.
+- Evidence navigation: [TASK-050 record](tasks/TASK-050.task.json),
+  [TASK-050 verification](../.tasks/TASK-050/TASK-050-S-VERIFY-final-report-docs-03.md),
+  [TASK-050 semantic verification](../.tasks/TASK-050/TASK-050-S-RED-VERIFY-final-report-docs-03.md),
+  [TASK-050 packet](packets/TASK-050.packet.json),
+  [TASK-050 protocol verification](../.protocols/TASK-050/verification.md),
+  [TASK-050 protocol semantic verification](../.protocols/TASK-050/red-verification.md),
+  [TASK-050 handoff](../.protocols/TASK-050/handoff.md), and
+  [TASK-050 integration log](../.tasks/TASK-050/pending-order-integration.log).

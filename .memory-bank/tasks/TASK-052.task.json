@@ -1,0 +1,134 @@
+{
+  "id": "TASK-052",
+  "title": "Connect checkout handoff and verify pending-order runtime",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-007",
+  "reqs": ["REQ-018", "REQ-019", "REQ-021"],
+  "depends_on": ["TASK-050", "TASK-051"],
+  "touched_files": [
+    "apps/storefront/components/checkout-form.tsx",
+    "apps/storefront/lib/checkout.ts",
+    "apps/storefront/src/pending-order.test.cjs",
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/src/scripts/smoke-pending-order-acceptance.ts",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "storefront typecheck",
+      "command": "npm --workspace apps/storefront run typecheck",
+      "required": true
+    },
+    {
+      "name": "pending order acceptance",
+      "command": "npm --workspace apps/backend run test:integration -- pending-order-acceptance",
+      "required": true
+    },
+    {
+      "name": "browser pending order acceptance",
+      "command": "npm --workspace apps/storefront run test:e2e -- pending-order",
+      "required": true
+    },
+    {
+      "name": "workspace build",
+      "command": "npm run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "The authenticated checkout continuation submits a cart reference and fresh idempotency key to pending-order creation after FT-006 validation.",
+    "The storefront renders a truthful pending-order handoff with order ID and expiry without claiming payment success or calling a provider.",
+    "Real browser/backend evidence proves one order and reservation set, same-order retry, stock-conflict no-mutation, controlled expiry, released reservations, and cleanup.",
+    "No client-calculated tariff, line item, customer ID, or payment-provider result becomes authoritative.",
+    "Artifacts contain no PII, credentials, cookies, tokens, production data, or provider payloads.",
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Browser report proving authenticated checkout-to-pending-order handoff and no provider request.",
+    "Backend report proving order/reservation counts, duplicate retry identity, stock conflict compensation, expiry, and cleanup.",
+    "Privacy scan, released ports/processes, typecheck/build/lint output, and full T3 closure markers."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/contracts/pending-order-api.md",
+    ".memory-bank/domains/pending-order-inventory-data.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
+    ".memory-bank/contracts/checkout-delivery-api.md",
+    ".memory-bank/architecture/checkout-delivery-runtime.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/constitution.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/api-guidelines.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Keep the FT-004 authenticated_ready gate and existing FT-006 validation boundary.",
+    "Do not add payment-provider calls, webhook behavior, order Admin replacement, or direct database browser access.",
+    "Publish evidence only after synthetic fixtures, processes, and ports are cleaned up.",
+    "Use runtime assertions rather than report-only success flags."
+  ],
+  "invariants": [
+    "Only authenticated customers can create pending orders.",
+    "A retry cannot silently create a second order or reservation set.",
+    "The browser never marks payment successful.",
+    "Expired pending orders have no active reservation items after cleanup."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/pending-order-api.md#idempotency-and-retry",
+    ".memory-bank/architecture/pending-order-runtime.md#runtime-source-boundaries",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md#verification-matrix",
+    ".memory-bank/testing/index.md#ft-007-pending-order-and-inventory"
+  ],
+  "purpose": "Prove that the real authenticated checkout flow hands off to one truthful pending order and reservation lifecycle.",
+  "success_outcome": "A sanitized real browser/backend run demonstrates pending order creation, retry safety, expiry release, and provider isolation across the complete FT-007 boundary.",
+  "anti_goals": [
+    "Do not implement or verify FT-009 payment provider behavior.",
+    "Do not implement complete FT-008 order lifecycle/Admin visibility.",
+    "Do not use fake server, direct database browser access, production data, or hardcoded success reports."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-052.packet.json",
+    "allowed_write_scope": [
+      "apps/storefront/components/checkout-form.tsx",
+      "apps/storefront/lib/checkout.ts",
+      "apps/storefront/src/pending-order.test.cjs",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/src/scripts/smoke-pending-order-acceptance.ts",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "FT-009 payment-provider calls, webhook, or credentials",
+      "FT-008 complete lifecycle/Admin projection",
+      "Medusa Core source changes",
+      "production data, secrets, direct browser database access"
+    ],
+    "stop_conditions": [
+      "The real authenticated browser/backend boundary cannot be exercised.",
+      "Evidence cannot prove no provider request and no duplicate order/reservation.",
+      "Cleanup or privacy guarantees cannot be made reproducible.",
+      "The handoff requires changing FT-004 auth or FT-006 parser/validation decisions."
+    ]
+  }
+}
