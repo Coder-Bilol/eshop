@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-047-R4",
   "task_id": "TASK-047",
   "created_at": "2026-08-15T11:22:00+03:00",
-  "source_task_hash": "sha256:2e1f5bbd04d53908db6169c4747f03c2954d0b0d6dae6bf4b76c6e98dddc0923",
+  "source_task_hash": "sha256:b1ce741646292b252243f7c373763eb09fe0dd7ee5242693e4ecf80562e3b667",
   "status": "ready",
   "tier": "T3",
   "purpose": "Create the authenticated backend boundary that turns checkout input into a validated FT-007 snapshot and FT-009 payment selection.",
@@ -26,8 +26,14 @@
       ".memory-bank/contracts/api-guidelines.md",
       ".memory-bank/constitution.md"
     ],
-    "guides": [".memory-bank/testing/index.md", ".memory-bank/workflows/tier-policy.md"],
-    "protocols": [".protocols/FT-006/plan.md", ".protocols/FT-006/decision-log.md"]
+    "guides": [
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "protocols": [
+      ".protocols/FT-006/plan.md",
+      ".protocols/FT-006/decision-log.md"
+    ]
   },
   "scope": {
     "allowed_write_scope": [

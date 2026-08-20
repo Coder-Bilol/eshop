@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-048-R3",
   "task_id": "TASK-048",
   "created_at": "2026-08-15T11:55:00+03:00",
-  "source_task_hash": "sha256:298b6e66b6902ebe4e6a86e28934df0c41149d61fff6d41734eee7ec703b0796",
+  "source_task_hash": "sha256:20d800d1712e0f7e5ecf4d793a952e3d6b18e9ec310c40dc12fd70f6d6a9d32a",
   "status": "ready",
   "tier": "T2",
   "purpose": "Provide the buyer-facing authenticated checkout continuation for the FT-006 contract.",
@@ -23,8 +23,14 @@
       ".memory-bank/states/checkout-delivery-validation.md",
       ".memory-bank/states/customer-auth-session.md"
     ],
-    "guides": [".memory-bank/testing/index.md", ".memory-bank/workflows/tier-policy.md"],
-    "protocols": [".protocols/FT-006/plan.md", ".protocols/FT-006/decision-log.md"]
+    "guides": [
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "protocols": [
+      ".protocols/FT-006/plan.md",
+      ".protocols/FT-006/decision-log.md"
+    ]
   },
   "scope": {
     "allowed_write_scope": [

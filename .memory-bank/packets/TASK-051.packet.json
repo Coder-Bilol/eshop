@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-051-R2",
   "task_id": "TASK-051",
   "created_at": "2026-08-16T00:00:00+03:00",
-  "source_task_hash": "sha256:048af4288cdd7bf712d4f2a7716c678dd231f03d34e4096496426fa42474c794",
+  "source_task_hash": "sha256:9ec23ad9e3c44752a7fe38077144b7f4109ad0edd29304636dcd7a71b2f1ec70",
   "status": "ready",
   "tier": "T3",
   "purpose": "Cancel expired pending-payment orders and release their native reservation items exactly once.",
@@ -27,8 +27,13 @@
       ".memory-bank/contracts/boundary-map.md",
       ".memory-bank/testing/index.md"
     ],
-    "guides": [".memory-bank/workflows/tier-policy.md"],
-    "protocols": [".protocols/FT-007/plan.md", ".protocols/FT-007/decision-log.md"]
+    "guides": [
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "protocols": [
+      ".protocols/FT-007/plan.md",
+      ".protocols/FT-007/decision-log.md"
+    ]
   },
   "scope": {
     "allowed_write_scope": [

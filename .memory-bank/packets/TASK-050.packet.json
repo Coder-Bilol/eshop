@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-050-R1",
   "task_id": "TASK-050",
   "created_at": "2026-08-16T00:00:00+03:00",
-  "source_task_hash": "sha256:52aac007ea09cf4f6d03f98a64dc094dc08d0286f0db8237f08dd091685b8091",
+  "source_task_hash": "sha256:60fef12cef81ddb1bbfb6def0cb8262db59f071f53be665436b49798c680f231",
   "status": "ready",
   "tier": "T3",
   "purpose": "Create one authenticated pending-payment order and matching native inventory reservations with idempotency and compensation.",
@@ -30,8 +30,13 @@
       ".memory-bank/states/order-payment-inventory.md",
       ".memory-bank/testing/index.md"
     ],
-    "guides": [".memory-bank/workflows/tier-policy.md"],
-    "protocols": [".protocols/FT-007/plan.md", ".protocols/FT-007/decision-log.md"]
+    "guides": [
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "protocols": [
+      ".protocols/FT-007/plan.md",
+      ".protocols/FT-007/decision-log.md"
+    ]
   },
   "scope": {
     "allowed_write_scope": [

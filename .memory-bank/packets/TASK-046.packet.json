@@ -3,7 +3,7 @@
   "packet_id": "PACKET-TASK-046-R3",
   "task_id": "TASK-046",
   "created_at": "2026-08-13T00:00:00+03:00",
-  "source_task_hash": "sha256:d5e84b5620213bba2270fc9baf8525b8eed187c41a97772aba2a71892073e8aa",
+  "source_task_hash": "sha256:38c70a62c78cc56e9eb230505000ecd2f8c36aca04aa8172767e619af43bd2bf",
   "status": "ready",
   "tier": "T2",
   "purpose": "Establish one backend projection over the Admin-managed delivery options and initial local tariffs for all later FT-006 slices.",
@@ -24,8 +24,14 @@
       ".memory-bank/contracts/api-guidelines.md",
       ".memory-bank/states/checkout-delivery-validation.md"
     ],
-    "guides": [".memory-bank/testing/index.md", ".memory-bank/workflows/tier-policy.md"],
-    "protocols": [".protocols/FT-006/plan.md", ".protocols/FT-006/decision-log.md"]
+    "guides": [
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "protocols": [
+      ".protocols/FT-006/plan.md",
+      ".protocols/FT-006/decision-log.md"
+    ]
   },
   "scope": {
     "allowed_write_scope": [
