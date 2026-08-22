@@ -63,20 +63,26 @@ provider.
 
 ### W1 — order and reservation foundation
 
-`TASK-050` (`T3`, ready) adds the authenticated `POST /store/checkout/order`
+`TASK-050` (`T3`, done) adds the authenticated `POST /store/checkout/order`
 boundary and custom workflow that creates one pending order, reserves all managed
 lines, persists metadata, and reconciles retries.
 
 ### W2 — expiry and release
 
-`TASK-051` (`T3`, planned; depends on TASK-050) adds the hourly Medusa job and
+`TASK-051` (`T3`, done; depended on TASK-050) adds the hourly Medusa job and
 idempotent expiration/cancellation workflow with reservation release.
 
 ### W3 — storefront and acceptance
 
-`TASK-052` (`T3`, planned; depends on TASK-050 and TASK-051) connects the existing
+`TASK-052` (`T3`, done; dependencies TASK-050 and TASK-051 are done) connects the existing
 checkout continuation to order creation and adds real runtime evidence for order,
 reservation, retry, conflict, expiry, cleanup, and provider isolation.
+
+### W4 — feature semantic follow-up
+
+`TASK-053` (`T3`, done; dependency TASK-052 is done) preserves an idempotency
+key's binding after the order becomes expired/canceled and proves stable `409`
+with no replacement order/reservation through backend and real-browser evidence.
 
 ## Expected Touched Files
 
@@ -122,6 +128,13 @@ reservation, retry, conflict, expiry, cleanup, and provider isolation.
 
 ## Handoff
 
-Run `node scripts/mb-doctor.mjs --strict` at the feature/task-queue boundary.
-Start with TASK-050 only; do not execute downstream tasks until dependencies are
-closed by the scheduler/owner.
+TASK-050 through TASK-053 are scheduler-closed with their required functional,
+semantic, packet, T3 marker, and runtime evidence. The first feature review's
+expired same-key concern was closed by TASK-053; the repeated feature review
+records `SEMANTIC_VERDICT: semantic-pass`. FT-007 and REQ-018/REQ-019/REQ-021
+are verified; FT-008/FT-009 boundaries remain unchanged.
+
+Evidence: [TASK-053 verification](../../../.protocols/TASK-053/verification.md),
+[TASK-053 red verification](../../../.protocols/TASK-053/red-verification.md),
+[TASK-053 sync report](../../../.tasks/TASK-053/TASK-053-S-MB-SYNC-final-report-docs-01.md),
+and [FT-007 feature review](../../../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).

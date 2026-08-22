@@ -1,0 +1,12 @@
+{
+  "task_id": "TASK-053",
+  "command": "npm --workspace apps/backend run test:integration -- pending-order-acceptance",
+  "exit_code": 0,
+  "status": "ok",
+  "source_boundary": "real-medusa-postgresql-route-workflow-job-order-inventory",
+  "stdout": ".tasks/TASK-053/backend-acceptance-20260821-171021.stdout.log",
+  "stderr": ".tasks/TASK-053/backend-acceptance-20260821-171021.stderr.log",
+  "expired_replay_status": 409,
+  "expired_replay_counts_unchanged": true,
+  "observed_at": "2026-08-21T17:20:32.5376748+03:00"
+}

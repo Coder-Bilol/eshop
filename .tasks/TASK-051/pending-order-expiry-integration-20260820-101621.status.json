@@ -1,0 +1,8 @@
+{
+  "command": "npm --workspace apps/backend run test:integration -- pending-order-expiry",
+  "timed_out": false,
+  "timeout_seconds": 300,
+  "exit_code": 0,
+  "stdout": ".tasks\\TASK-051\\pending-order-expiry-integration-20260820-101621.log",
+  "stderr": ".tasks\\TASK-051\\pending-order-expiry-integration-20260820-101621.err.log"
+}

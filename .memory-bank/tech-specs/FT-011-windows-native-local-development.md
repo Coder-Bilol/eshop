@@ -35,7 +35,9 @@ Docker is not part of the local development path. Docker may be introduced later
 - [.memory-bank/architecture/system-architecture.md](../architecture/system-architecture.md): modular monolith, Windows-native local runtime, PostgreSQL storage, and no current remote deploy implementation.
 - [.memory-bank/contracts/boundary-map.md](../contracts/boundary-map.md): local Windows runtime config, backend, storefront, and integration boundary constraints.
 - [.memory-bank/testing/index.md](../testing/index.md): smoke and integration readiness gates.
-- [.memory-bank/workflows/tier-policy.md](../workflows/tier-policy.md): T2 routing for cross-service local runtime and persistence tasks.
+- [.memory-bank/workflows/tier-policy.md](../workflows/tier-policy.md): T2 routing
+  for safe cross-service non-production local runtime and persistence tasks;
+  remote/shared deployment and staging/production runtime impact remain T3.
 - [.memory-bank/constitution.md](../constitution.md): KISS, no Medusa Core modification, no secrets, and evidence-before-done principles.
 
 ## Design Decisions
@@ -51,7 +53,7 @@ Docker is not part of the local development path. Docker may be introduced later
 | Provider behavior | FT-011 may include mock/placeholders for YooKassa/webhook/email config but must not create live provider integrations or process real payments. | Payment correctness belongs to later payment tasks; live secrets are out of scope. |
 | Ports | Use conventional local defaults and allow overrides through env values. Document port conflict recovery. | Keeps setup predictable while supporting local conflicts. |
 | Docker boundary | Docker is not used for local development. Docker may be designed later only for remote server deployment. | Preserves the user decision while leaving future deploy work possible. |
-| Tier hints | Scaffold, DB init, and Windows-native runtime tasks are T2 because they touch multiple modules, local runtime, and persistence. Remote deploy/Docker server work, live secrets, destructive data, auth, and payments remain T3 stop conditions. | Aligns with tier policy while keeping FT-011 scoped to local development. |
+| Tier hints | Scaffold, DB init, and Windows-native runtime tasks are T2 because they are non-production/local-only but touch multiple modules and local persistence. Remote/shared deploy or staging/production runtime work, live secrets, destructive/data-loss-risk operations, auth, and payments remain T3 stop conditions. | Aligns with tier policy while keeping FT-011 scoped to local development. |
 
 ## Local Service Contract
 

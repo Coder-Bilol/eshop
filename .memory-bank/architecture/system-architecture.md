@@ -2,7 +2,7 @@
 description: Global system architecture backbone for the MVP internet shop.
 status: active
 owner: spec-design
-last_updated: 2026-07-16
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -37,7 +37,9 @@ Use a modular monolith split by product boundary, not by deployable microservice
 
 - Storefront: Next.js/TypeScript buyer UI.
 - Backend: Medusa v2/TypeScript with custom APIs, workflows, modules, subscribers, and payment/auth/notification integrations.
-- Storage: PostgreSQL as the durable data store for Medusa and custom backend data; product media uses the persistent server filesystem through the Medusa File Module.
+- Storage: PostgreSQL is the durable structured-data store for Medusa and custom
+  backend data; product media is a separate durable blob store on the persistent
+  server filesystem through the Medusa File Module.
 - Admin: Medusa Admin as the MVP operator surface.
 - Local runtime: Windows-native npm processes start storefront/backend, and PostgreSQL runs locally on Windows 10 for development and verification.
 
@@ -134,9 +136,12 @@ sequenceDiagram
 
 ## Storage Decisions
 
-- PostgreSQL is the only durable data store in the MVP.
+- PostgreSQL is the only durable structured/database store in the MVP.
 - Product media is stored by the Medusa Local File Provider in the deployment-owned `/opt/eshop/media` filesystem and is exposed through the HTTPS `/static` route.
 - Product media MUST NOT depend on the Docker image layer; the backend media directory is mounted as persistent storage and included in operational backups.
+- PostgreSQL dumps and product-media archives are one deployment-owned recovery
+  set. The operator must copy both to external backup storage and restore both
+  when recovering a deployment that contains uploaded media.
 - Browser storage can only hold non-authoritative references or UI state.
 - Custom persistent data should extend Medusa through supported extension mechanisms and migrations, not through Medusa Core edits.
 - Payment webhook idempotency needs durable replay/processed-event state keyed by provider/payment identifiers before webhook tasks can be closed.
@@ -167,7 +172,15 @@ There is no runtime agent, chat, or AI I/O boundary in the product. Agent-only e
 - Validate authenticated ownership for cart, wishlist, checkout, order, and payment-start actions.
 - Validate YooKassa webhook authenticity and idempotency before changing payment/order state.
 - Avoid logging sensitive customer contact data, OAuth tokens, payment credentials, or webhook secrets.
-- Treat auth, payment, webhook, order lifecycle, inventory reservation, deploy/runtime, destructive data, and compliance-sensitive implementation as T3 unless a later task record justifies a lower tier.
+- Auth, permissions/security, payment/webhook, remote/shared deployment,
+  staging/production runtime impact, irreversible or data-loss-risk,
+  destructive-operation, and compliance implementation is mandatory T3. Safe
+  local-development-only process scripts, environment templates, and disposable
+  runtime tooling are T1/T2 by blast radius and cross-module/data scope. Order
+  lifecycle, inventory reservation, and API/state/data work is at least T2 and
+  becomes T3 whenever it intersects a critical T3 dimension. A task record
+  documents the applicable tier; it cannot waive a mandatory T3 assignment from
+  tier policy.
 
 ## Testing Strategy
 
@@ -176,7 +189,11 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 - Unit tests: pure cart merge, tariff calculation, variant validation, timeout calculation, and transition guards.
 - Integration tests: cart persistence/merge, OAuth callback mocks, pending order creation, reservation/release, webhook idempotency, and email trigger boundaries.
 - E2E tests: browse/filter -> variant -> cart -> login -> checkout -> pending order -> simulated webhook -> visible order/payment result.
-- High-tier tasks require `/verify`; T2/T3 require `/red-verify`; T3 requires human checkpoint and rollback/recovery markers before closure.
+- T2 task closure requires the packet/spec gates and `/verify` `PASS`; per-task
+  `/red-verify` is optional for T2, while feature-level `semantic-pass` is
+  mandatory before a T2 feature is complete. T3 task closure additionally
+  requires per-task `semantic-pass`, a human checkpoint, and rollback/recovery
+  markers, exactly as defined by tier policy.
 
 ## Deployment Assumptions
 
@@ -190,15 +207,20 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 
 - YooKassa local/staging credentials and webhook tunneling are unresolved and must be handled in payment/local-dev feature design.
 - Fiscalization/receipt duties are out of MVP implementation scope but can block production launch if legal/payment review says they are required.
-- Exact Medusa v2 extension points for order status, inventory reservation, and admin visibility must be confirmed in feature-local design before implementation tasks.
+- FT-007 resolved pending-order creation, native reservation ownership,
+  expiry/release, and idempotency against Medusa v2.16. Exact payment-success
+  finalization and Admin projection/status mapping remain feature-local design
+  inputs for FT-008 and FT-009.
 - Email provider/configuration remains unselected and must be decided before notification implementation.
 
 ## Open Questions
 
 - Which email provider or SMTP configuration will be used for MVP local/staging?
 - Which YooKassa local/staging account, webhook URL, and tunneling approach will be available?
-- Which exact Medusa extension points will own reservation release/finalization and status/admin field mapping?
-- Which external PostgreSQL backup target will be used for the VPS deployment?
+- Which exact FT-008/FT-009 Medusa extension points will own payment-success
+  reservation finalization and final status/Admin field mapping?
+- Which external backup target will store the paired PostgreSQL dump and
+  product-media archive recovery sets for the VPS deployment?
 
 These questions do not block the global backbone. They block only the feature-local specs or implementation tasks that require those details.
 

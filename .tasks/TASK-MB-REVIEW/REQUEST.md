@@ -2,43 +2,34 @@
 
 ## Scope
 
-Review Memory Bank after `/prd` decomposition and before mandatory `/spec-design`.
+Final scheduler review after TASK-001 through TASK-053 reached `done`, FT-007
+feature red-verify returned `semantic-pass`, and `/mb-sync` reconciled durable
+state.
 
 ## Mode
 
-- Interactive/manual flow.
-- High-risk product surface due to auth, payments, payment webhooks, order lifecycle, inventory reservation, customer data, and compliance risk.
+- Autopilot scheduler terminal gate.
+- Fresh-context stages S-01 through S-05.
+- No task implementation or lifecycle mutation is authorized during review.
 
-## Review Inputs
+## Inputs
 
-- `.memory-bank/constitution.md`
-- `.memory-bank/prd.md`
-- `.memory-bank/spec-backbone.md`
-- `.memory-bank/spec-index.md`
-- `.memory-bank/product.md`
-- `.memory-bank/requirements.md`
-- `.memory-bank/epics/`
-- `.memory-bank/features/`
-- `.memory-bank/contracts/boundary-map.md`
-- `.memory-bank/states/lifecycle-map.md`
-- `.memory-bank/domains/core-domain.md`
-- `.memory-bank/invariants.md`
-- `.memory-bank/testing/index.md`
-- `.memory-bank/tasks/index.json`
+- Governing Constitution, MBB index, spec backbone/index, architecture/contracts/states/testing.
+- PRD, requirements RTM, epics/features, implementation plans.
+- Indexed JSON task queue and canonical packets.
+- TASK-052/TASK-053 functional, semantic, browser/backend, cleanup, sync, and FT-007 feature-review evidence.
+- Current `mb-lint` and strict `mb-doctor` results.
 
-## Blocking Concerns To Check
+## Blocking concerns
 
-- Constitution contradictions.
-- Broken PRD -> REQ -> EP -> FT traceability.
-- Missing mandatory `/spec-design` gate or feature SDD gate notes.
-- Misleading task/autonomous readiness before `/spec-design`.
-- Security/privacy/payment correctness gaps that should block progression to design.
-- MBB/frontmatter/link/router issues.
+- Constitution, architecture, security, privacy, or public-contract contradiction.
+- RTM/lifecycle drift, especially FT-007 verified versus EP-003 planned for FT-008.
+- Non-terminal/malformed queue, stale required packet, unresolved semantic concern, missing T3 closure evidence, or unsafe dependency status.
+- Broken links/frontmatter/router/spec routing or operational artifacts represented as durable source of truth.
+- Open P0/P1 issue or any reviewer `REJECT`.
 
-## Expected Output
+## Expected result
 
-Each reviewer writes:
-
-`.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-<STAGE_ID>-final-report-docs-01.md`
-
-with `VERDICT: APPROVE` or `VERDICT: REJECT`.
+Each stage writes `TASK-MB-REVIEW-S-0X-final-report-docs-02.md` with exact
+`VERDICT: APPROVE` or `VERDICT: REJECT`. Final aggregation requires every stage
+to approve before autopilot can declare `SUCCESS`.

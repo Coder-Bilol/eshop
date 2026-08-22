@@ -25,6 +25,136 @@ body {
   padding: 32px 0 56px;
 }
 
+.catalogHero {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.15fr);
+  gap: 28px;
+  min-height: 500px;
+  align-items: center;
+  padding: 32px 0 54px;
+}
+
+.catalogHeroCopy {
+  display: grid;
+  gap: 20px;
+  max-width: 510px;
+  padding: 24px 0;
+}
+
+.catalogHeroCopy h2 {
+  max-width: 10ch;
+  color: #18211f;
+  font-size: clamp(44px, 6vw, 76px);
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+}
+
+.catalogHeroCopy > p:not(.eyebrow) {
+  max-width: 42ch;
+  color: #354541;
+  font-size: 17px;
+}
+
+.heroAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 210px);
+  min-height: 48px;
+  padding: 0 15px 0 18px;
+  border: 1px solid #0f766e;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.heroAction span {
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.heroAction:hover {
+  border-color: #134e4a;
+  background: #134e4a;
+  transform: translateY(-2px);
+}
+
+.heroAction:hover span {
+  transform: translate(2px, -2px);
+}
+
+.heroAction:focus-visible,
+.productDetailLink:focus-visible,
+.categoryLink:focus-visible,
+.pagination a:focus-visible {
+  outline: 3px solid rgba(180, 83, 9, 0.4);
+  outline-offset: 4px;
+}
+
+.catalogHeroVisual {
+  position: relative;
+  min-height: 450px;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 246, 224, 0.92), transparent 28%),
+    linear-gradient(145deg, #d9e8e4 0%, #f7f2e7 52%, #d8e6e0 100%);
+  isolation: isolate;
+}
+
+.catalogHeroVisual::before,
+.catalogHeroVisual::after {
+  position: absolute;
+  border: 1px solid rgba(15, 118, 110, 0.18);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.catalogHeroVisual::before {
+  inset: 12% 19%;
+  transform: rotate(-18deg) scaleY(0.33);
+}
+
+.catalogHeroVisual::after {
+  inset: 18% 9%;
+  transform: rotate(22deg) scaleY(0.26);
+}
+
+.productUniverseCanvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.heroVisualCaption {
+  position: absolute;
+  right: 22px;
+  bottom: 20px;
+  display: grid;
+  gap: 3px;
+  color: rgba(24, 33, 31, 0.62);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-align: right;
+}
+
+.heroVisualCaption strong {
+  color: #134e4a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 .catalogHeader {
   display: flex;
   align-items: end;
@@ -730,6 +860,24 @@ p {
 }
 
 @media (max-width: 920px) {
+  .catalogHero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-top: 8px;
+  }
+
+  .catalogHeroCopy {
+    max-width: 680px;
+  }
+
+  .catalogHeroCopy h2 {
+    max-width: 12ch;
+  }
+
+  .catalogHeroVisual {
+    min-height: 420px;
+  }
+
   .catalogLayout,
   .selectedState,
   .productCard {
@@ -771,6 +919,24 @@ p {
 }
 
 @media (max-width: 560px) {
+  .catalogHero {
+    gap: 12px;
+    padding-bottom: 28px;
+  }
+
+  .catalogHeroCopy {
+    gap: 16px;
+  }
+
+  .catalogHeroCopy h2 {
+    font-size: clamp(42px, 14vw, 62px);
+  }
+
+  .catalogHeroVisual {
+    min-height: 340px;
+    border-radius: 18px;
+  }
+
   .wishlistHeader,
   .wishlistProductsHeader {
     align-items: start;

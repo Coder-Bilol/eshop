@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-051-R2",
+  "packet_id": "PACKET-TASK-051-R4",
   "task_id": "TASK-051",
-  "created_at": "2026-08-16T00:00:00+03:00",
-  "source_task_hash": "sha256:9ec23ad9e3c44752a7fe38077144b7f4109ad0edd29304636dcd7a71b2f1ec70",
+  "created_at": "2026-08-20T11:11:21.2139434+03:00",
+  "source_task_hash": "sha256:c7793e1292e3eb86e781babb7836c671fcba46cd573726e60820e8c41adcd192",
   "status": "ready",
   "tier": "T3",
   "purpose": "Cancel expired pending-payment orders and release their native reservation items exactly once.",

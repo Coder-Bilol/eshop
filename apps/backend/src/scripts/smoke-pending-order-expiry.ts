@@ -151,7 +151,13 @@ export default async function smokePendingOrderExpiry({ container }: ExecArgs) {
             simulate_partial_cleanup_failure: true,
           },
         }),
-      /simulated partial cleanup failure/
+      (error: unknown) => {
+        assert.match(
+          workflowErrorMessage(error),
+          /simulated partial cleanup failure/
+        );
+        return true;
+      }
     );
     assert.equal((await inventoryForOrder(inventoryModule, recovery.id)).length, 1);
     assert.equal((await orderModule.retrieveOrder(recovery.id)).status, "canceled");
@@ -341,4 +347,24 @@ async function createFixtureOrder({
 
 async function inventoryForOrder(inventoryModule: any, orderId: string) {
   return inventoryModule.listReservationItems({ metadata: { order_id: orderId } });
+}
+
+function workflowErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+
+  if (typeof error === "object" && error !== null) {
+    const candidate = error as {
+      message?: unknown;
+      error?: unknown;
+    };
+    if (typeof candidate.message === "string") return candidate.message;
+    if (candidate.message && candidate.message !== error) {
+      return workflowErrorMessage(candidate.message);
+    }
+    if (candidate.error && candidate.error !== error) {
+      return workflowErrorMessage(candidate.error);
+    }
+  }
+
+  return String(error);
 }

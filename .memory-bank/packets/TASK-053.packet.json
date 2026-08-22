@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-053-R4",
+  "task_id": "TASK-053",
+  "created_at": "2026-08-21T18:11:40.2679180+03:00",
+  "source_task_hash": "sha256:44bc1515ee47837ba02499b4d57041b05e5507bd66c7f303ce54b9301eeee001",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Reject expired same-key pending-order replay without redesigning idempotency storage.",
+  "success_outcome": "Backend and real-browser evidence return sanitized 409 with zero replacement order/reservation after controlled expiry.",
+  "anti_goals": [
+    "No new idempotency ledger, database, service, or architecture.",
+    "No change to valid in-window replay, expiry-job ownership, FT-008 Admin, or FT-009 provider behavior.",
+    "No Medusa Core change, production data, secret, or direct browser database access."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-053.task.json",
+    "feature": ".memory-bank/features/FT-007-pending-order-inventory-reservation.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+      ".memory-bank/architecture/pending-order-runtime.md",
+      ".memory-bank/contracts/pending-order-api.md",
+      ".memory-bank/states/pending-order-inventory-lifecycle.md",
+      ".memory-bank/testing/index.md"
+    ],
+    "guides": [
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "protocols": [
+      ".protocols/FT-007/plan.md",
+      ".protocols/FT-007/decision-log.md",
+      ".protocols/FT-007/red-verification.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/src/scripts/smoke-pending-order.ts",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "new idempotency database or service",
+      "FT-008 complete lifecycle/Admin projection",
+      "FT-009 payment-provider calls, webhook, or credentials",
+      "Medusa Core source changes",
+      "production data, secrets, direct browser database access"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run typecheck",
+      "npm --workspace apps/backend run test:integration -- pending-order-acceptance",
+      "npm --workspace apps/storefront run test:e2e -- pending-order",
+      "npm run build",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Expired same-key request returns 409 checkout_idempotency_conflict.",
+      "Expired replay leaves order/reservation counts unchanged.",
+      "In-window same-key replay still returns the original order.",
+      "Browser removes stale success and renders only sanitized conflict.",
+      "No provider/client-authority/privacy/cleanup regression exists.",
+      "T3 markers and semantic-pass evidence are recorded."
+    ],
+    "evidence_required": [
+      "Real Medusa/PostgreSQL expired-replay mutation counters.",
+      "Real Edge/Next.js/Medusa controlled-expiry conflict report.",
+      "Current-source gates, privacy/cleanup scans, and full T3 markers."
+    ]
+  },
+  "stop_conditions": [
+    "Fix requires a new ledger or public contract change.",
+    "Valid in-window replay or expiry cleanup semantics regress.",
+    "Zero mutation after expired replay cannot be proved.",
+    "Cleanup or privacy is not reproducible."
+  ],
+  "required_handoff": [
+    "changed_files",
+    "commands_run",
+    "evidence",
+    "scope_compliance",
+    "blockers_or_none"
+  ]
+}

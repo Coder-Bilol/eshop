@@ -14,5 +14,11 @@ status: active
   Google/VK ID login, Medusa session, cart handoff, and checkout gate design hub.
 - [.memory-bank/tech-specs/FT-005-authenticated-wishlist.md](FT-005-authenticated-wishlist.md):
   authenticated product favorites, PostgreSQL ownership, API, and storefront UX.
+- [.memory-bank/tech-specs/FT-006-checkout-delivery-methods.md](FT-006-checkout-delivery-methods.md):
+  authenticated checkout fields, Shipping Options tariffs, validation, and
+  downstream handoff design hub.
+- [.memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md](FT-007-pending-order-inventory-reservation.md):
+  native pending-order, inventory reservation, idempotency, expiry, and
+  storefront handoff design hub.
 - [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](FT-011-windows-native-local-development.md):
   Windows-native local runtime and project scaffold.

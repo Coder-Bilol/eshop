@@ -112,6 +112,19 @@ Connect as `eshop` from the local machine:
 ssh -i C:\Users\ADMIN\.ssh\eshop_vps_ed25519 eshop@79.133.183.183
 ```
 
+### SSH Access Policy And Provider Blocker
+
+The current checkpoint records password authentication enabled for `root`.
+Per operator policy, this setting must remain enabled; do not create an SSH
+drop-in, disable root password/keyboard-interactive authentication, reload
+`sshd`, or otherwise alter live SSH access.
+
+The VPS provider currently blocks server access while resolving its own errors,
+so the live policy cannot be changed or re-verified from this workspace. Treat
+this as an external production-readiness blocker. No local runbook text is an
+authorization to modify the server. Any future provider-supported compensating
+control requires a new explicit operator decision and provider access.
+
 ## VPS Build Monitoring
 
 Install and enable `sysstat` once as `root`:
@@ -286,6 +299,11 @@ Back up `/opt/eshop/media` together with the PostgreSQL backup before a
 production update. Product image URLs previously saved as
 `http://localhost:9000/static/...` must be re-uploaded or migrated to
 `https://eshop.natureonzoom.win/static/...` after the public route is enabled.
+
+Treat the PostgreSQL dump and a versioned `/opt/eshop/media` archive as one
+recovery set, copy both to the configured external backup target, and record the
+matching timestamps. A restore that contains uploaded product media must restore
+both members and verify the `/static` URLs before application traffic resumes.
 
 `apps/backend/medusa-config.ts` explicitly sets
 `databaseDriverOptions.connection.ssl` to `false`. PostgreSQL is reached only
@@ -484,15 +502,19 @@ backup only after an explicit recovery decision.
 
 ## Update
 
-Before every update, create a database backup and copy it to external storage:
+Before every update, create a database dump and a media archive, then copy both
+members of the recovery set to external storage:
 
 ```bash
 mkdir -p /opt/eshop/backups
 chmod 700 /opt/eshop/backups
 
+BACKUP_STAMP=$(date +%Y%m%d-%H%M%S)
 docker compose -f /opt/eshop/app/compose.production.yml \
   exec -T postgres pg_dump -U eshop -Fc eshop \
-  > /opt/eshop/backups/eshop-$(date +%Y%m%d-%H%M%S).dump
+  > /opt/eshop/backups/eshop-${BACKUP_STAMP}.dump
+tar -C /opt/eshop -czf \
+  /opt/eshop/backups/media-${BACKUP_STAMP}.tar.gz media
 ```
 
 Update the repository, stop the application containers to release memory, then

@@ -1,0 +1,8 @@
+{
+  "command": "node scripts/mb-lint.mjs",
+  "timed_out": false,
+  "timeout_seconds": 120,
+  "exit_code": 0,
+  "stdout": ".tasks\\TASK-051\\memory-bank-lint-20260820-103445.log",
+  "stderr": ".tasks\\TASK-051\\memory-bank-lint-20260820-103445.err.log"
+}

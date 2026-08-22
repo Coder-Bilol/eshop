@@ -109,7 +109,9 @@ T2/T3 indicators include:
 - API/contract/schema/state/data/domain model changes
 - migrations or persistence behavior
 - security/auth/secrets/compliance/payments
-- deploy/runtime/production impact
+- remote/shared deploy or staging/production runtime impact; safe local-only
+  runtime/tooling still counts as design-relevant when cross-module, but routes
+  T1/T2 by blast radius and data scope
 - changes where tests can pass while the substance is wrong
 
 Decide required design depth:
@@ -346,7 +348,12 @@ Tier assignment:
 - `T0`: trivial docs-only or formatting/link fixes with no runtime, contract, state, data, security, or test impact.
 - `T1`: local code or local behavior with low blast radius.
 - `T2`: cross-module, API/contract/schema/state/data/migration/domain behavior, or changes where tests can pass while the substance is wrong.
-- `T3`: auth, security, secrets, deploy/runtime/production impact, irreversible/data-loss, payments, compliance, or other critical changes.
+- `T3`: auth, security, secrets, remote/shared deploy, staging/production
+  runtime impact, irreversible/data-loss, payments, compliance, or other
+  critical changes.
+- Safe non-production local-development runtime/tooling with no remote/shared
+  environment, live secrets, production data, or availability impact is `T1`
+  or `T2` according to contained versus cross-module/data scope.
 - If uncertain between two tiers, choose the higher tier.
 - If scope grows during planning, update `tier` before handing the task to execution.
 

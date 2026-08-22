@@ -2,7 +2,7 @@
 description: Feature-level SDD hub for FT-004 OAuth login and checkout authentication gate.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-07-16
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/features/FT-004-oauth-login-before-payment.md
   - .memory-bank/requirements.md
@@ -16,8 +16,7 @@ source_of_truth:
 
 FT-004 owns Google OAuth and VK ID customer login, first-login customer creation,
 Medusa session establishment, logout, authenticated customer state, the FT-003
-post-auth cart-merge invocation, the storefront checkout authentication gate, and
-the authenticated identity label in the top-right storefront navigation.
+post-auth cart-merge invocation, and the storefront checkout authentication gate.
 
 FT-004 does not own checkout fields, order creation, payment initiation, payment
 status, wishlist behavior, provider account management, password login, or a
@@ -64,10 +63,6 @@ custom identity database.
 - Guests are routed to login before checkout/payment continuation. Backend payment
   endpoints introduced by later features must independently require customer actor
   context; the storefront gate is not an authorization boundary.
-- Authenticated top navigation displays a server-returned identity label. A trusted
-  Telegram username takes precedence when present; otherwise the customer's email is
-  displayed. The label is unavailable to guests and is cleared after logout/session
-  expiry.
 - Logout destroys the Medusa session and clears the local active cart reference so
   a shared browser does not expose the prior customer's cart.
 
@@ -96,9 +91,6 @@ custom identity database.
   removes provider query parameters from the browser URL.
 - An authenticated customer may retry a failed cart merge. Checkout does not
   continue until the merge succeeds or no guest cart exists.
-- The identity label is rendered from the current-customer response or an equivalent
-  backend-owned projection. Telegram username format is normalized and bounded;
-  storefront input cannot override it.
 
 ## Anti-goals
 
@@ -109,8 +101,6 @@ custom identity database.
 - No automatic account linking by email and no admin/provider login changes beyond
   preserving Medusa Admin `emailpass` access.
 - No checkout form, order, inventory, payment, wishlist, or production deployment.
-- No claim that Telegram authentication is implemented: REQ-031 remains planned until
-  a trusted Telegram identity source/provider is designed and connected.
 
 ## Verification Targets
 
@@ -122,8 +112,8 @@ custom identity database.
   identity linkage, same-email collision rejection, single-use/expired state,
   session establishment/destruction, sanitized failures, and bounded rate limits.
 - Browser E2E with local provider doubles proves both provider paths, callback URL
-  cleanup, guest cart merge, retry behavior, checkout gate, safe return path, logout
-  cart-reference cleanup, and the authenticated identity-label precedence/fallback.
+  cleanup, guest cart merge, retry behavior, checkout gate, safe return path, and
+  logout cart-reference cleanup.
 - T3 closure follows [.memory-bank/workflows/tier-policy.md](../workflows/tier-policy.md),
   including per-task semantic verification, human checkpoint, and recovery note.
 

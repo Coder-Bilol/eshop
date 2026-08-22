@@ -62,6 +62,13 @@ export type CheckoutValidationResult = {
   payment_id: PaymentMethodId;
 };
 
+export type PendingOrderResult = {
+  order_id: string;
+  status: "pending_payment";
+  expires_at: string;
+  payment_id: PaymentMethodId;
+};
+
 export type CheckoutField =
   | "name"
   | "email"
@@ -82,6 +89,11 @@ export type CheckoutClientErrorCode =
   | "checkout_invalid_request"
   | "checkout_validation_failed"
   | "delivery_method_unavailable"
+  | "checkout_cart_forbidden"
+  | "checkout_cart_not_found"
+  | "checkout_idempotency_conflict"
+  | "checkout_stock_conflict"
+  | "checkout_order_failed"
   | "checkout_failed"
   | "checkout_network_error"
   | "checkout_invalid_response"
@@ -108,6 +120,11 @@ export class CheckoutClientError extends Error {
 
 export type StoreCheckoutClient = {
   validate(input: StoreCheckoutInput): Promise<CheckoutValidationResult>;
+  createPendingOrder?(
+    input: StoreCheckoutInput,
+    cartId: string,
+    idempotencyKey: string
+  ): Promise<PendingOrderResult>;
 };
 
 export type StoreCheckoutClientOptions = {
@@ -182,27 +199,13 @@ export function createStoreCheckoutClient(
   return {
     async validate(input) {
       const requestInput = normalizeCheckoutInput(input);
-      let response: Response;
-      try {
-        response = await fetchImplementation(`${baseUrl}/store/checkout`, {
-          method: "POST",
-          cache: "no-store",
-          credentials: "include",
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "x-publishable-api-key": publishableApiKey,
-          },
-          body: JSON.stringify(requestInput),
-        });
-      } catch {
-        throw new CheckoutClientError(
-          "checkout_network_error",
-          "Checkout service could not be reached."
-        );
-      }
+      const { response, payload } = await requestJson(
+        `${baseUrl}/store/checkout`,
+        requestInput,
+        fetchImplementation,
+        publishableApiKey
+      );
 
-      const payload = await response.json().catch(() => null);
       if (!response.ok) {
         throw checkoutErrorFromResponse(response.status, payload);
       }
@@ -217,7 +220,71 @@ export function createStoreCheckoutClient(
       }
       return result;
     },
+
+    async createPendingOrder(input, cartId, idempotencyKey) {
+      const normalizedCartId = normalizeOpaqueReference(cartId, "cart reference");
+      const normalizedKey = normalizeOpaqueReference(
+        idempotencyKey,
+        "idempotency key"
+      );
+      const { response, payload } = await requestJson(
+        `${baseUrl}/store/checkout/order`,
+        {
+          cart_id: normalizedCartId,
+          ...normalizeCheckoutInput(input),
+        },
+        fetchImplementation,
+        publishableApiKey,
+        normalizedKey
+      );
+
+      if (!response.ok) {
+        throw checkoutErrorFromResponse(response.status, payload);
+      }
+
+      const result = readPendingOrderResult(payload);
+      if (!result) {
+        throw new CheckoutClientError(
+          "checkout_invalid_response",
+          "Checkout service returned an invalid pending-order response.",
+          502
+        );
+      }
+      return result;
+    },
   };
+}
+
+async function requestJson(
+  url: string,
+  body: unknown,
+  fetchImplementation: typeof fetch,
+  publishableApiKey: string,
+  idempotencyKey?: string
+): Promise<{ response: Response; payload: unknown }> {
+  let response: Response;
+  try {
+    response = await fetchImplementation(url, {
+      method: "POST",
+      cache: "no-store",
+      credentials: "include",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "x-publishable-api-key": publishableApiKey,
+        ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new CheckoutClientError(
+      "checkout_network_error",
+      "Checkout service could not be reached."
+    );
+  }
+
+  const payload = await response.json().catch(() => null);
+  return { response, payload };
 }
 
 export function checkoutErrorFromResponse(
@@ -245,6 +312,16 @@ export function safeErrorMessage(code: CheckoutClientErrorCode): string {
       return "Check the highlighted checkout details.";
     case "delivery_method_unavailable":
       return "This delivery method is currently unavailable. Retry or choose another method.";
+    case "checkout_cart_forbidden":
+      return "This cart is not available for your session.";
+    case "checkout_cart_not_found":
+      return "This cart is no longer available. Return to the cart and try again.";
+    case "checkout_idempotency_conflict":
+      return "This pending order can no longer be retried.";
+    case "checkout_stock_conflict":
+      return "The current inventory cannot satisfy this cart.";
+    case "checkout_order_failed":
+      return "The pending order could not be created. Try again.";
     case "checkout_network_error":
       return "Checkout service could not be reached. Try again.";
     case "checkout_invalid_response":
@@ -286,6 +363,29 @@ function readCheckoutValidationResult(
       delivery_method: deliveryMethod,
       tariff,
     },
+    payment_id: paymentId,
+  };
+}
+
+function readPendingOrderResult(payload: unknown): PendingOrderResult | null {
+  if (!isRecord(payload)) return null;
+  const orderId = payload.order_id;
+  const expiresAt = payload.expires_at;
+  const paymentId = readPaymentMethod(payload.payment_id);
+  if (
+    typeof orderId !== "string" ||
+    !orderId.trim() ||
+    payload.status !== "pending_payment" ||
+    !paymentId ||
+    typeof expiresAt !== "string" ||
+    !Number.isFinite(Date.parse(expiresAt))
+  ) {
+    return null;
+  }
+  return {
+    order_id: orderId,
+    status: "pending_payment",
+    expires_at: expiresAt,
     payment_id: paymentId,
   };
 }
@@ -339,6 +439,9 @@ function readCheckoutErrorDetails(value: unknown): CheckoutErrorDetails {
 function fallbackErrorCode(status: number): CheckoutClientErrorCode {
   if (status === 401) return "checkout_auth_required";
   if (status === 400) return "checkout_invalid_request";
+  if (status === 403) return "checkout_cart_forbidden";
+  if (status === 404) return "checkout_cart_not_found";
+  if (status === 409) return "checkout_idempotency_conflict";
   if (status === 422) return "checkout_validation_failed";
   return "checkout_failed";
 }
@@ -350,6 +453,11 @@ function knownErrorCode(value: unknown): CheckoutClientErrorCode | null {
       "checkout_invalid_request",
       "checkout_validation_failed",
       "delivery_method_unavailable",
+      "checkout_cart_forbidden",
+      "checkout_cart_not_found",
+      "checkout_idempotency_conflict",
+      "checkout_stock_conflict",
+      "checkout_order_failed",
       "checkout_failed",
     ].includes(value)
     ? (value as CheckoutClientErrorCode)
@@ -386,6 +494,29 @@ function normalizeText(value: unknown) {
   return typeof value === "string"
     ? value.normalize("NFKC").replace(/\s+/gu, " ").trim()
     : "";
+}
+
+function normalizeOpaqueReference(value: unknown, label: string): string {
+  if (typeof value !== "string") {
+    throw new CheckoutClientError(
+      "checkout_invalid_request",
+      `A valid ${label} is required.`,
+      400
+    );
+  }
+  const normalized = value.trim();
+  if (
+    !normalized ||
+    normalized.length > 128 ||
+    /[\u0000-\u001f\u007f]/u.test(normalized)
+  ) {
+    throw new CheckoutClientError(
+      "checkout_invalid_request",
+      `A valid ${label} is required.`,
+      400
+    );
+  }
+  return normalized;
 }
 
 function readNonEmptyString(value: unknown): string | null {

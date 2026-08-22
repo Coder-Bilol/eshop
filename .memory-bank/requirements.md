@@ -2,7 +2,7 @@
 description: Requirements (REQ IDs) and traceability matrix for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-08-13
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/prd.md
 ---
@@ -45,7 +45,6 @@ source_of_truth:
 - REQ-028: Medusa Admin must show contacts, products, delivery data, payment status, order status, total amount, and payment method.
 - REQ-029: Operators must be able to use Medusa Admin as the MVP order operations surface.
 - REQ-030: The project must provide a Windows 10 native local development path for storefront/backend/database without requiring Docker containers.
-- REQ-031: When a customer is authenticated, the storefront top-right navigation must show the trusted Telegram username when the authenticated identity provides one; otherwise it must show the customer's email.
 
 ## Out Of Scope
 
@@ -80,7 +79,7 @@ source_of_truth:
 | REQ-018 | EP-003 | FT-007 | integration: pending order creation | verified |
 | REQ-019 | EP-003 | FT-007 | integration: inventory reservation | verified |
 | REQ-020 | EP-004 | FT-009 | e2e: payment retry | planned |
-| REQ-021 | EP-003 | FT-007 | unit/integration: 72h timeout | planned |
+| REQ-021 | EP-003 | FT-007 | unit/integration: 72h timeout | verified |
 | REQ-022 | EP-003 | FT-008 | unit/integration: order lifecycle | planned |
 | REQ-023 | EP-004 | FT-009 | integration: ЮKassa methods | planned |
 | REQ-024 | EP-004 | FT-009 | integration: webhook source of truth | planned |
@@ -89,10 +88,17 @@ source_of_truth:
 | REQ-027 | EP-004 | FT-010 | integration: email events | planned |
 | REQ-028 | EP-003 | FT-008 | integration/e2e: admin order visibility | planned |
 | REQ-029 | EP-003 | FT-008 | e2e: operator order surface | planned |
-| REQ-030 | EP-005 | FT-011 | smoke: Windows native local path | planned |
-| REQ-031 | EP-002 | FT-004 | e2e: authenticated identity label in top navigation | planned |
+| REQ-030 | EP-005 | FT-011 | smoke: Windows native local path | verified |
 
 ## RTM Reconciliation
+
+- FT-011 reconciliation: TASK-001 through TASK-004 are `done`, and the final
+  feature-level review records `SEMANTIC_VERDICT: semantic-pass`. REQ-030 and
+  sole-feature EP-005 are therefore `verified`.
+- Product Brief/PRD scope reconciliation: the unsupported Telegram identity-label
+  delta was removed instead of being represented as an owner/user decision that
+  was never recorded. The active RTM now contains the 30 requirements traceable
+  to the Product Brief and clarified PRD.
 
 - REQ-009 is `verified`: all indexed FT-005 tasks (TASK-035..TASK-042, TASK-044,
   TASK-045) are scheduler-closed, and the feature-level review returned
@@ -138,3 +144,28 @@ source_of_truth:
   [TASK-050 protocol semantic verification](../.protocols/TASK-050/red-verification.md),
   [TASK-050 handoff](../.protocols/TASK-050/handoff.md), and
   [TASK-050 integration log](../.tasks/TASK-050/pending-order-integration.log).
+
+- TASK-051 scheduler reconciliation: the task is `done` with functional
+  `VERDICT: PASS`, per-task `SEMANTIC_VERDICT: semantic-pass`, exact T3
+  checkpoint/recovery markers, and real Medusa/PostgreSQL evidence for the
+  72-hour expiry, native cancellation, reservation release, guarded no-ops,
+  partial-cleanup retry, and repeated execution. REQ-021 is now `verified`.
+  FT-007 remains `implemented`, not feature-complete, because TASK-052 still
+  owns the storefront handoff and full runtime acceptance slice.
+- Evidence navigation: [TASK-051 record](tasks/TASK-051.task.json),
+  [verification](../.protocols/TASK-051/verification.md),
+  [semantic verification](../.protocols/TASK-051/red-verification.md),
+  [handoff](../.protocols/TASK-051/handoff.md), and
+  [integration status](../.tasks/TASK-051/pending-order-expiry-integration-20260820-101621.status.json).
+
+- FT-007 final reconciliation: TASK-052 and feature follow-up TASK-053 are
+  `done` with functional `PASS`, per-task `semantic-pass`, exact T3 markers,
+  matching final packets, and real compiled Medusa/PostgreSQL/Edge evidence.
+  The final feature review returned `SEMANTIC_VERDICT: semantic-pass` after
+  expired same-key replay was proven to return stable `409` with no replacement
+  order/reservation. REQ-018, REQ-019, and REQ-021 remain `verified` and FT-007
+  is now `verified`.
+- Final evidence: [TASK-053 record](tasks/TASK-053.task.json),
+  [functional verification](../.protocols/TASK-053/verification.md),
+  [semantic verification](../.protocols/TASK-053/red-verification.md), and
+  [feature review](../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).

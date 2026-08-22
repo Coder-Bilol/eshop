@@ -4,6 +4,86 @@ status: active
 ---
 # Changelog
 
+## [2026-08-21] Final review remediation and durable-state reconciliation
+- Reconciled: T2 task, T2 feature, and T3 closure wording now exactly follows
+  tier policy across architecture and testing docs.
+- Clarified: safe non-production local-development runtime/tooling routes T1/T2
+  by blast radius and cross-module/data scope; remote/shared deployment and
+  staging/production runtime impact remains mandatory T3. This preserves the
+  evidence-backed FT-011/TASK-003 classification without a production downgrade.
+- Clarified: PostgreSQL owns durable structured data, while deployment-owned
+  persistent media is the durable blob store; database dumps and media archives
+  form one backup/recovery set.
+- Mapped: FT-007 `checkout_state: expired` is an audit/retry reason projection
+  over global/native `canceled`, removing the peer-state contradiction.
+- Updated: the backbone now records FT-007 Medusa status, reservation,
+  expiry/release, and idempotency decisions as resolved; FT-008/FT-009 retain
+  only their genuine finalization/Admin projection questions.
+- Decided: authoritative SDD specs are the accepted decision records for the
+  current KISS strategy; `ADR-000` is a non-normative template for exceptional
+  cross-spec decisions.
+- Reconciled: removed the unsupported Telegram identity-label Product Brief ->
+  PRD delta, restored the 30-item FR/REQ sequence, and synchronized REQ-030 and
+  EP-005 to verified FT-011 evidence.
+- Repaired: architecture, contract, domain, state, tech-spec, and implementation-
+  plan routers; IMPL-FT-004 now includes completed follow-up TASK-043.
+- Clarified: operator policy categorically preserves root password
+  authentication; the runbook and handoff forbid SSH hardening under that policy.
+- Blocked externally: the last verified public VPS state still permits root
+  password authentication, and the VPS provider currently blocks server access
+  while resolving provider-side errors. No live SSH change or re-verification is
+  possible from this workspace.
+
+## [2026-08-21] FT-007 / TASK-052 and TASK-053 scheduler closure
+- Closed: TASK-052 and feature-review follow-up TASK-053 with functional
+  `VERDICT: PASS`, per-task `SEMANTIC_VERDICT: semantic-pass`, exact T3
+  checkpoint/recovery markers, matching final packets, and real
+  Medusa/PostgreSQL/Edge evidence.
+- Added: authenticated checkout-to-pending-order UI/runtime handoff with a
+  browser UUID idempotency key, truthful unconfirmed-payment state, sanitized
+  retry errors, provider isolation, privacy-safe post-cleanup artifacts, and no
+  client-authoritative cart/order totals.
+- Fixed: terminal `checkout_state: expired` no longer hides an already bound
+  idempotency key; expired same-key replay returns stable
+  `409 checkout_idempotency_conflict` with no replacement order/reservation.
+- Verified: native pending order, line-linked reservation, in-window replay,
+  stock conflict, post-order compensation, controlled 72-hour expiry/release,
+  terminal replay conflict, cleanup, workspace build, lint, strict doctor, and
+  final FT-007 feature `semantic-pass`.
+- Reconciled: FT-007 and REQ-018/REQ-019/REQ-021 to `verified`; EP-003 remains
+  `planned` because FT-008 complete lifecycle/Admin visibility is still planned.
+
+## [2026-08-20] Storefront hero canvas motion
+- Added: buyer-facing home hero with a lightweight canvas product-universe animation,
+  pointer response, responsive sizing, and reduced-motion fallback.
+- Preserved: backend-driven catalog source, existing catalog filters, cart/auth/wishlist
+  boundaries, and no new Three.js/runtime dependency.
+- Verified: storefront typecheck, unit suites, production build, and browser smoke for
+  canvas rendering, catalog anchor navigation, and reduced-motion behavior.
+
+## [2026-08-20] TASK-051 scheduler closure sync
+- Closed: TASK-051 as `done` after required packet/spec gates, real
+  Medusa/PostgreSQL expiry evidence, functional `VERDICT: PASS`, per-task
+  `SEMANTIC_VERDICT: semantic-pass`, and exact T3 checkpoint/recovery markers.
+- Reconciled: REQ-021 lifecycle to `verified`; FT-007 remains `implemented`
+  because TASK-052 still owns storefront handoff and full runtime acceptance;
+  EP-003 remains `planned` for downstream FT-007/FT-008 work.
+- Preserved: native Medusa order/reservation ownership, retryable cleanup,
+  no-provider boundary, TASK-052 status, and scheduler-only dependent promotion.
+
+## [2026-08-20] TASK-051 pending-order expiry implementation handoff
+- Fixed: the expiry workflow now relies on native Medusa cancellation for the
+  normal reservation release and performs explicit line-item deletion only for
+  retrying an already-canceled order with pending cleanup, avoiding a duplicate
+  release attempt.
+- Hardened: the local integration harness validates deterministic simulated
+  cleanup errors across native and serialized Medusa workflow error shapes.
+- Verified locally: real Medusa/PostgreSQL expiry integration, backend typecheck,
+  full workspace build, and Memory Bank lint pass; paid, canceled, future, and
+  non-pending orders remain unchanged, partial cleanup recovers, and provider
+  traffic remains absent. TASK-051 stays `in_progress` pending independent
+  `/verify`, per-task `/red-verify`, T3 markers, scheduler closure, and sync.
+
 ## [2026-08-16] TASK-050 scheduler closure sync
 - Reconciled: authoritative TASK-050 state as `done` with `VERDICT: PASS`,
   `SEMANTIC_VERDICT: semantic-pass`, `HUMAN_CHECKPOINT: done`, and

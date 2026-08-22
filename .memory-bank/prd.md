@@ -83,37 +83,35 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 - FR-010: The product must support Google OAuth login.
 - FR-011: The product must support VK ID login.
 - FR-012: Buyers may browse and build a cart as guests, but must be authenticated before payment.
-- FR-013: When a customer is authenticated, the storefront top-right navigation must show the trusted Telegram username when available from the authenticated identity; otherwise it must show the customer's email.
-
 ### Checkout and Delivery
 
-- FR-014: Checkout must collect name, email, and required phone.
-- FR-015: Checkout must collect delivery city, address, comment, and selected delivery method.
-- FR-016: Checkout must offer delivery methods without external provider integration: pickup, city courier, and transport-company delivery.
-- FR-017: Delivery price must use fixed tariffs by selected delivery method.
-- FR-018: Checkout must collect selected payment method.
+- FR-013: Checkout must collect name, email, and required phone.
+- FR-014: Checkout must collect delivery city, address, comment, and selected delivery method.
+- FR-015: Checkout must offer delivery methods without external provider integration: pickup, city courier, and transport-company delivery.
+- FR-016: Delivery price must use fixed tariffs by selected delivery method.
+- FR-017: Checkout must collect selected payment method.
 
 ### Orders, Inventory, and Payment
 
-- FR-019: The system must create an order before payment with status `pending_payment`.
-- FR-020: Pending-payment orders must reserve inventory.
-- FR-021: Pending-payment orders must allow payment retry.
-- FR-022: Pending-payment orders must expire or cancel automatically after 72 hours if payment is not completed.
-- FR-023: The order lifecycle must support `pending_payment -> paid -> processing -> completed/canceled/refunded`.
-- FR-024: ЮKassa payment must support cards, СБП, and SberPay.
-- FR-025: ЮKassa webhook must be the source of truth for payment status.
-- FR-026: Repeated webhook events must be handled idempotently without duplicate orders or invalid status transitions.
-- FR-027: The return page after payment must show waiting/result state and must not be the authoritative payment confirmation source.
+- FR-018: The system must create an order before payment with status `pending_payment`.
+- FR-019: Pending-payment orders must reserve inventory.
+- FR-020: Pending-payment orders must allow payment retry.
+- FR-021: Pending-payment orders must expire or cancel automatically after 72 hours if payment is not completed.
+- FR-022: The order lifecycle must support `pending_payment -> paid -> processing -> completed/canceled/refunded`.
+- FR-023: ЮKassa payment must support cards, СБП, and SberPay.
+- FR-024: ЮKassa webhook must be the source of truth for payment status.
+- FR-025: Repeated webhook events must be handled idempotently without duplicate orders or invalid status transitions.
+- FR-026: The return page after payment must show waiting/result state and must not be the authoritative payment confirmation source.
 
 ### Notifications and Admin Operations
 
-- FR-028: The system must send email notifications for pending order, successful payment, payment error, and order status change.
-- FR-029: Medusa Admin must show contacts, ordered products, delivery data, payment status, order status, total amount, and payment method.
-- FR-030: Operators must be able to use Medusa Admin as the MVP order operations surface.
+- FR-027: The system must send email notifications for pending order, successful payment, payment error, and order status change.
+- FR-028: Medusa Admin must show contacts, ordered products, delivery data, payment status, order status, total amount, and payment method.
+- FR-029: Operators must be able to use Medusa Admin as the MVP order operations surface.
 
 ### Local Development
 
-- FR-031: The project must provide a Windows 10 native local development path for the storefront/backend/database stack without requiring Docker containers.
+- FR-030: The project must provide a Windows 10 native local development path for the storefront/backend/database stack without requiring Docker containers.
 
 ## Non-functional Requirements
 
@@ -166,7 +164,6 @@ Key status model:
 12. ЮKassa webhook updates payment/order status idempotently.
 13. System sends email notifications for pending order, successful payment, payment error, and order status changes.
 14. Store operator handles the order in Medusa Admin.
-15. When authenticated, the storefront top-right navigation shows the trusted Telegram username when available; otherwise it shows the customer email.
 
 ## Integrations / Dependencies
 
@@ -175,7 +172,6 @@ Key status model:
 - Next.js storefront.
 - Google OAuth.
 - VK ID.
-- Trusted Telegram identity data or provider integration for the planned authenticated identity label; the username must be obtained server-side and never accepted from storefront input.
 - ЮKassa payment integration for cards, СБП, SberPay, return flow, and webhook processing.
 - Email delivery provider or SMTP-style integration to be selected during design/tasking.
 - Native Windows 10 local development using Node.js/npm and local PostgreSQL.
@@ -250,6 +246,16 @@ Operational details still to resolve during design/tasking:
 - Q: How should local development run? -> A: The local development path must run natively on Windows 10, not in Docker containers.
 - Q: What is Docker's role? -> A: Docker may be used only for a future remote server deployment path, not for local development.
 - Impact: FR-030, AC-015, local development dependencies, architecture, FT-011, and generated local-foundation tasks must be synchronized from Docker Compose to Windows-native Node.js/npm plus local PostgreSQL. Future remote-server Docker deployment remains out of the current local-foundation scope and must be designed separately as high-tier deployment work.
+
+### Scope reconciliation 2026-08-21
+
+- Final traceability review found no Product Brief or recorded user/owner decision
+  for a later-added Telegram identity-label requirement.
+- That unsupported delta was removed from the active PRD, RTM, EP-002/FT-004, and
+  linked auth SDD specs. No Telegram provider or identity-source scope is inferred.
+- Functional requirement IDs after authentication were compacted back to the
+  original 30-item Product Brief-aligned sequence; local development remains
+  FR-030.
 
 ## Unresolved Blockers
 

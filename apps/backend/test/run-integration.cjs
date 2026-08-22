@@ -35,6 +35,8 @@ const suites = {
     "./src/scripts/smoke-checkout-delivery-acceptance.ts",
   "pending-order": "./src/scripts/smoke-pending-order.ts",
   "pending-order-expiry": "./src/scripts/smoke-pending-order-expiry.ts",
+  "pending-order-acceptance":
+    "./src/scripts/smoke-pending-order-acceptance.ts",
 };
 
 function main() {
@@ -117,6 +119,10 @@ function main() {
   }
   if (selected.includes("pending-order-expiry")) {
     sourceBoundary = "real-medusa-postgresql-job-workflow-order-inventory";
+  }
+  if (selected.includes("pending-order-acceptance")) {
+    sourceBoundary =
+      "real-medusa-postgresql-route-workflow-job-order-inventory";
   }
 
   process.stdout.write(

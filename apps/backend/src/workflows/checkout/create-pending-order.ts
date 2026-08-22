@@ -432,8 +432,7 @@ function findMatchingIdempotencyOrder(
   return (
     orders.find(
       (order) =>
-        isPendingOrderMetadata(order.metadata) &&
-        order.metadata.checkout_idempotency_key === idempotencyKey
+        order.metadata?.checkout_idempotency_key === idempotencyKey
     ) ?? null
   );
 }

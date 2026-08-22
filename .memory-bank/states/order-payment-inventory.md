@@ -44,6 +44,15 @@ Allowed global transitions:
 | `processing` | `completed` | Operator/backend completion step. | Required order data remains visible in Medusa Admin. |
 | `paid` or `processing` or `completed` | `refunded` | Confirmed refund workflow. | Payment/refund state and inventory/accounting effects are explicitly handled. |
 
+State mapping for expiry:
+
+- `canceled` is the global product lifecycle state and the native Medusa terminal
+  order status for an expired pending order.
+- FT-007 may persist `checkout_state: expired` as a feature-local logical reason
+  projection for a 72-hour timeout. `expired` is not a second peer native/global
+  order status; it maps to global/native `canceled` and exists to distinguish
+  timeout from explicit cancellation in audit and retry guards.
+
 Forbidden transitions:
 
 - Return page -> `paid`.
@@ -119,8 +128,12 @@ Rules:
 
 ## Open Design Questions
 
-- Exact Medusa v2 APIs/modules/workflows used for reservation release/finalization.
-- Exact Medusa status and admin field mapping for custom payment/order states.
+- FT-007 resolved reservation creation through native reservation items and
+  timeout release through native order cancellation. FT-008/FT-009 must still
+  choose the exact payment-success finalization path.
+- FT-007 resolved `pending_payment` and expiry mapping; FT-008/FT-009 must still
+  define final paid/processing/Admin projection details.
 - Refund inventory behavior.
 
-These questions are feature-local blockers for FT-007, FT-008, and FT-009 implementation, not blockers for the global backbone.
+The remaining questions are feature-local blockers for FT-008 and FT-009, not
+blockers for the global backbone or the verified FT-007 boundary.

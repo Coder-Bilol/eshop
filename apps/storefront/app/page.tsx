@@ -12,6 +12,7 @@ import {
   selectedCatalogFilters,
 } from "../lib/catalog";
 import { WishlistToggle } from "../components/wishlist-toggle";
+import { ProductUniverse } from "../components/product-universe";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,32 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
 
   return (
     <main className="catalogShell">
+      <section className="catalogHero" aria-labelledby="catalog-hero-title">
+        <div className="catalogHeroCopy">
+          <p className="eyebrow">A considered home collection</p>
+          <h2 id="catalog-hero-title">Objects that make everyday living feel lighter.</h2>
+          <p>
+            Explore useful pieces, honest materials, and small details that bring
+            more calm to the rooms you use every day.
+          </p>
+          <a className="heroAction" href="#catalog-browser">
+            Explore the catalog
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+        <div
+          className="catalogHeroVisual"
+          role="img"
+          aria-label="Animated home goods universe"
+        >
+          <ProductUniverse />
+          <div className="heroVisualCaption" aria-hidden="true">
+            <span>HOME</span>
+            <strong>ESSENTIALS</strong>
+          </div>
+        </div>
+      </section>
+
       <header className="catalogHeader">
         <div>
           <p className="eyebrow">Eshop catalog</p>
@@ -57,7 +84,7 @@ export default async function HomePage({ searchParams }: HomePageProps = {}) {
 
       {catalog ? (
         <>
-          <section className="catalogLayout" aria-label="Catalog browser">
+          <section id="catalog-browser" className="catalogLayout" aria-label="Catalog browser">
             <aside className="catalogNav" aria-label="Categories">
               <h2>Categories</h2>
               <nav className="categoryList">

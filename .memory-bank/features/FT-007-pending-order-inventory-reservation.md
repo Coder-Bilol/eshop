@@ -1,7 +1,7 @@
 ---
 description: Feature FT-007 - pending order and inventory reservation.
 status: draft
-lifecycle: implemented
+lifecycle: verified
 spec_design_status: complete
 spec_design_links:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
@@ -16,7 +16,8 @@ spec_design_links:
 
 - System creates order before payment with `pending_payment`.
 - System reserves inventory for pending order.
-- Buyer can retry payment within pending window.
+- Pending order remains eligible for FT-009 payment retry within the pending
+  window; FT-007 itself does not call a payment provider.
 - Pending order expires/cancels after 72 hours.
 
 ## Acceptance Criteria
@@ -91,9 +92,28 @@ spec_design_links:
 
 - `TASK-050` is scheduler-closed as `done` with functional `PASS`, semantic
   `semantic-pass`, and completed T3 checkpoint/recovery markers.
-- This advances FT-007 to `implemented`; timeout/cancellation coverage remains
-  with the planned TASK-051/TASK-052 work, so the feature is not `verified`.
+- `TASK-051` is scheduler-closed as `done` with functional `PASS`, semantic
+  `semantic-pass`, exact T3 markers, and real expiry/release/retry evidence.
+- TASK-050 and TASK-051 establish the server-authoritative order/reservation and
+  expiry/release boundaries; TASK-052 closes the authenticated storefront and
+  full cross-runtime acceptance slice.
 - Evidence: [TASK-050 task record](../tasks/TASK-050.task.json),
   [verification](../../.protocols/TASK-050/verification.md),
   [semantic verification](../../.protocols/TASK-050/red-verification.md),
-  [sync report](../../.tasks/TASK-050/TASK-050-S-MB-SYNC-final-report-docs-02.md).
+  [sync report](../../.tasks/TASK-050/TASK-050-S-MB-SYNC-final-report-docs-02.md),
+  [TASK-051 task record](../tasks/TASK-051.task.json),
+  [TASK-051 verification](../../.protocols/TASK-051/verification.md), and
+  [TASK-051 semantic verification](../../.protocols/TASK-051/red-verification.md).
+- `TASK-052` is scheduler-closed with full browser/runtime evidence, but the
+  first feature-level semantic review observed that a same-key request after
+  controlled expiry returned `201` instead of the normative stable conflict.
+  `TASK-053` is scheduler-closed after preserving the terminal key binding and
+  proving real backend/browser `409` with no replacement mutation.
+- Final feature-level `/red-verify --feature FT-007` returned
+  `SEMANTIC_VERDICT: semantic-pass`. FT-007 and REQ-018/REQ-019/REQ-021 are
+  `verified`.
+- Final evidence: [TASK-052 record](../tasks/TASK-052.task.json),
+  [TASK-053 record](../tasks/TASK-053.task.json),
+  [TASK-053 verification](../../.protocols/TASK-053/verification.md),
+  [TASK-053 semantic verification](../../.protocols/TASK-053/red-verification.md),
+  and [FT-007 final feature review](../../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).

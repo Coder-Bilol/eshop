@@ -1,0 +1,8 @@
+{
+  "command": "npm run build",
+  "timed_out": false,
+  "timeout_seconds": 600,
+  "exit_code": 0,
+  "stdout": ".tasks\\TASK-051\\workspace-build-20260820-102504.log",
+  "stderr": ".tasks\\TASK-051\\workspace-build-20260820-102504.err.log"
+}

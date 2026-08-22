@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-052-R1",
+  "packet_id": "PACKET-TASK-052-R6",
   "task_id": "TASK-052",
-  "created_at": "2026-08-16T00:00:00+03:00",
-  "source_task_hash": "sha256:7ecbb702513bfc3bea391c50cb0e0008327664d639d1303f78a3356584ddc18b",
+  "created_at": "2026-08-21T17:05:08.2748660+03:00",
+  "source_task_hash": "sha256:1fd0d66e8d39f5d5d6897ddc8adc5dc1413f4c9c21b1114dc63beb246b1cec99",
   "status": "ready",
   "tier": "T3",
   "purpose": "Connect authenticated checkout to pending-order creation and prove the full FT-007 runtime boundary.",

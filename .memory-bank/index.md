@@ -63,6 +63,7 @@ status: active
 - [.memory-bank/invariants.md](invariants.md): Глобальные MUST/NEVER правила.
 - [.memory-bank/architecture/](architecture/): Duo + boundaries (WHAT/WHY).
 - [.memory-bank/guides/](guides/): Valid HOW docs для использования, запуска и troubleshooting.
+- [.memory-bank/guides/storefront-canvas-motion.md](guides/storefront-canvas-motion.md): расположение и runtime-ограничения hero canvas-анимации storefront.
 - [.memory-bank/adrs/](adrs/): ADR решения.
 
 - [.memory-bank/contracts/](contracts/): Контракты и boundary specs (prefer when present).

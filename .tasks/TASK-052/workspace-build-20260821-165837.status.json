@@ -1,0 +1,9 @@
+{
+  "task_id": "TASK-052",
+  "command": "npm run build",
+  "exit_code": 0,
+  "status": "ok",
+  "workspaces": ["@eshop/storefront", "@eshop/backend"],
+  "scope": "current source after adversarial remediation",
+  "observed_at": "2026-08-21T16:58:37.4136272+03:00"
+}

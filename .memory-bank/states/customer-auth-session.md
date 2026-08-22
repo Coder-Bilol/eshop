@@ -2,7 +2,7 @@
 description: FT-004 customer OAuth, session, cart handoff, checkout gate, and logout lifecycle.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-07-16
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/tech-specs/FT-004-oauth-login-before-payment.md
   - .memory-bank/contracts/auth-session-security.md
@@ -26,14 +26,6 @@ source_of_truth:
   blocked.
 - `auth_failed`: no new valid session was established.
 - `logging_out`: session destruction is in progress.
-
-Authenticated identity display:
-
-- In `authenticated_ready` and `merge_blocked`, the top-right navigation may show a
-  bounded identity label from the current customer projection.
-- A trusted Telegram username has precedence when available; otherwise show email.
-- In `guest`, `auth_failed`, and after confirmed logout/session expiry, no previous
-  customer label may remain visible.
 
 ## Allowed Transitions
 

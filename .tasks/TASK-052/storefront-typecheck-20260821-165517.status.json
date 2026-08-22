@@ -1,0 +1,8 @@
+{
+  "task_id": "TASK-052",
+  "command": "npm --workspace apps/storefront run typecheck",
+  "exit_code": 0,
+  "status": "ok",
+  "scope": "current source after adversarial remediation",
+  "observed_at": "2026-08-21T16:52:28.0000000+03:00"
+}

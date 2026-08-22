@@ -17,5 +17,8 @@ status: active
 - [.memory-bank/tasks/plans/IMPL-FT-006.md](IMPL-FT-006.md): authenticated
   checkout delivery methods, Admin/Shipping Options tariffs, validation, and
   downstream handoff waves, with scheduler closure/evidence reconciliation.
+- [.memory-bank/tasks/plans/IMPL-FT-007.md](IMPL-FT-007.md): native pending-order
+  creation, inventory reservation, 72-hour expiry/release, storefront handoff,
+  and terminal idempotency remediation waves.
 - [.memory-bank/tasks/plans/IMPL-FT-011.md](IMPL-FT-011.md): Windows-native
   local development foundation implementation waves.

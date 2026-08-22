@@ -1,0 +1,16 @@
+{
+  "task_id": "TASK-053",
+  "command": "ESHOP_E2E_OUTPUT_TASK_ID=TASK-053 npm --workspace apps/storefront run test:e2e -- pending-order",
+  "exit_code": 0,
+  "status": "ok",
+  "browser": "msedge",
+  "source_boundary": "compiled-medusa-nextjs-postgresql",
+  "stdout": ".tasks/TASK-053/browser-e2e-20260821-175351.stdout.log",
+  "stderr": ".tasks/TASK-053/browser-e2e-20260821-175351.stderr.log",
+  "report": ".tasks/TASK-053/playwright/pending-order-browser-report.json",
+  "suite_completion_marker": "TASK-052-PENDING-ORDER-BROWSER-COMPLETE",
+  "expired_replay_status": 409,
+  "expired_replay_counts_unchanged": true,
+  "artifacts_published_after_cleanup": true,
+  "observed_at": "2026-08-21T18:03:29.6523182+03:00"
+}

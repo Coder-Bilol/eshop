@@ -65,6 +65,13 @@ eshop: passwordauthentication no
 eshop: authenticationmethods publickey
 ```
 
+SECURITY BLOCKER: the verified `root: passwordauthentication yes` path remains
+open on the public VPS. Per operator policy it must remain enabled. The VPS
+provider currently blocks server access while resolving provider-side errors, so
+no live SSH change or re-verification is possible. Do not attempt SSH hardening;
+revisit this external blocker only after provider access is restored and the
+operator supplies a new explicit decision.
+
 Verified deployment user command:
 
 ```powershell

@@ -11,14 +11,14 @@ status: active
 - Policy: `.memory-bank/commands/autopilot.md`
 
 ## Review Gate
-- Verdict: APPROVE
-- Evidence: `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-2-final-report-docs-01.md`
-- Scope note: The APPROVE report covers the previously closed 45-task surface;
-  FT-006 task decomposition is separately gated by its complete feature design,
-  canonical packets, and prior strict doctor PASS before TASK-046 selection.
-  Feature-level semantic review remains required after TASK-046..TASK-049; that
-  gate is now recorded as `SEMANTIC_VERDICT: semantic-pass` for FT-006.
-- Strict doctor: PASS before TASK-046 selection
+- Verdict: REJECT
+- Evidence: `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-3-final-report-docs-01.md`
+- Stage verdicts: S-01 APPROVE, S-02 APPROVE, S-03 APPROVE, S-04 REJECT,
+  S-05 APPROVE.
+- Blocking finding: the last verified public VPS SSH policy permits password
+  authentication for `root`; operator policy forbids disabling it and the VPS
+  provider currently blocks server access while resolving provider-side errors.
+- Strict doctor: PASS, 0 errors/warnings, 53/53 tasks done.
 
 ## Blocking Questions / Assumptions
 - Blocking question: resolved. Operator approved the bounded scope expansion to
@@ -28,9 +28,9 @@ status: active
   from TASK-047 closure; no route-scoped parser or custom parser adapter is in scope.
 
 ## Queue State
-- Snapshot: 50 done, 1 ready, 1 planned, 0 in_progress, 0 blocked, 0 failed
-  after TASK-050 closure; TASK-051 is the next dependency-eligible task and
-  TASK-052 awaits TASK-051.
+- Current snapshot: 53 done, 0 ready, 0 planned, 0 in_progress, 0 blocked,
+  0 failed, 0 invalid. The JSON queue is terminal; final review is rejected on
+  the external production SSH P1, not on task/dependency state.
 - Reopened scheduler run for the four-task FT-006 continuation after the prior
   45-task terminal snapshot; no prior task was reopened.
 - Selected: `TASK-046` (`T2`); packet gate passed; dependency `TASK-015` done; owner-approved
@@ -136,13 +136,11 @@ status: active
 
 ## Quality Gates
 - `node scripts/mb-lint.mjs`: PASS
-- `node scripts/mb-doctor.mjs --strict`: PASS before closure; final post-sync result
-  is recorded in the TASK-049 sync report
+- `node scripts/mb-doctor.mjs --strict`: PASS, 0 errors/warnings, 53/53 done
 - `git diff --check`: PASS with line-ending warnings only
-- Final completed feature gate: FT-006 `SEMANTIC_VERDICT: semantic-pass`
-- Current feature gate: FT-007 decomposition complete; implementation and
-  feature-level semantic review remain pending
-- Final review: `VERDICT: APPROVE` in `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-2-final-report-docs-01.md`
+- Final completed feature gate: FT-007 `SEMANTIC_VERDICT: semantic-pass`
+- Final review: `VERDICT: REJECT` in
+  `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-3-final-report-docs-01.md`
 - Worker launch note: TASK-050 Implementer attempt 1 was rejected before task
   work because `gpt-5.2-high` is unsupported for the active ChatGPT account;
   this is an infrastructure retry and does not consume the task failure budget.
@@ -203,12 +201,62 @@ status: active
   second bounded post-test hang; its explicit worker processes were stopped.
   TASK-051 remains `in_progress`; partial scoped changes are preserved for a
   final fresh execute handoff.
+- Infrastructure recovery: a later fresh Implementer completed the source fix
+  and all packet commands but its wrapper was interrupted before handoff; the
+  preserved gate artifacts were reconciled into the full execute protocol.
+- Reviewer infrastructure: two fresh reviewer attempts produced no tool calls
+  or artifacts inside bounded windows. GENERAL completed the documented
+  scheduler fallback verification against the independent execute artifacts.
+- Closed: `TASK-051` (`T3`); real expiry integration, typecheck, workspace
+  build, lint, functional `VERDICT: PASS`, per-task `SEMANTIC_VERDICT:
+  semantic-pass`, `HUMAN_CHECKPOINT: done`, and
+  `ROLLBACK_RECOVERY_NOTE: present` are recorded. Packet refresh and `/mb-sync`
+  follow before dependent promotion.
+- Synced: TASK-051 closure reconciled to REQ-021, FT-007, IMPL-FT-007,
+  EP-003, and changelog; Memory Bank lint and strict doctor passed.
+- Promoted: `TASK-052` (`T3`) from `planned` to `ready`; dependencies TASK-050
+  and TASK-051 are done and no blocker or semantic concern remains. Packet
+  refresh is required after the promotion before selection.
+- Selected: `TASK-052` (`T3`); promoted packet `R2` passed readiness and strict
+  doctor, both dependencies are done, and scheduler wrote `ready ->
+  in_progress`. A derivative packet hash refresh follows the status transition
+  before execute handoff.
+- TASK-052 resume audit: the first browser gate was stopped by the operator
+  after the long compiled-backend build reached canonical seed. No browser
+  fixture ledger, owned process, port listener, or stale success artifact
+  remained. Backend acceptance and both typechecks had passed; the browser
+  gate is being resumed without consuming the semantic failure budget.
+- TASK-052 browser retry 1: authenticated pending-order creation and same-key
+  replay reached the real backend verification phase. The phase exceeded its
+  240-second child-process timeout on the slow local filesystem; recovery
+  removed pending-order and Shipping Options fixtures and released ports. A
+  cleanup-result schema omission then masked the original timeout. The bounded
+  harness retry raises only that phase budget to 600 seconds and adds the
+  missing sanitized provider-isolation field; task status remains in progress.
+- Closed: `TASK-052` (`T3`); current-source functional PASS, task semantic-pass,
+  exact T3 markers, real-browser cleanup/privacy, and final packet `R5` recorded.
+- FT-007 feature review: `SEMANTIC_VERDICT: semantic-concern`; controlled expiry
+  exposed an expired same-key replay returning `201` instead of normative `409`.
+  Added bounded T3 follow-up `TASK-053`; FT-007 remains unverified.
+- Promoted: `TASK-053` (`T3`) from `planned` to `ready`; dependency TASK-052 is
+  done, initial packet/readiness and strict doctor gates passed.
+- Selected: `TASK-053` (`T3`); promoted packet R2 matched, dependency TASK-052
+  is done, strict doctor passed, and scheduler wrote `ready -> in_progress`.
+- Closed: `TASK-053` (`T3`); real backend/browser expired-key `409` and
+  zero-mutation evidence, current-source build/typechecks/lint, semantic-pass,
+  and exact T3 markers are recorded. Final packet refresh and feature review follow.
+- Closed feature gate: `FT-007`; repeated feature review returned
+  `SEMANTIC_VERDICT: semantic-pass` after TASK-053 closed the expired-key gap.
+- Synced: TASK-052/TASK-053 closure and FT-007 semantic-pass reconciled to
+  REQ-018/REQ-019/REQ-021, FT-007, IMPL-FT-007, EP-003, and changelog.
 
 ## Terminal State
-- State: ACTIVE
-- Queue terminal: not reached; TASK-001 through TASK-050 are done, TASK-051 is
-  ready, and TASK-052 is planned behind TASK-051.
-- Next scheduler action: refresh and validate the TASK-051 packet, then select
-  it sequentially for fresh Implementer `/execute` and independent Reviewer
-  `/verify` + `/red-verify`. Preserve the native Medusa order/reservation and
-  no-provider boundaries from FT-007.
+- State: HALT_REVIEW_REJECT
+- Queue terminal: all indexed TASK-001 through TASK-053 records are `done`.
+- Blocking condition: live public VPS root password authentication remains a P1
+  security finding. Local runbook/handoff remediation is complete; no live SSH
+  mutation was authorized or performed.
+- Resume condition: provider restores server access and the operator supplies a
+  new explicit decision about an allowed compensating control; then repeat S-04
+  and require final `APPROVE` before declaring scheduler `SUCCESS`. No SSH
+  hardening is authorized under the current policy.

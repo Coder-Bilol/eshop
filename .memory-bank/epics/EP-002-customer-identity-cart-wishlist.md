@@ -27,14 +27,12 @@ Let buyers build carts before login while preserving customer identity, cart con
 - Login through Google OAuth and VK ID is available before payment.
 - Guest and user carts merge correctly.
 - Wishlist is available only to authenticated users.
-- Authenticated customers see their trusted identity label in the top-right navigation.
 
 ## Acceptance Criteria
 
 - Covers REQ-006 through REQ-012.
 - Cart merge sums identical variants/SKU.
 - Payment cannot proceed before authentication.
-- The identity label prefers a trusted Telegram username and falls back to email.
 
 ## Verification Status
 

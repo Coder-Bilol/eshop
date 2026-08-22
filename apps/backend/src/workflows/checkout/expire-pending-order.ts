@@ -169,7 +169,7 @@ export const expirePendingOrderWorkflow = createWorkflow(
       "ft-007-release-expired-order-reservations",
       { candidate, cleanupPending },
       ({ candidate }) =>
-        candidate.action !== "skip" && candidate.line_item_ids.length > 0
+        candidate.action === "cleanup" && candidate.line_item_ids.length > 0
     ).then(() => deleteReservationsByLineItemsStep(candidate.line_item_ids));
 
     const cleanupComplete = when(

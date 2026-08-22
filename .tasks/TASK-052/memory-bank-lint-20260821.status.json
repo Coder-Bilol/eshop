@@ -1,0 +1,8 @@
+{
+  "task_id": "TASK-052",
+  "command": "node scripts/mb-lint.mjs",
+  "exit_code": 0,
+  "status": "ok",
+  "files_checked": 138,
+  "observed_at": "2026-08-21T16:30:04.5300502+03:00"
+}

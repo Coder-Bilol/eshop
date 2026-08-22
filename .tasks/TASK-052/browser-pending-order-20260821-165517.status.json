@@ -1,0 +1,13 @@
+{
+  "task_id": "TASK-052",
+  "command": "npm --workspace apps/storefront run test:e2e -- pending-order",
+  "exit_code": 0,
+  "status": "ok",
+  "browser": "msedge",
+  "source_boundary": "compiled-medusa-nextjs-postgresql",
+  "stdout": ".tasks/TASK-052/browser-e2e-20260821-165234.stdout.log",
+  "stderr": ".tasks/TASK-052/browser-e2e-20260821-165234.stderr.log",
+  "report": ".tasks/TASK-052/playwright/pending-order-browser-report.json",
+  "completion_marker": "TASK-052-PENDING-ORDER-BROWSER-COMPLETE",
+  "observed_at": "2026-08-21T16:55:17.4470000+03:00"
+}

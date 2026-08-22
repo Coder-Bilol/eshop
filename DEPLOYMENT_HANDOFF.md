@@ -7,6 +7,12 @@ Last verified: 2026-08-04
 The infrastructure runtime is online, but the storefront is not yet
 production-ready for catalog use.
 
+Security status: production readiness is also blocked because the last verified
+effective SSH policy permits password authentication for `root`. Per operator
+policy this setting must remain enabled. The VPS provider currently blocks server
+access while resolving provider-side errors; no live SSH change or re-verification
+is possible from this workspace.
+
 - PostgreSQL is running and healthy on the production VPS.
 - Medusa migrations are applied and an idempotent second run succeeded.
 - Backend image was rebuilt successfully from revision `99b92f4`.
@@ -187,6 +193,11 @@ git ls-files -- '*.env'  # no output
 
 ## Remaining Blockers
 
+The VPS provider access block and the operator SSH policy are external blockers.
+Do not disable root password authentication or attempt live SSH changes. Revisit
+only after provider access is restored and the operator explicitly defines an
+allowed compensating control.
+
 The storefront image contains fake public Medusa values. It must be rebuilt only
 after the initial region and verified catalog seed provide real values.
 
@@ -196,9 +207,11 @@ completed.
 
 ## Next Safe Sequence
 
-1. Create the initial region and run the verified catalog seed.
-2. Replace storefront public values with the seed output.
-3. Rebuild and restart only storefront, then verify catalog behavior through the
+1. Wait for the VPS provider to restore server access and resolve its errors.
+2. Create the initial region and run the verified catalog seed only after the
+   external production-readiness blockers are resolved.
+3. Replace storefront public values with the seed output.
+4. Rebuild and restart only storefront, then verify catalog behavior through the
    public HTTPS domain.
 
 ## Safety Rules
@@ -206,6 +219,8 @@ completed.
 - Never run `docker compose down -v`.
 - Never delete `eshop_postgres_data` as a migration recovery action.
 - Never expose PostgreSQL through a host `ports` mapping.
+- Do not change SSH access under the current operator policy. Any future change
+  requires a new explicit decision after provider access is restored.
 - Never use region creation or catalog seed to recover a failed migration.
 - Keep PostgreSQL running while rebuilding application images.
 - Back up the database before every later migration or application update.

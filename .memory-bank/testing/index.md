@@ -71,7 +71,10 @@ status: active
 - Do not accept duplicate webhook handling without duplicate-event evidence.
 - Do not mark order/inventory work done without state transition evidence.
 - Do not mark cart merge done without same-SKU summing evidence.
-- Do not mark T2/T3 work done without tier-required `/verify` and `/red-verify` evidence.
+- Do not mark a T2 task done without tier-required `/verify` `PASS`, or a T2
+  feature complete without feature-level `semantic-pass`. Do not mark a T3 task
+  done without `/verify` `PASS`, per-task `semantic-pass`, and its checkpoint and
+  recovery markers.
 - Do not use production secrets, prod writes, or live payment mutation as local proof.
 
 ## Artifacts

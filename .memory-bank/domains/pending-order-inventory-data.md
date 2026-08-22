@@ -2,7 +2,7 @@
 description: FT-007 durable pending-order and inventory reservation data design.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-16
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/states/order-payment-inventory.md
@@ -26,8 +26,10 @@ feature-scoped metadata; native order fields and line items remain Medusa-owned.
 }
 ```
 
-- `checkout_state` is the product state; allowed FT-007 values are
-  `pending_payment`, `canceled`, and `expired`.
+- `checkout_state` is the FT-007 logical projection. Its values are
+  `pending_payment`, `canceled`, and `expired`; `expired` is the timeout reason
+  mapped to the global product/native Medusa `canceled` state, not a peer native
+  order status.
 - `pending_payment_expires_at` is UTC and computed server-side as creation time
   plus exactly 72 hours.
 - `checkout_idempotency_key` is never logged or returned.
@@ -65,5 +67,6 @@ silently added to FT-007.
 - Order creation and reservation are one workflow boundary with compensation.
 - Reservation quantity is never trusted from a browser snapshot.
 - Expiration/cancellation is guarded by current state and order lock.
-- No hard delete of the order is used for a normal expiry; the order remains
-  auditable as canceled/expired while the stock hold is released.
+- No hard delete of the order is used for a normal expiry; the native/global
+  order remains auditable as `canceled`, with `checkout_state: expired` recording
+  the timeout reason while the stock hold is released.

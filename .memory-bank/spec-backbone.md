@@ -2,7 +2,7 @@
 description: Pre-PRD spec framing and global SDD backbone state.
 status: active
 owner: spec-design
-last_updated: 2026-07-07
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-index.md
@@ -27,7 +27,10 @@ source_of_truth:
 ## Open Design Questions
 - YooKassa local/staging credentials and webhook URL/tunneling setup: non-blocking for global backbone; blocks payment/local-dev feature implementation until resolved.
 - Fiscalization/receipt obligations before production launch: non-blocking for MVP implementation because fiscalization is out of scope; blocks production launch if legal/payment review requires receipts.
-- Exact Medusa v2 extension points, status mapping, and stock reservation mechanics: non-blocking for global backbone; must be resolved during FT-007, FT-008, and FT-009 feature-level design in `/prd-to-tasks` or standalone `/spec-improve` repair.
+- FT-007 has resolved pending-order/native-status mapping, stock reservation,
+  expiry/release, and idempotency. Exact payment-success finalization and final
+  Admin/status projection remain non-blocking global questions that FT-008 and
+  FT-009 must resolve in feature-level design.
 - Email provider/configuration: non-blocking for global backbone; must be resolved before FT-010 implementation.
 - Remote server deployment target: operational runbook exists in [DEPLOYMENT.md](../DEPLOYMENT.md) for AlmaLinux VPS, Docker Compose application containers, and host-level Caddy automatic HTTPS; actual production deploy work remains T3.
 
@@ -42,7 +45,7 @@ source_of_truth:
 | non_goals | authoritative | [.memory-bank/prd.md](prd.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | MVP exclusions remain unchanged. |
 | domain_model | authoritative | [.memory-bank/domains/core-domain.md](domains/core-domain.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | Shared vocabulary and lifecycle guardrails are ready for feature-local design. |
 | data_flow | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Catalog, cart/login, checkout/order, payment webhook, notifications/admin flows documented. |
-| storage | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | PostgreSQL is the only durable store; browser state is non-authoritative. |
+| storage | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md); [DEPLOYMENT.md](../DEPLOYMENT.md) | PostgreSQL is the only durable structured/database store; deployment-owned persistent media is the durable blob store; browser state is non-authoritative. |
 | api_contracts | authoritative | [.memory-bank/contracts/api-guidelines.md](contracts/api-guidelines.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Endpoint-level schemas remain feature-local. |
 | event_message_contracts | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | No custom event bus; HTTP webhooks and Medusa-local side effects only. |
 | agent_io_contracts | not_applicable | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | not_applicable - product has no runtime AI/agent/chat I/O boundary. |
@@ -60,7 +63,10 @@ source_of_truth:
 ## Handoff To /spec-design
 - Global Backbone Status: complete
 - Downstream readiness: global backbone no longer blocks `/prd-to-tasks`; feature-local design remains required inside `/prd-to-tasks`.
-- Architecture artifact strategy: single-file global hub plus small contract/state guardrail specs.
+- Architecture artifact strategy: single-file global hub plus small
+  contract/state guardrail specs. Those authoritative SDD specs are the accepted
+  decision records for this KISS project; ADRs are optional escalation records
+  for decisions that need separate cross-spec rationale or supersession history.
 
 ## Global Backbone Status
 - Status: complete
@@ -69,6 +75,8 @@ source_of_truth:
 - Not applicable areas:
   - agent_io_contracts: not_applicable - product has no runtime AI/agent/chat I/O boundary; agent execution artifacts stay in Memory Bank/task protocol files.
 - Notes:
-  - No meaningful production code exists yet, so `/map-codebase` is not required before this backbone.
+  - The executable foundation and FT-001 through FT-007/FT-011 implementation
+    waves now exist. FT-007's native pending-order/reservation/expiry decisions
+    are reconciled above; FT-008 through FT-010 remain planned roadmap scope.
   - Sensitive feature work remains T2/T3 as routed by task policy and feature-level design inside `/prd-to-tasks`.
   - Next manual routing: choose a feature and run `/prd-to-tasks FT-<NNN>`; use standalone `/spec-improve` only for repair/refresh.

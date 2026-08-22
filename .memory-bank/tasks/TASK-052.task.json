@@ -1,7 +1,7 @@
 {
   "id": "TASK-052",
   "title": "Connect checkout handoff and verify pending-order runtime",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-007",
   "reqs": ["REQ-018", "REQ-019", "REQ-021"],
@@ -49,7 +49,76 @@
     "Real browser/backend evidence proves one order and reservation set, same-order retry, stock-conflict no-mutation, controlled expiry, released reservations, and cleanup.",
     "No client-calculated tariff, line item, customer ID, or payment-provider result becomes authoritative.",
     "Artifacts contain no PII, credentials, cookies, tokens, production data, or provider payloads.",
-    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+    {
+      "scheduler_decision": "ready",
+      "reason": "TASK-050 and TASK-051 are done with required T3 closure evidence; no blockers or unresolved semantic concerns remain.",
+      "evidence": [
+        ".memory-bank/tasks/TASK-050.task.json",
+        ".memory-bank/tasks/TASK-051.task.json",
+        ".tasks/TASK-051/TASK-051-S-MB-SYNC-final-report-docs-01.md"
+      ],
+      "operator_basis": "Autopilot promotion pass after TASK-051 sync and strict-doctor PASS.",
+      "verification_status": "ready"
+    },
+    {
+      "scheduler_decision": "in_progress",
+      "reason": "TASK-052 packet gate passed and both dependencies are done; scheduler selected the final FT-007 task for sequential execution.",
+      "evidence": [
+        ".memory-bank/packets/TASK-052.packet.json",
+        ".tasks/TASK-052/TASK-052-S-PACKET-final-report-docs-02.md",
+        ".memory-bank/tasks/TASK-050.task.json",
+        ".memory-bank/tasks/TASK-051.task.json"
+      ],
+      "operator_basis": "Scheduler wrote ready -> in_progress only after packet readiness and strict-doctor PASS.",
+      "verification_status": "in_progress"
+    },
+    {
+      "scheduler_decision": "verification_pass",
+      "verdict": "PASS",
+      "reason": "All TASK-052 functional acceptance criteria, current-source gates, scope constraints, privacy checks, and cleanup requirements passed.",
+      "evidence": [
+        ".protocols/TASK-052/verification.md",
+        ".tasks/TASK-052/TASK-052-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-052/playwright/pending-order-browser-report.json",
+        ".tasks/TASK-052/browser-pending-order-20260821-165517.status.json",
+        ".tasks/TASK-052/pending-order-acceptance-20260821.status.json",
+        ".tasks/TASK-052/workspace-build-20260821-165837.status.json",
+        ".tasks/TASK-052/memory-bank-lint-20260821-165837.status.json"
+      ],
+      "operator_basis": "Scheduler-mode functional verification; task remains in_progress pending required T3 semantic review.",
+      "verification_status": "functional_pass",
+      "verified_at": "2026-08-21T16:58:37.4136272+03:00"
+    },
+    {
+      "scheduler_decision": "semantic_pass",
+      "verdict": "semantic-pass",
+      "reason": "Adversarial verification found and remediated the stale-success retry path within TASK-052 scope. The later feature-level review identified a separate expired-key backend reconciliation concern and routed it to TASK-053 without reopening this completed UI/harness slice.",
+      "evidence": [
+        ".protocols/TASK-052/red-verification.md",
+        ".tasks/TASK-052/TASK-052-S-RED-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-052/playwright/pending-order-browser-report.json",
+        ".tasks/TASK-052/browser-pending-order-20260821-165517.status.json"
+      ],
+      "operator_basis": "Required T3 adversarial review after functional PASS and full remediation gate rerun.",
+      "verification_status": "semantic_pass",
+      "verified_at": "2026-08-21T17:00:29.1382657+03:00"
+    },
+    {
+      "scheduler_decision": "done",
+      "verdict": "PASS",
+      "reason": "All required TASK-052 gates passed, per-task semantic review returned semantic-pass, and exact T3 checkpoint and rollback/recovery markers are present.",
+      "evidence": [
+        ".protocols/TASK-052/verification.md",
+        ".protocols/TASK-052/red-verification.md",
+        ".protocols/TASK-052/handoff.md",
+        ".tasks/TASK-052/TASK-052-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-052/TASK-052-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "operator_basis": "Scheduler closure audit after fresh packet, functional PASS, semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+      "verification_status": "closed",
+      "closed_at": "2026-08-21T17:00:29.1382657+03:00"
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-007.md",

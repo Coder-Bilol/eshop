@@ -3,15 +3,19 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { formatCatalogMoney } from "../lib/catalog";
 import {
+  CheckoutClientError,
   createStoreCheckoutClient,
   DELIVERY_METHOD_IDS,
   DELIVERY_METHOD_LABELS,
   PAYMENT_METHOD_IDS,
   PAYMENT_METHOD_LABELS,
+  safeErrorMessage,
   type CheckoutField,
   type DeliveryMethodId,
+  type PendingOrderResult,
   type StoreCheckoutClient,
 } from "../lib/checkout";
+import { readCartReference } from "../lib/cart";
 import {
   createCheckoutStateController,
   type CheckoutState,
@@ -48,23 +52,81 @@ export function AuthenticatedCheckoutContinuation(props: CheckoutFormProps) {
 }
 
 export function CheckoutForm({ client }: CheckoutFormProps) {
+  const checkoutClient = useMemo<StoreCheckoutClient>(
+    () => client ?? createStoreCheckoutClient(),
+    [client]
+  );
   const controller = useMemo<CheckoutStateController>(
     () =>
       createCheckoutStateController({
-        client: client ?? createStoreCheckoutClient(),
+        client: checkoutClient,
       }),
-    [client]
+    [checkoutClient]
   );
   const [state, setState] = useState<CheckoutState>(() => controller.getState());
+  const [pendingOrder, setPendingOrder] = useState<PendingOrderResult | null>(
+    null
+  );
+  const [pendingOrderError, setPendingOrderError] = useState<string | null>(null);
+  const [pendingOrderSubmitting, setPendingOrderSubmitting] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
 
   useEffect(() => controller.subscribe(setState), [controller]);
+  useEffect(() => {
+    if (state.status !== "checkout_validated") {
+      setPendingOrder(null);
+      setPendingOrderError(null);
+      setIdempotencyKey(null);
+    }
+  }, [state.status]);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     void controller.submit();
   }
 
-  const busy = state.status === "checkout_validating";
+  async function submitPendingOrder() {
+    if (!state.handoff || !checkoutClient.createPendingOrder) return;
+
+    const cartReference = readCartReference();
+    if (!cartReference) {
+      setPendingOrderError("Checkout cart could not be confirmed. Return to the cart and try again.");
+      return;
+    }
+
+    const key = idempotencyKey ?? createIdempotencyKey();
+    setIdempotencyKey(key);
+    setPendingOrderSubmitting(true);
+    setPendingOrderError(null);
+    try {
+      const snapshot = state.handoff.snapshot;
+      const result = await checkoutClient.createPendingOrder(
+        {
+          name: snapshot.name,
+          email: snapshot.email,
+          phone: snapshot.phone,
+          city: snapshot.city,
+          ...(snapshot.address ? { address: snapshot.address } : {}),
+          ...(snapshot.comment ? { comment: snapshot.comment } : {}),
+          delivery_method: snapshot.delivery_method,
+          payment_method: state.handoff.payment_id,
+        },
+        cartReference.cart_id,
+        key
+      );
+      setPendingOrder(result);
+      setPendingOrderError(null);
+    } catch (error) {
+      const code = error instanceof CheckoutClientError ? error.code : "checkout_failed";
+      setPendingOrder(null);
+      setPendingOrderError(safeErrorMessage(code));
+    } finally {
+      setPendingOrderSubmitting(false);
+    }
+  }
+
+  const busy =
+    state.status === "checkout_validating" || pendingOrderSubmitting;
   const addressRequired = state.values.delivery_method !== "pickup";
 
   return (
@@ -77,7 +139,14 @@ export function CheckoutForm({ client }: CheckoutFormProps) {
         <p>Details are validated before the next checkout step.</p>
       </header>
 
-      <CheckoutStateMessage state={state} onRetry={() => void controller.retry()} />
+      <CheckoutStateMessage
+        state={state}
+        pendingOrder={pendingOrder}
+        pendingOrderError={pendingOrderError}
+        pendingOrderSubmitting={pendingOrderSubmitting}
+        onRetry={() => void controller.retry()}
+        onSubmitPendingOrder={() => void submitPendingOrder()}
+      />
 
       <form noValidate onSubmit={submit}>
         <section className="catalogFilters" aria-label="Contact details">
@@ -202,19 +271,78 @@ export function CheckoutForm({ client }: CheckoutFormProps) {
 
 function CheckoutStateMessage({
   state,
+  pendingOrder,
+  pendingOrderError,
+  pendingOrderSubmitting,
   onRetry,
+  onSubmitPendingOrder,
 }: {
   state: CheckoutState;
+  pendingOrder: PendingOrderResult | null;
+  pendingOrderError: string | null;
+  pendingOrderSubmitting: boolean;
   onRetry(): void;
+  onSubmitPendingOrder(): void;
 }) {
+  if (pendingOrder) {
+    return (
+      <section
+        className="selectionState selectionState-valid"
+        role="status"
+        data-pending-order-state="created"
+        data-order-id={pendingOrder.order_id}
+      >
+        <strong>Pending order ready</strong>
+        <p>
+          Order <code>{pendingOrder.order_id}</code> is reserved until{" "}
+          <time dateTime={pendingOrder.expires_at}>{pendingOrder.expires_at}</time>.
+        </p>
+        <p>Payment has not been confirmed and no payment provider was called.</p>
+        <button
+          className="addToCartButton"
+          type="button"
+          disabled={pendingOrderSubmitting}
+          onClick={onSubmitPendingOrder}
+        >
+          {pendingOrderSubmitting ? "Retrying handoff..." : "Retry pending-order handoff"}
+        </button>
+      </section>
+    );
+  }
+
+  if (pendingOrderError && state.status === "checkout_validated") {
+    return (
+      <section className="handoffFailure" role="alert" data-pending-order-error="true">
+        <strong>Pending order handoff failed</strong>
+        <p>{pendingOrderError}</p>
+        <button
+          className="addToCartButton"
+          type="button"
+          disabled={pendingOrderSubmitting}
+          onClick={onSubmitPendingOrder}
+        >
+          {pendingOrderSubmitting ? "Retrying handoff..." : "Retry pending-order handoff"}
+        </button>
+      </section>
+    );
+  }
+
   if (state.status === "checkout_validated" && state.handoff) {
     return (
       <section className="selectionState selectionState-valid" role="status" data-checkout-handoff="validated">
         <strong>Checkout details validated</strong>
         <p>
-          The details are ready for the next checkout handoff. No order or payment
-          has been created by this step.
+          The details are ready for the pending-order handoff. No order or payment
+          has been created until you continue.
         </p>
+        <button
+          className="addToCartButton"
+          type="button"
+          disabled={pendingOrderSubmitting}
+          onClick={onSubmitPendingOrder}
+        >
+          {pendingOrderSubmitting ? "Creating pending order..." : "Create pending order"}
+        </button>
       </section>
     );
   }
@@ -313,4 +441,15 @@ function fieldErrorMessage(reason: string) {
 
 function methodLabel(method: DeliveryMethodId) {
   return DELIVERY_METHOD_LABELS[method];
+}
+
+function createIdempotencyKey() {
+  const randomUUID = globalThis.crypto?.randomUUID;
+  if (typeof randomUUID !== "function") {
+    throw new CheckoutClientError(
+      "checkout_failed",
+      "Checkout handoff could not be prepared."
+    );
+  }
+  return randomUUID.call(globalThis.crypto);
 }

@@ -31,7 +31,7 @@ remain with FT-004 and the later FT-007 through FT-010 feature boundaries.
 ## Normative Design Surface
 
 - [.memory-bank/features/FT-006-checkout-delivery-methods.md](../features/FT-006-checkout-delivery-methods.md): feature scope and acceptance criteria.
-- [.memory-bank/prd.md](../prd.md): FR-014 through FR-018, checkout flow, domain vocabulary, and acceptance criteria.
+- [.memory-bank/prd.md](../prd.md): FR-013 through FR-017, checkout flow, domain vocabulary, and acceptance criteria.
 - [.memory-bank/requirements.md](../requirements.md): REQ-013 through REQ-017 and RTM test ownership.
 - [.memory-bank/epics/EP-003-checkout-order-inventory.md](../epics/EP-003-checkout-order-inventory.md): checkout and delivery boundary within EP-003.
 - [.memory-bank/architecture/system-architecture.md](../architecture/system-architecture.md): backend/PostgreSQL ownership, API -> Workflows -> Modules, and no delivery-provider integration.

@@ -1,7 +1,7 @@
 {
   "id": "TASK-051",
   "title": "Expire pending orders and release reservations idempotently",
-  "status": "in_progress",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-007",
   "reqs": ["REQ-019", "REQ-021"],
@@ -65,6 +65,53 @@
       ],
       "operator_basis": "Scheduler wrote ready -> in_progress before fresh Implementer delegation.",
       "verification_status": "in_progress"
+    },
+    {
+      "reviewer_verdict": "PASS",
+      "reason": "TASK-051 satisfies the expiry, guarded no-op, retry, UTC, scope, and safety acceptance criteria with real Medusa/PostgreSQL evidence and all required command gates passing.",
+      "evidence": [
+        ".protocols/TASK-051/verification.md",
+        ".tasks/TASK-051/TASK-051-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-051/pending-order-expiry-integration-20260820-101621.status.json",
+        ".tasks/TASK-051/backend-typecheck-20260820-102418.status.json",
+        ".tasks/TASK-051/workspace-build-20260820-102504.status.json",
+        ".tasks/TASK-051/memory-bank-lint-20260820-103445.status.json"
+      ],
+      "verification_status": "verified",
+      "verdict": "PASS",
+      "scheduler_recommendation": "Leave in_progress pending required T3 per-task semantic-pass and closure markers."
+    },
+    {
+      "semantic_verdict": "semantic-pass",
+      "reason": "Adversarial review confirmed native cancellation owns normal reservation deletion, cleanup retries remain consistent, guarded states are preserved, and no forbidden cross-feature or production behavior was introduced.",
+      "evidence": [
+        ".protocols/TASK-051/red-verification.md",
+        ".protocols/TASK-051/handoff.md",
+        ".tasks/TASK-051/TASK-051-S-RED-VERIFY-final-report-docs-01.md"
+      ],
+      "verification_status": "semantic_verified",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "scheduler_recommendation": "Eligible for T3 closure because functional PASS, semantic-pass, and exact checkpoint/recovery markers are present."
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "TASK-051 passed the required T3 packet/spec, execute, functional, semantic, human-checkpoint, and rollback/recovery gates.",
+      "evidence": [
+        ".tasks/TASK-051/TASK-051-S-IMPL-final-report-code-01.md",
+        ".tasks/TASK-051/TASK-051-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-051/TASK-051-S-RED-VERIFY-final-report-docs-01.md",
+        ".protocols/TASK-051/verification.md",
+        ".protocols/TASK-051/red-verification.md",
+        ".protocols/TASK-051/handoff.md",
+        ".tasks/TASK-051/pending-order-expiry-integration-20260820-101621.status.json",
+        ".tasks/TASK-051/workspace-build-20260820-102504.status.json"
+      ],
+      "verification_status": "verified",
+      "verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present"
     }
   ],
   "docs": [

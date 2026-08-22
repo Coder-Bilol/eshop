@@ -16,22 +16,19 @@ spec_design_links:
 - Buyer logs in through Google OAuth.
 - Buyer logs in through VK ID.
 - Checkout blocks payment until buyer is authenticated.
-- Authenticated buyer sees a trusted identity label in the top-right storefront navigation.
 
 ## Acceptance Criteria
 
-- Covers REQ-010, REQ-011, REQ-012, and the planned REQ-031 authenticated identity label.
+- Covers REQ-010, REQ-011, and REQ-012.
 - Google OAuth login is available.
 - VK ID login is available.
 - Guest buyer cannot proceed to payment until authenticated.
-- When a trusted Telegram username is available, it is shown; otherwise the customer's email is shown.
 
 ## Edge Cases & Failure Modes
 
 - OAuth provider error or canceled login.
 - Existing user returns during checkout.
 - Login succeeds while guest cart exists and must be merged.
-- Authenticated customer has no trusted Telegram username, or the username is malformed/unavailable.
 
 ## Test Strategy Pointers
 
@@ -50,9 +47,6 @@ spec_design_links:
 - Successful login invokes the FT-003 merge handoff before checkout continues.
 - Provider secrets and tokens never enter storefront bundles, URLs after callback
   completion, logs, task evidence, or cart state.
-- The top navigation consumes only a server-returned authenticated customer identity
-  projection. It never reads Telegram username or email from query parameters,
-  browser storage, or unauthenticated client input.
 
 ## Verification Targets
 
@@ -65,8 +59,6 @@ spec_design_links:
 - Live local/staging provider UAT is a human checkpoint when credentials and
   registered callback URLs are available; their absence does not block mocked
   implementation.
-- Browser E2E verifies the authenticated top-right label, Telegram username
-  precedence, email fallback, logout clearing, and guest non-disclosure.
 
 ## Source Artifacts
 
@@ -97,6 +89,3 @@ spec_design_links:
 - Blocking design questions: none.
 - Operational gap: live Google/VK credentials and registered callback URLs are
   required only for human provider UAT, not for implementation with mocks.
-- REQ-031 is planned follow-up scope. Telegram authentication/provider support is
-  not currently implemented by FT-004 and requires a separate provider design or
-  an existing trusted identity source before this requirement can be verified.

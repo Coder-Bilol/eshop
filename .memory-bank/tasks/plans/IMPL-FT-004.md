@@ -86,10 +86,15 @@ ownership are ready.
 | W2 | TASK-032 | Implement the checkout authentication/merge gate and safe return-path continuation. |
 | W3 | TASK-033 | Add real Medusa/PostgreSQL backend auth acceptance with provider doubles. |
 | W3 | TASK-034 | Add real-browser Google/VK login, cart handoff, checkout gate, failure, and logout acceptance. |
+| W2-fix | TASK-043 | Fail closed on malformed or ambiguous OAuth destination queries while preserving exact Google/VK destinations. |
 
 Only TASK-027 is initially ready. Later tasks become ready after indexed dependencies
 are done. All tasks are T3 because they change authentication, sessions, customer
 identity, privacy, or an authorization-sensitive checkout boundary.
+
+Scheduler reconciliation: TASK-027 through TASK-034 and follow-up TASK-043 are
+`done`. TASK-043 closed the final malformed-query bypass with functional `PASS`,
+per-task `semantic-pass`, and the required T3 checkpoint/recovery evidence.
 
 ## Expected Touched Files
 

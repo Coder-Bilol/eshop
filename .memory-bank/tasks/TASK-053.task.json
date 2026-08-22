@@ -1,0 +1,205 @@
+{
+  "id": "TASK-053",
+  "title": "Reject expired pending-order idempotency replay",
+  "status": "done",
+  "wave": "W4",
+  "feature": "FT-007",
+  "reqs": ["REQ-018", "REQ-019", "REQ-021"],
+  "depends_on": ["TASK-052"],
+  "touched_files": [
+    "apps/backend/src/workflows/checkout/create-pending-order.ts",
+    "apps/backend/src/scripts/smoke-pending-order.ts",
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "pending order acceptance",
+      "command": "npm --workspace apps/backend run test:integration -- pending-order-acceptance",
+      "required": true
+    },
+    {
+      "name": "browser pending order acceptance",
+      "command": "npm --workspace apps/storefront run test:e2e -- pending-order",
+      "required": true
+    },
+    {
+      "name": "workspace build",
+      "command": "npm run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
+  ],
+  "verify": [
+    "A same-key request for an expired/canceled pending order returns 409 checkout_idempotency_conflict instead of creating another order.",
+    "The expired replay leaves order and reservation counts unchanged.",
+    "The real browser flow removes the stale success panel and renders only the sanitized conflict after controlled expiry.",
+    "Normal in-window same-key replay still returns the original order and one reservation set.",
+    "No provider call, client authority, production data, secret, or unrelated lifecycle behavior is introduced.",
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+    {
+      "scheduler_decision": "planned",
+      "reason": "FT-007 feature-level adversarial review observed an expired same-key replay returning 201, contradicting the normative stable-conflict contract.",
+      "evidence": [
+        ".protocols/FT-007/red-verification.md",
+        ".tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-01.md",
+        ".memory-bank/contracts/pending-order-api.md",
+        ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md"
+      ],
+      "operator_basis": "Autopilot follow-up created during the mandatory feature semantic gate.",
+      "verification_status": "planned"
+    },
+    {
+      "scheduler_decision": "ready",
+      "reason": "TASK-052 is done, the feature concern is bounded by TASK-053, the canonical packet is ready, and strict doctor found no blocking error.",
+      "evidence": [
+        ".memory-bank/tasks/TASK-052.task.json",
+        ".memory-bank/packets/TASK-053.packet.json",
+        ".tasks/TASK-053/TASK-053-S-PACKET-final-report-docs-01.md",
+        ".protocols/FT-007/red-verification.md"
+      ],
+      "operator_basis": "Scheduler promotion pass after packet/readiness and dependency audit.",
+      "verification_status": "ready",
+      "promoted_at": "2026-08-21T17:06:03.7700352+03:00"
+    },
+    {
+      "scheduler_decision": "in_progress",
+      "reason": "TASK-053 is ready, its only dependency is done, packet R2 matched the promoted task record, and strict doctor passed without warnings.",
+      "evidence": [
+        ".memory-bank/packets/TASK-053.packet.json",
+        ".tasks/TASK-053/TASK-053-S-PACKET-final-report-docs-02.md",
+        ".memory-bank/tasks/TASK-052.task.json"
+      ],
+      "operator_basis": "Scheduler selected the only ready task after the required packet gate.",
+      "verification_status": "in_progress",
+      "selected_at": "2026-08-21T17:06:56.4702458+03:00"
+    },
+    {
+      "scheduler_decision": "verification_pass",
+      "verdict": "PASS",
+      "reason": "All TASK-053 functional criteria, current-source gates, zero-mutation assertions, scope boundaries, privacy, and cleanup requirements passed.",
+      "evidence": [
+        ".protocols/TASK-053/verification.md",
+        ".tasks/TASK-053/TASK-053-S-VERIFY-final-report-docs-01.md",
+        ".tasks/TASK-053/backend-acceptance-20260821.status.json",
+        ".tasks/TASK-053/browser-pending-order-20260821.status.json",
+        ".tasks/TASK-053/playwright/pending-order-browser-report.json",
+        ".tasks/TASK-053/workspace-build-20260821.status.json"
+      ],
+      "operator_basis": "Scheduler-mode functional verification against packet R3 and real local runtime evidence.",
+      "verification_status": "functional_pass",
+      "verified_at": "2026-08-21T18:09:27.8280816+03:00"
+    },
+    {
+      "scheduler_decision": "semantic_pass",
+      "verdict": "semantic-pass",
+      "reason": "Adversarial review confirms the exact terminal-key lookup defect is fixed without valid-replay, mutation, boundary, harness, or architectural regression.",
+      "evidence": [
+        ".protocols/TASK-053/red-verification.md",
+        ".tasks/TASK-053/TASK-053-S-RED-VERIFY-final-report-docs-01.md",
+        ".protocols/TASK-053/handoff.md"
+      ],
+      "operator_basis": "Required T3 adversarial review after functional PASS.",
+      "verification_status": "semantic_pass",
+      "verified_at": "2026-08-21T18:11:05.3560061+03:00"
+    },
+    {
+      "scheduler_decision": "done",
+      "verdict": "PASS",
+      "reason": "Functional PASS, semantic-pass, fresh packet, exact T3 checkpoint/recovery markers, and reproducible cleanup evidence satisfy scheduler closure policy.",
+      "evidence": [
+        ".protocols/TASK-053/verification.md",
+        ".protocols/TASK-053/red-verification.md",
+        ".protocols/TASK-053/handoff.md",
+        ".tasks/TASK-053/TASK-053-S-IMPL-final-report-code-01.md"
+      ],
+      "operator_basis": "Scheduler closure audit after all required T3 gates.",
+      "verification_status": "closed",
+      "closed_at": "2026-08-21T18:11:05.3560061+03:00"
+    }
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/contracts/pending-order-api.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Real Medusa/PostgreSQL counts proving expired same-key conflict without mutation.",
+    "Real browser report proving controlled expiry, sanitized 409, and no stale success panel.",
+    "Typecheck/build/lint, privacy, cleanup, and full T3 closure evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/tasks/plans/IMPL-FT-007.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/contracts/pending-order-api.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/constitution.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use the existing idempotency metadata and reconciliation path; do not add a second ledger or new service.",
+    "Do not change valid in-window replay, cart ownership, reservation, expiry-job, or compensation semantics.",
+    "Do not add FT-008 Admin or FT-009 provider/webhook behavior.",
+    "Publish browser evidence only after synthetic fixture and process cleanup."
+  ],
+  "invariants": [
+    "An idempotency key already bound to an expired order remains bound and cannot create a replacement order.",
+    "Expired replay does not create an order or reservation.",
+    "In-window replay still returns the original pending order.",
+    "The browser never claims payment success."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/pending-order-api.md#errors",
+    ".memory-bank/contracts/pending-order-api.md#idempotency-and-retry",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md#acceptance-coverage",
+    ".memory-bank/testing/index.md#ft-007-pending-order-and-inventory"
+  ],
+  "purpose": "Close the feature-level expired-replay gap without broadening the pending-order architecture.",
+  "success_outcome": "Expired same-key replay deterministically returns sanitized 409 with no new order/reservation in backend and browser evidence.",
+  "anti_goals": [
+    "Do not redesign idempotency storage or add a custom ledger.",
+    "Do not change expiry-job ownership or allow a new order after the bound key expires.",
+    "Do not implement payment provider, webhook, Admin, or production behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-053.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/src/scripts/smoke-pending-order.ts",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "new idempotency database or service",
+      "FT-008 complete lifecycle/Admin projection",
+      "FT-009 payment-provider calls, webhook, or credentials",
+      "Medusa Core source changes",
+      "production data, secrets, direct browser database access"
+    ],
+    "stop_conditions": [
+      "Stable expired-key conflict requires a new ledger or public contract change.",
+      "The fix changes valid in-window replay or expiry cleanup semantics.",
+      "Evidence cannot prove zero mutation on expired replay.",
+      "Cleanup or privacy guarantees cannot be reproduced."
+    ]
+  }
+}

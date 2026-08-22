@@ -2,7 +2,7 @@
 description: Lightweight responsibility and scope boundary notes for decomposition, implementation, and verification.
 status: active
 owner: spec-init
-last_updated: 2026-06-18
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -17,10 +17,10 @@ source_of_truth:
 | Boundary | Purpose | Direction | Owner | Known Constraints | Questions |
 |---|---|---|---|---|---|
 | Storefront | Buyer-facing catalog, cart, login-before-payment, checkout, return/waiting result pages. | Next.js -> Medusa APIs | Storefront / buyer UX | No custom admin replacement; checkout must require login before payment. | Exact UI layout later. |
-| Medusa Extensions | Product/cart/order/workflow/module extension boundary. | API -> Workflows -> Modules | Backend | Do not modify Medusa Core; keep KISS. | Exact Medusa extension points later. |
+| Medusa Extensions | Product/cart/order/workflow/module extension boundary. | API -> Workflows -> Modules | Backend | Do not modify Medusa Core; keep KISS. | FT-007 pending-order/reservation points are resolved; FT-008/FT-009 finalization and Admin projection points remain feature-local. |
 | Auth Providers | Google OAuth and VK ID login. | External provider -> auth/customer identity | Auth module/integration | Security/privacy and T3 task routing likely. | Provider credentials and callback setup later. |
 | ЮKassa Payments | Payment creation, return state, authoritative webhook status. | Store/backend <-> ЮKassa | Payment module/integration | Webhook is source of truth; repeated events must be idempotent. | Local/staging webhook URLs and credentials. |
-| Inventory Reservation | Reserve/release/finalize stock around pending-payment order. | Order workflow -> inventory | Backend workflow/module | 72-hour pending timeout; no data loss. | Exact Medusa stock reservation model later. |
+| Inventory Reservation | Reserve/release/finalize stock around pending-payment order. | Order workflow -> inventory | Backend workflow/module | 72-hour pending timeout; no data loss. | FT-007 native reserve/release is resolved; FT-009 payment-success finalization and refund behavior remain open. |
 | Email Notifications | Pending order, payment success/error, order status change emails. | Order/payment events -> email provider | Notification module/integration | Email provider not selected. | Provider/config later. |
 | Medusa Admin Operations | Operator sees order contacts/products/delivery/payment/order status/amount/payment method. | Backend state -> Medusa Admin | Operations | Medusa Admin is MVP operations surface. | Field visibility/customization later. |
 

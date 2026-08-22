@@ -21,3 +21,6 @@ status: active
 - [.memory-bank/contracts/checkout-delivery-api.md](checkout-delivery-api.md):
   FT-006 authenticated checkout input, delivery/payment IDs, validation errors,
   and FT-007/FT-009 handoff semantics.
+- [.memory-bank/contracts/pending-order-api.md](pending-order-api.md): FT-007
+  authenticated pending-order request, idempotency, conflict, and safe response
+  contract.

@@ -2,7 +2,7 @@
 description: FT-007 state machine for pending orders and inventory reservations.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-16
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/domains/pending-order-inventory-data.md
@@ -13,14 +13,17 @@ source_of_truth:
 ## Logical Order States
 
 ```text
-pending_payment -> paid       (FT-009 webhook-owned transition)
-pending_payment -> canceled   (explicit/cancel flow or expiry)
-pending_payment -> expired    (logical reason recorded with canceled native order)
+global product: pending_payment -> paid      (FT-009 webhook-owned transition)
+global product: pending_payment -> canceled  (explicit cancel or expiry)
+FT-007 projection on expiry: checkout_state pending_payment -> expired
+native Medusa on expiry: status pending -> canceled
 ```
 
-The native Medusa order state is `pending` while the logical state is
-`pending_payment`. FT-007 never marks an order paid and never uses a return page
-as payment authority.
+The native Medusa order state is `pending` while the global product state and
+FT-007 projection are `pending_payment`. On timeout, global/native state becomes
+`canceled`; `checkout_state: expired` records only the logical expiry reason for
+audit and retry guards. FT-007 never marks an order paid and never uses a return
+page as payment authority.
 
 ## Reservation States
 
@@ -67,5 +70,5 @@ faked by this feature.
 | pending_payment -> reserved | reservation items for every managed line, stock changed exactly once |
 | duplicate request -> same order | same idempotency key and no second order/reservation set |
 | stock failure -> no success | no partial order/reservation mutation remains |
-| pending_payment -> expired/canceled | 72-hour UTC guard, native cancel, released reservations |
+| pending_payment -> canceled (`checkout_state: expired`) | 72-hour UTC guard, native cancel, released reservations |
 | canceled/paid -> expiry no-op | state guard and unchanged order/reservation state |

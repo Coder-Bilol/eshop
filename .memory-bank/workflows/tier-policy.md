@@ -127,7 +127,12 @@ Use for APIs, contracts, events, schemas, state machines, lifecycle changes, dat
 
 ## T3 - critical / security / production / irreversible
 
-Use for auth, permissions, secrets, security-sensitive behavior, deploy/runtime or production impact, irreversible migration, data loss, payments, compliance, or destructive operations.
+Use for auth, permissions, secrets, security-sensitive behavior, remote/shared
+deployment or staging/production runtime impact, irreversible migration, data
+loss, payments, compliance, or destructive operations. Safe non-production
+local-development process scripts, environment templates, and disposable local
+runtime tooling are not T3 merely because they start services; route them by
+actual blast radius and cross-module/data scope (normally T1/T2).
 
 - Protocol: full protocol files are required
 - Compact-only protocol: invalid
@@ -143,5 +148,9 @@ Use for auth, permissions, secrets, security-sensitive behavior, deploy/runtime 
 - Docs-only and safe -> `T0`
 - Local, contained, low blast radius -> `T1`
 - API, contracts, state, data, migration, domain logic, or multiple modules -> at least `T2`
-- Auth, security, deploy/runtime, production, irreversible/data-loss, payments, or compliance -> `T3`
+- Auth, security, remote/shared deploy, staging/production runtime impact,
+  irreversible/data-loss, payments, or compliance -> `T3`
+- Safe local-development-only runtime/tooling with no remote/shared environment,
+  live secrets, production data, or availability impact -> `T1`/`T2` by
+  contained versus cross-module/data scope
 - If unsure between two tiers, choose the higher tier

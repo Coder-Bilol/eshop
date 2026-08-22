@@ -36,14 +36,19 @@ Convert authenticated carts into pending orders with delivery data, fixed delive
 
 ## Lifecycle Navigation
 
-- Lifecycle remains `planned`: FT-006 is verified, but FT-007 and FT-008 still own
-  pending-order, inventory, and order-lifecycle work required to complete this
-  epic.
+- Lifecycle remains `planned`: FT-006 and FT-007 are verified, including the
+  authenticated cross-runtime pending-order, reservation, expiry/release, and
+  terminal idempotency boundaries. FT-008 still owns complete order-lifecycle
+  and Medusa Admin visibility, so the epic is not yet implemented/verified.
 - Evidence navigation: [FT-006](../features/FT-006-checkout-delivery-methods.md),
   [IMPL-FT-006](../tasks/plans/IMPL-FT-006.md),
   [TASK-046 sync report](../../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md),
   [TASK-047 verification](../../.tasks/TASK-047/TASK-047-S-VERIFY-final-report-docs-03.md),
-  and [FT-006 feature review](../../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md).
+  [FT-006 feature review](../../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md),
+  [TASK-051 record](../tasks/TASK-051.task.json),
+  [TASK-051 verification](../../.protocols/TASK-051/verification.md),
+  [TASK-053 record](../tasks/TASK-053.task.json), and
+  [FT-007 final feature review](../../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).
 
 ## Constraints / Invariants
 

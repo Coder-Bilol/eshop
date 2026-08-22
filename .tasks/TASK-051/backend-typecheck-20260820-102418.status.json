@@ -1,0 +1,8 @@
+{
+  "command": "npm --workspace apps/backend run typecheck",
+  "timed_out": false,
+  "timeout_seconds": 120,
+  "exit_code": 0,
+  "stdout": ".tasks\\TASK-051\\backend-typecheck-20260820-102418.log",
+  "stderr": ".tasks\\TASK-051\\backend-typecheck-20260820-102418.err.log"
+}

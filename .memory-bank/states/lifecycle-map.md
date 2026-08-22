@@ -2,7 +2,7 @@
 description: Lifecycle hints for decomposition before full state design.
 status: active
 owner: spec-init
-last_updated: 2026-06-18
+last_updated: 2026-08-21
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/domains/core-domain.md
@@ -19,7 +19,8 @@ source_of_truth:
   - `paid -> processing -> completed` through operator workflow.
   - refund/cancel transitions and inventory effects.
 - Questions:
-  - Exact Medusa status mapping and event names must be designed later.
+  - FT-007 pending/expiry mapping is resolved; FT-008/FT-009 still own final
+    paid/processing/Admin projection and event details.
 
 ## Payment
 
@@ -42,7 +43,8 @@ source_of_truth:
   - finalize on successful payment.
   - reverse or compensate on refund.
 - Questions:
-  - Exact stock reservation implementation in Medusa v2 extension model.
+  - FT-007 native reservation creation and timeout release are resolved;
+    payment-success finalization and refund effects remain FT-009/FT-008 work.
 
 ## Cart
 

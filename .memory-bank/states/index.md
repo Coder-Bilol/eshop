@@ -14,3 +14,6 @@ status: active
   OAuth, customer session, cart handoff, checkout gate, and logout lifecycle.
 - [.memory-bank/states/checkout-delivery-validation.md](checkout-delivery-validation.md): FT-006
   validation, unavailable delivery, retry, and no-order/no-payment transitions.
+- [.memory-bank/states/pending-order-inventory-lifecycle.md](pending-order-inventory-lifecycle.md): FT-007
+  pending-order, reservation, expiry/cancellation mapping, retry, and recovery
+  lifecycle.

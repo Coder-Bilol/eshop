@@ -23,6 +23,7 @@ import { DELIVERY_OPTION_IDS } from "../checkout/delivery-options";
 import { pendingOrderExpiresAt } from "../checkout/pending-order";
 import { PAYMENT_IDS } from "../checkout/validation";
 import { createPendingOrderWorkflow } from "../workflows/checkout/create-pending-order";
+import { expirePendingOrderWorkflow } from "../workflows/checkout/expire-pending-order";
 
 const LOCAL_TARIFFS_MINOR_RUB = [0, 50_000, 70_000] as const;
 
@@ -206,6 +207,33 @@ export default async function smokePendingOrder({ container }: ExecArgs) {
       false
     );
 
+    await expirePendingOrderWorkflow(container).run({
+      input: {
+        order_id: created.body.order_id,
+        now: new Date(Date.parse(created.body.expires_at) + 1).toISOString(),
+      },
+    });
+    const expiredOrder = await orderModule.retrieveOrder(created.body.order_id);
+    assert.equal(expiredOrder.status, "canceled");
+    assert.equal(expiredOrder.metadata.checkout_state, "expired");
+    const afterExpiry = await countRecords(orderModule, inventoryModule);
+
+    const expiredReplay = await invokeOrder(
+      container,
+      fixture.customerId,
+      fixture.cartId,
+      `${runId}-create`
+    );
+    assert.equal(expiredReplay.statusCode, 409, JSON.stringify(expiredReplay.body));
+    assert.equal(
+      expiredReplay.body.error.code,
+      "checkout_idempotency_conflict"
+    );
+    assert.deepEqual(
+      await countRecords(orderModule, inventoryModule),
+      afterExpiry
+    );
+
     process.stdout.write(
       `${JSON.stringify(
         {
@@ -235,6 +263,9 @@ export default async function smokePendingOrder({ container }: ExecArgs) {
             changedKeyMetadataPreserved: true,
             changedKeyCountsUnchanged: true,
             mismatchedBodyRejected: true,
+            expiredReplayStatus: expiredReplay.statusCode,
+            expiredReplayRejected: true,
+            expiredReplayCountsUnchanged: true,
           },
           compensation: {
             status: stockConflict.statusCode,
