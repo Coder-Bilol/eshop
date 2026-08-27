@@ -81,6 +81,11 @@ npm run smoke:local
 npm run dev:local:watch
 ```
 
+В Windows можно также запустить `start-local.bat` из корня проекта. Если батник
+запущен из Windows Terminal, команды выполняются в текущей вкладке; при запуске
+двойным кликом открывается новая вкладка Windows Terminal. Батник выводит ссылки
+на storefront, backend и Medusa Admin, затем запускает оба локальных Node.js-процесса.
+
 Шаблоны конфигурации лежат в `.env.example`, `apps/backend/.env.example` и
 `apps/storefront/.env.example`. Реальные `.env` файлы игнорируются git и должны
 содержать только local/non-production значения.

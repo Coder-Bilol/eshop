@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-054-R1",
+  "task_id": "TASK-054",
+  "created_at": "2026-08-22T00:00:00+03:00",
+  "source_task_hash": "sha256:2c66bc8dd3fad7fa8edb9ae5f42084fb3c49221969ae3c59d9fb548f7b461a49",
+  "status": "ready",
+  "tier": "T2",
+  "purpose": "Establish the executable lifecycle vocabulary and guard matrix before cross-module transition work.",
+  "success_outcome": "A deterministic backend projection and guard helper proves the complete FT-008 state machine without adding a second source of truth.",
+  "anti_goals": [
+    "Do not implement provider webhooks, online payment creation, Admin UI, email delivery, or inventory mutation.",
+    "Do not create a custom lifecycle database or replace native Medusa statuses."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-054.task.json",
+    "feature": ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+      ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+      ".memory-bank/contracts/order-lifecycle-admin-api.md",
+      ".memory-bank/domains/order-lifecycle-admin-data.md",
+      ".memory-bank/states/order-lifecycle-admin.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/states/pending-order-inventory-lifecycle.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-008/plan.md",
+      ".protocols/FT-008/decision-log.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/order-lifecycle/types.ts",
+      "apps/backend/src/order-lifecycle/projection.ts",
+      "apps/backend/src/order-lifecycle/guards.ts",
+      "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "YooKassa/provider/webhook implementation",
+      "Admin UI or custom order API",
+      "Medusa Core source",
+      "reservation deletion, direct stock mutation, production data, secrets"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- order-lifecycle-state",
+      "npm --workspace apps/backend run typecheck",
+      "npm run build",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "All six logical states and expired-to-canceled normalization are deterministic.",
+      "Allowed, forbidden, duplicate/no-op, and payment/order disagreement cases match the linked state and contract specs.",
+      "No provider, Admin replacement, direct stock, or second order store is introduced."
+    ],
+    "evidence_required": [
+      "Transition/projection matrix output.",
+      "Expired, duplicate/no-op, disagreement, and reservation-preservation assertions.",
+      "Typecheck/build/lint output."
+    ]
+  },
+  "stop_conditions": [
+    "Installed Medusa native status/payment/fulfillment fields cannot support a truthful projection.",
+    "The transition matrix conflicts with the linked FT-008 state spec or FT-007 expiry contract.",
+    "Verification cannot distinguish a no-op from a real duplicate side effect."
+  ],
+  "required_handoff": [
+    "changed_files",
+    "commands_run",
+    "evidence",
+    "scope_compliance",
+    "blockers_or_none"
+  ]
+}

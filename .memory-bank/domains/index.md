@@ -9,3 +9,4 @@ status: active
 - [.memory-bank/domains/wishlist-data.md](wishlist-data.md): FT-005 wishlist record, ownership, uniqueness, and product visibility data.
 - [.memory-bank/domains/checkout-delivery-data.md](checkout-delivery-data.md): FT-006 checkout fields, delivery options, tariffs, payment IDs, and transient snapshot data.
 - [.memory-bank/domains/pending-order-inventory-data.md](pending-order-inventory-data.md): FT-007 native order metadata, reservation ownership, idempotency, and expiry projection data.
+- [.memory-bank/domains/order-lifecycle-admin-data.md](order-lifecycle-admin-data.md): FT-008 native order/payment/fulfillment ownership and lifecycle metadata projection.

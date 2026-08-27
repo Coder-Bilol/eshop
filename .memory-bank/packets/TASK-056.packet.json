@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-056-R1",
+  "task_id": "TASK-056",
+  "created_at": "2026-08-22T00:00:00+03:00",
+  "source_task_hash": "sha256:edf5408a8e127545695df64fc5c8363c9aa577021cdc69611d929f75094fe86b",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Prove that the native Admin-compatible order detail remains a complete operator projection while lifecycle state changes.",
+  "success_outcome": "A real local fixture demonstrates all required operator fields and native lifecycle projections without a custom Admin surface.",
+  "anti_goals": [
+    "Do not build Admin UI or a custom order route.",
+    "Do not alter production order/payment behavior to make the fixture pass.",
+    "Do not include real customer or provider data in evidence."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-056.task.json",
+    "feature": ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+      ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+      ".memory-bank/contracts/order-lifecycle-admin-api.md",
+      ".memory-bank/domains/order-lifecycle-admin-data.md",
+      ".memory-bank/states/order-lifecycle-admin.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-008/plan.md",
+      ".protocols/FT-008/decision-log.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/scripts/smoke-order-admin-visibility.ts",
+      "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "custom Admin/storefront lifecycle UI or route",
+      "FT-009 live provider/webhook behavior",
+      "production data, secrets, credentials, tokens, cookies, direct stock mutation"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- order-admin-visibility",
+      "npm --workspace apps/backend run typecheck",
+      "npm run build",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Native Admin order detail contains contacts, products, delivery data, payment method/status, order status, total, and checkout_state.",
+      "The installed dashboard exposes metadata through its order detail fields/metadata editor and provides native mark-as-paid and cancel actions.",
+      "Lifecycle fixtures preserve required fields while projecting payment, fulfillment, completion, unpaid cancel, and refund states.",
+      "No custom Admin replacement, direct database browser route, alternate order record, or unsafe fixture mutation is used."
+    ],
+    "evidence_required": [
+      "Native order detail payload with every required operator field.",
+      "Field-preservation and lifecycle projection output.",
+      "Fixture cleanup/privacy and T3 closure evidence."
+    ]
+  },
+  "stop_conditions": [
+    "The native Admin-compatible boundary cannot expose one or more required fields.",
+    "Fixture proof requires a custom Admin replacement or direct database browser access.",
+    "Cleanup cannot be proven isolated from unrelated orders/inventory."
+  ],
+  "required_handoff": [
+    "changed_files",
+    "commands_run",
+    "evidence",
+    "scope_compliance",
+    "blockers_or_none"
+  ]
+}

@@ -21,7 +21,7 @@ constitution_checked: true
 
 The product is an MVP internet shop for home goods, including curtain rods and related categories. The storefront is built with Next.js and TypeScript, the backend uses Medusa v2, TypeScript, and PostgreSQL, and local development is supported through a native Windows 10 setup using local Node.js/npm processes and a local PostgreSQL service.
 
-The primary product path is: browse and filter products, choose a product variant/SKU, add it to a guest cart, log in through Google OAuth or VK ID before payment, enter checkout and delivery data, create a pending order, reserve inventory for 72 hours, process payment through ЮKassa, update order status from the ЮKassa webhook, send email notifications, and operate the order through Medusa Admin.
+The current implementation path is: browse and filter products, choose a product variant/SKU, add it to a guest cart, log in through Google OAuth or VK ID before payment, enter checkout and delivery data, create a pending order, reserve inventory for 72 hours, record a personal payment request, confirm payment and update order status through native Medusa Admin, send email notifications, and operate the order through Medusa Admin. ЮKassa payment, return, and webhook behavior remain a deferred optional FT-009 provider profile and are not prerequisites for FT-008.
 
 Constitution check: passed. The PRD preserves KISS, does not require changing Medusa Core, avoids microservices and enterprise scope, and treats auth, payments, order state, inventory reservation, privacy, and data safety as high-risk areas for tiered verification.
 
@@ -32,8 +32,8 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 - Support guest cart creation and persistence before login.
 - Require Google OAuth or VK ID login before payment.
 - Support checkout with contacts, required phone, delivery method, delivery address data, and payment method.
-- Integrate ЮKassa for cards, СБП, and SberPay.
-- Use ЮKassa webhook as the authoritative payment status source.
+- Keep the current payment path personal/offline and operator-confirmed in native Medusa Admin.
+- Reserve an isolated future scope for ЮKassa cards, СБП, SberPay, and its authoritative webhook profile in FT-009.
 - Create and operate orders in Medusa Admin with clear payment and order status.
 - Keep external integrations isolated as modules and use API -> Workflows -> Modules.
 - Keep local development reproducible on Windows 10 without Docker containers.
@@ -58,7 +58,7 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 - Buyer: browses home goods, adds items to cart, logs in before payment, completes checkout, and receives email notifications.
 - Authenticated customer: has a persisted account through Google OAuth or VK ID, can use wishlist/favorites, and owns carts/orders after login.
 - Store operator: uses Medusa Admin to inspect orders, contacts, products, delivery data, payment status, order status, total amount, and payment method.
-- Payment provider: ЮKassa sends payment status webhooks and handles cards, СБП, and SberPay.
+- Payment provider: future optional FT-009 actor; the current payment authority is the native Medusa Admin operator.
 - Development team: runs and validates the MVP locally on Windows 10 with Node.js/npm and a local PostgreSQL service.
 
 ## Functional Requirements
@@ -93,15 +93,20 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 
 ### Orders, Inventory, and Payment
 
+Current FT-008 profile: the storefront records the price and personal payment
+request only; native Medusa Admin is the authority for payment confirmation and
+order-status operations. The provider/retry/return/webhook requirements below
+remain deferred FT-009 roadmap scope unless explicitly resumed.
+
 - FR-018: The system must create an order before payment with status `pending_payment`.
 - FR-019: Pending-payment orders must reserve inventory.
 - FR-020: Pending-payment orders must allow payment retry.
 - FR-021: Pending-payment orders must expire or cancel automatically after 72 hours if payment is not completed.
 - FR-022: The order lifecycle must support `pending_payment -> paid -> processing -> completed/canceled/refunded`.
-- FR-023: ЮKassa payment must support cards, СБП, and SberPay.
-- FR-024: ЮKassa webhook must be the source of truth for payment status.
-- FR-025: Repeated webhook events must be handled idempotently without duplicate orders or invalid status transitions.
-- FR-026: The return page after payment must show waiting/result state and must not be the authoritative payment confirmation source.
+- FR-023: Deferred FT-009 requirement: ЮKassa payment must support cards, СБП, and SberPay.
+- FR-024: Deferred FT-009 requirement: ЮKassa webhook must be the source of truth for payment status inside that provider profile.
+- FR-025: Deferred FT-009 requirement: repeated webhook events must be handled idempotently without duplicate orders or invalid status transitions.
+- FR-026: Deferred FT-009 requirement: the return page after payment must show waiting/result state and must not be the authoritative payment confirmation source.
 
 ### Notifications and Admin Operations
 
@@ -138,15 +143,17 @@ Constitution check: passed. The PRD preserves KISS, does not require changing Me
 - Delivery Method: pickup, city courier, or transport-company delivery with fixed tariff.
 - Order: commercial record created before payment in `pending_payment`.
 - Inventory Reservation: stock hold linked to a pending-payment order and released or finalized based on lifecycle.
-- Payment: ЮKassa payment attempt/status associated with an order.
-- Payment Webhook Event: provider event used as authoritative payment status input; must be idempotently processed.
+- Payment: personal/offline payment request and native system collection associated with an order; future provider attempts are FT-009 scope.
+- Payment Webhook Event: deferred provider event used as authoritative payment status input only inside FT-009; it must be idempotently processed when that profile is resumed.
 - Email Notification: outbound message for order/payment/status events.
 
 Key status model:
 
 - Order status: `pending_payment`, `paid`, `processing`, `completed`, `canceled`, `refunded`.
 - Pending-payment timeout: 72 hours.
-- Payment source of truth: ЮKassa webhook, not return page.
+- Payment source of truth for the current profile: native Medusa Admin action,
+  not Store/browser state. A future FT-009 provider profile may use a verified
+  webhook; a return page is never authoritative.
 
 ## UX / Interaction Flow
 
@@ -158,10 +165,10 @@ Key status model:
 6. Buyer proceeds to checkout and is required to log in through Google OAuth or VK ID before payment.
 7. If a previous user cart exists, the guest cart merges into it and identical positions are summed.
 8. Buyer enters name, email, required phone, delivery city, address, optional comment, delivery method, and payment method.
-9. System creates `pending_payment` order, reserves stock for 72 hours, and starts payment.
-10. Buyer completes or retries payment through ЮKassa.
-11. Return page shows waiting/result state while payment status is confirmed through webhook.
-12. ЮKassa webhook updates payment/order status idempotently.
+9. System creates `pending_payment` order, reserves stock for 72 hours, and records a personal payment request.
+10. Operator confirms the personal payment and uses native Medusa Admin to mark the unpaid system collection as paid or cancel the unpaid order.
+11. Native Admin fulfillment/completion actions update the remaining order lifecycle; native Admin refund is used for a post-payment correction.
+12. A future FT-009 provider profile may add a return page and verified webhook without becoming current FT-008 authority implicitly.
 13. System sends email notifications for pending order, successful payment, payment error, and order status changes.
 14. Store operator handles the order in Medusa Admin.
 
@@ -172,15 +179,15 @@ Key status model:
 - Next.js storefront.
 - Google OAuth.
 - VK ID.
-- ЮKassa payment integration for cards, СБП, SberPay, return flow, and webhook processing.
+- Deferred optional FT-009 ЮKassa payment integration for cards, СБП, SberPay, return flow, and webhook processing.
 - Email delivery provider or SMTP-style integration to be selected during design/tasking.
 - Native Windows 10 local development using Node.js/npm and local PostgreSQL.
 - Medusa Admin for operations.
 
 Operational details still to resolve during design/tasking:
 
-- Local and staging credentials for ЮKassa.
-- Local and staging webhook URLs/tunneling approach.
+- Local and staging credentials for the deferred FT-009 ЮKassa profile.
+- Local and staging webhook URLs/tunneling approach for the deferred FT-009 profile.
 - Email provider/configuration.
 - Fiscalization/receipt obligations before production launch.
 
@@ -189,8 +196,9 @@ Operational details still to resolve during design/tasking:
 - Guest cart and user cart both contain the same variant/SKU: merge and sum quantity.
 - Buyer abandons payment: order remains `pending_payment`, supports retry, and expires/cancels after 72 hours.
 - Pending-payment timeout elapses: release inventory reservation and transition order to canceled/expired behavior to be finalized in design.
-- ЮKassa sends duplicate webhook: processing must be idempotent and must not create duplicate orders or invalid transitions.
-- Return page loads before webhook arrives: show waiting state and do not mark payment successful from return page alone.
+- Deferred FT-009 edge case: ЮKassa sends duplicate webhook; processing must be idempotent and must not create duplicate orders or invalid transitions.
+- Deferred FT-009 edge case: return page loads before provider webhook arrives;
+  show waiting state and do not mark payment successful from return page alone.
 - Payment fails: keep order recoverable for retry while within pending window and send payment error email.
 - Product variant goes out of stock before order creation: prevent checkout for unavailable quantity.
 - Product variant inventory is reserved by pending order: reflect reduced availability according to inventory design.
@@ -208,9 +216,9 @@ Operational details still to resolve during design/tasking:
 - AC-007: Delivery methods and fixed tariffs are available without external provider integration.
 - AC-008: Order is created as `pending_payment` before payment and reserves inventory.
 - AC-009: Pending-payment order supports retry and expires/cancels after 72 hours.
-- AC-010: ЮKassa card, СБП, and SberPay payment path exists.
-- AC-011: Payment status changes are driven by webhook and handled idempotently.
-- AC-012: Return page does not independently mark payment as successful.
+- AC-010: Deferred FT-009 acceptance: ЮKassa card, СБП, and SberPay payment path exists.
+- AC-011: Current FT-008 payment/status changes are native-Admin-driven and idempotent; deferred FT-009 webhook changes are tested only when that profile is resumed.
+- AC-012: Return page does not independently mark payment as successful; no return page is required by current FT-008.
 - AC-013: Email notifications are emitted for pending order, successful payment, payment error, and order status change.
 - AC-014: Medusa Admin displays order contacts, products, delivery data, payment status, order status, total amount, and payment method.
 - AC-015: Windows 10 native local development path starts or verifies required storefront, backend, and local PostgreSQL services without Docker containers.
@@ -222,8 +230,8 @@ Operational details still to resolve during design/tasking:
 - Use tier policy for all generated task verification.
 - Treat auth, payments, webhooks, order lifecycle, stock reservation, destructive data operations, production/deploy, and compliance work as T3 or higher-risk task areas when decomposed.
 - Use unit tests for local pure logic such as cart merge, status transition guards, timeout calculations, and fixed tariff calculation.
-- Use integration tests for order creation, inventory reservation/release, ЮKassa webhook idempotency, and email trigger boundaries.
-- Use e2e tests for critical buyer flow: browse/filter -> choose variant -> cart -> login -> checkout -> pending order -> simulated payment webhook -> order visible.
+- Use integration tests for order creation, inventory reservation/release, native Admin lifecycle idempotency, and email trigger boundaries. Deferred FT-009 adds ЮKassa webhook idempotency when resumed.
+- Use e2e tests for the current buyer flow: browse/filter -> choose variant -> cart -> login -> checkout -> pending order -> Admin payment confirmation -> order visible. Deferred FT-009 may add a simulated provider webhook flow later.
 - Store substantive evidence under `.tasks/TASK-*` during execution; keep durable conclusions in Memory Bank.
 
 ## Clarifications
@@ -236,8 +244,8 @@ Operational details still to resolve during design/tasking:
 - Order is created before payment as `pending_payment`.
 - Pending-payment timeout is 72 hours.
 - Inventory is reserved during pending-payment period.
-- ЮKassa webhook is authoritative for payment status.
-- Webhook repeats must be handled idempotently.
+- Native Medusa Admin is authoritative for payment/status operations in the current manual profile.
+- A future FT-009 provider webhook may be authoritative inside that profile; repeats must be handled idempotently.
 - Fiscalization/receipts are not implemented in MVP, but remain a legal/payment launch risk.
 - No new clarification questions were asked during `/write-prd`; prior `/brainstorm` and `/constitution` answers were sufficient for PRD decomposition.
 

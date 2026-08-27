@@ -1,0 +1,113 @@
+{
+  "id": "TASK-057",
+  "title": "Run complete manual-payment lifecycle and Admin browser acceptance",
+  "status": "planned",
+  "wave": "W3",
+  "feature": "FT-008",
+  "reqs": ["REQ-022", "REQ-028", "REQ-029"],
+  "depends_on": ["TASK-056"],
+  "touched_files": [
+    "apps/backend/src/scripts/smoke-order-lifecycle-acceptance.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+    "apps/storefront/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "order lifecycle runtime acceptance", "command": "npm --workspace apps/backend run test:integration -- order-lifecycle-acceptance", "required": true},
+    {"name": "order lifecycle Admin browser acceptance", "command": "npm --workspace apps/storefront run test:e2e -- order-lifecycle-admin", "required": true},
+    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
+    {"name": "workspace build", "command": "npm run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "Real compiled Medusa/PostgreSQL runtime creates or reuses one FT-007 pending order with an unpaid native system payment collection, and Admin proves paid/processing/completed/refunded behavior.",
+    "The browser/Admin flow shows contacts, products, delivery data, payment method/status, order status, total, and logical checkout_state on the built-in Admin order detail.",
+    "Admin cancellation of an unpaid order leaves it in the database as canceled, removes it from the active customer cart, releases the existing reservation through the supported path, and rejects a late payment event.",
+    "Reservation state remains held after Admin marks payment paid and is consumed only through native fulfillment; duplicate/contradictory event paths produce no duplicate order, reservation, stock, or lifecycle mutation, and no provider request is made.",
+    "Artifacts are privacy-safe, processes/ports/fixtures are cleaned up, and T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-008.md",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md",
+    ".memory-bank/domains/order-lifecycle-admin-data.md",
+    ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Backend runtime report for lifecycle transitions, native payment/fulfillment status, reservation consumption, terminal guards, and no duplicate mutation.",
+    "Browser/Admin report or trace for all required operator fields and lifecycle states using synthetic content.",
+    "Privacy scan, cleanup/process report, typecheck/build/lint output, and complete T3 functional/semantic/checkpoint/recovery evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/tasks/plans/IMPL-FT-008.md",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md",
+    ".memory-bank/domains/order-lifecycle-admin-data.md",
+    ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
+    ".memory-bank/testing/index.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/constitution.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/contracts/boundary-map.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use the real local Medusa/PostgreSQL/backend/storefront/Admin boundaries and existing synthetic auth/runtime harnesses.",
+    "Use only the native Admin mark-as-paid action over the unpaid system collection; do not call YooKassa, simulate a provider handoff, or add provider credentials.",
+    "Evidence must exclude real PII, production data, secrets, cookies, bearer values, OAuth tokens, session IDs, and raw provider payloads.",
+    "Do not add a custom Admin replacement, direct database browser route, parallel order store, or inventory ledger."
+  ],
+  "invariants": [
+    "Admin-visible fields remain truthful across lifecycle transitions.",
+    "Payment confirmation and every order-status change are native Admin-authoritative and never Store/browser-authoritative.",
+    "Native reservations and inventory changes are observed at the supported fulfillment boundary.",
+    "Cleanup and repeated runs are isolated, deterministic, and recoverable."
+  ],
+  "verification_targets": [
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md#verification-targets",
+    ".memory-bank/architecture/order-lifecycle-admin-runtime.md#runtime-flow",
+    ".memory-bank/states/order-lifecycle-admin.md#verification-matrix",
+    ".memory-bank/testing/index.md#ft-008-order-lifecycle-and-admin"
+  ],
+  "purpose": "Prove the complete FT-008 lifecycle and operator surface through the real local runtime and built-in Admin browser flow.",
+  "success_outcome": "A sanitized backend/browser run demonstrates correct lifecycle state, reservation/inventory behavior, required Admin fields, and safe duplicate/terminal handling.",
+  "anti_goals": [
+    "Do not use live payment/provider mutation or production data.",
+    "Do not alter feature source to satisfy a report-only assertion or hide a native Admin mismatch.",
+    "Do not implement FT-009 return/webhook UI or FT-010 email behavior."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-057.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/scripts/smoke-order-lifecycle-acceptance.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      "apps/storefront/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "YooKassa live calls, credentials, webhook transport, return-page authority",
+      "FT-010 email provider/notification behavior",
+      "custom Admin/storefront order-management UI",
+      "production data, secrets, cookies, tokens, direct database browser access"
+    ],
+    "stop_conditions": [
+      "The real Admin/browser boundary cannot be exercised with an existing local synthetic operator setup.",
+      "Evidence cannot prove native reservation consumption and no duplicate/terminal mutation.",
+      "Acceptance requires a new production auth/bearer mechanism or live provider credentials.",
+      "A discovered implementation defect requires edits outside the scoped lifecycle/Admin acceptance files."
+    ]
+  }
+}

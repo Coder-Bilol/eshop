@@ -17,3 +17,6 @@ status: active
 - [.memory-bank/states/pending-order-inventory-lifecycle.md](pending-order-inventory-lifecycle.md): FT-007
   pending-order, reservation, expiry/cancellation mapping, retry, and recovery
   lifecycle.
+- [.memory-bank/states/order-lifecycle-admin.md](order-lifecycle-admin.md): FT-008
+  logical order states, native Medusa mapping, transition guards, reservation
+  consumption, and Admin verification.

@@ -13,7 +13,7 @@ source_of_truth:
 
 ## System Goal
 
-Build a KISS MVP internet shop for home goods with a Next.js storefront, Medusa v2 backend, PostgreSQL storage, Medusa Admin operations, YooKassa payments, OAuth login, email notifications, and reproducible local development on Windows 10 without Docker containers.
+Build a KISS MVP internet shop for home goods with a Next.js storefront, Medusa v2 backend, PostgreSQL storage, native Medusa Admin operations, personal/offline payment by operator request, OAuth login, email notifications, and reproducible local development on Windows 10 without Docker containers. YooKassa remains a deferred optional payment profile.
 
 The architecture constrains implementation work so agents preserve purchase-flow correctness, avoid Medusa Core changes, and keep payment, order, inventory, auth, and customer data safe.
 
@@ -23,8 +23,11 @@ The architecture constrains implementation work so agents preserve purchase-flow
 - Do not modify Medusa Core.
 - Backend extensions use API -> Workflows -> Modules.
 - External integrations are isolated as modules.
-- YooKassa webhook is the authoritative payment status source.
-- Return pages are never authoritative payment confirmation.
+- Native Medusa Admin is the authoritative payment and order-status operation
+  for the current MVP; the storefront cannot confirm payment or change order
+  status.
+- No online payment redirect, provider webhook, or return-page payment flow is
+  active in the current MVP.
 - Auth, payments, order lifecycle, stock reservation, production/deploy, destructive data, and compliance-sensitive work route through high-tier task policy.
 
 ## Non-goals
@@ -63,7 +66,9 @@ Runtime source-of-truth rules:
 - Product, category, variant/SKU, cart, customer, checkout, order, inventory, and payment records are backend/PostgreSQL concerns exposed through Medusa or custom backend APIs.
 - The storefront may store only non-authoritative client state such as a guest cart reference, UI state, or return-page polling state.
 - OAuth providers are external identity proof sources; local customer/session ownership is still backend-owned.
-- YooKassa webhook owns payment status confirmation. The return page may display waiting/result state but cannot mark payment successful.
+- Native Admin's `paymentCollection.markAsPaid` operation owns payment
+  confirmation in the current MVP. A future YooKassa profile may add a verified
+  webhook, but it is not a dependency of FT-008.
 - Email delivery state is an integration side effect; order/payment state remains backend-owned.
 
 ## Main Modules / Bounded Contexts
@@ -75,7 +80,7 @@ Runtime source-of-truth rules:
 | Cart and customer identity | Medusa backend plus auth integration | Guest cart, customer cart, cart merge, wishlist ownership, OAuth callback handling. | Auth/privacy tasks likely T3. |
 | Checkout and order workflow | Medusa workflows/modules | Contact/delivery/payment selection, pending order creation, order lifecycle. | Must reserve inventory before payment and preserve data. |
 | Inventory reservation | Backend workflow/module | Reserve, release, and finalize stock around pending-payment orders. | State changes require integration evidence. |
-| Payment integration | Isolated backend module | YooKassa payment creation, webhook verification, retry, status mapping, idempotency. | Webhook is source of truth; duplicate events have no duplicate side effects. |
+| Payment integration | Native Medusa system payment + future isolated provider module | Current MVP creates no provider payment; Admin marks the native unpaid collection as paid. YooKassa creation/webhook/retry/idempotency remain deferred. | Storefront cannot confirm payment; future provider events must use a separate verified contract. |
 | Notification integration | Isolated backend module | Email triggers for pending order, payment success/error, and order status change. | Sends follow committed state; duplicate suppression is required where webhook repeats can trigger email. |
 | Admin operations | Medusa Admin | Operator visibility for contacts, products, delivery, payment/order status, total, and payment method. | No custom admin replacement in MVP. |
 | Local development | Windows-native npm scripts and local PostgreSQL | Local storefront/backend/database path and smoke gates. | No Docker containers for local development; no production secrets in repo. |
@@ -86,7 +91,10 @@ Runtime source-of-truth rules:
 2. Cart flow: guest cart is created and updated through backend APIs; browser stores only the cart reference/session data needed to resume.
 3. Login flow: OAuth callback establishes customer identity; if a guest cart exists, backend merge logic sums identical variants/SKU and revalidates stock constraints.
 4. Checkout flow: authenticated customer submits contact, delivery, and payment method data; backend creates a `pending_payment` order and reserves inventory.
-5. Payment flow: backend creates a YooKassa payment attempt; buyer returns to storefront waiting/result page; YooKassa webhook authoritatively updates payment/order status.
+5. Payment flow: the backend records the pending order and its price; the
+   operator contacts the customer personally and uses native Medusa Admin to
+   mark the unpaid payment collection as paid or cancel the unpaid order. No
+   provider request is made by the storefront.
 6. Operations and notifications: backend state updates trigger email notifications and make required fields visible in Medusa Admin.
 
 ```mermaid
@@ -98,9 +106,8 @@ flowchart LR
   Modules --> Postgres[(PostgreSQL)]
   Backend --> Admin[Medusa Admin]
   Modules --> OAuth[Google OAuth / VK ID]
-  Modules --> YooKassa[YooKassa]
-  YooKassa --> Webhook[Webhook endpoint]
-  Webhook --> Workflows
+  Modules --> SystemPayment[Medusa system payment]
+  Admin --> Workflows
   Workflows --> Email[Email provider]
 ```
 
@@ -109,27 +116,25 @@ sequenceDiagram
   participant B as Buyer
   participant S as Storefront
   participant M as Medusa backend
-  participant Y as YooKassa
+  participant A as Medusa Admin
   participant E as Email provider
 
   B->>S: Checkout authenticated cart
   S->>M: Submit contact/delivery/payment data
   M->>M: Create pending_payment order
   M->>M: Reserve inventory
-  M->>Y: Create payment attempt
-  Y-->>B: Payment UI / redirect
-  B->>S: Return page
-  S->>M: Poll waiting/result state
-  Y->>M: Webhook payment status
-  M->>M: Idempotent status transition
+  A->>M: Mark unpaid payment collection as paid or cancel order
+  M->>M: Admin-bound status transition
   M->>E: Send required email
-  S->>B: Show webhook-driven result
+  S->>B: Show backend order state after Admin action
 ```
 
 ## External Integrations
 
 - Google OAuth and VK ID are auth integrations isolated behind backend auth/customer identity boundaries.
-- YooKassa payment creation, return URL handling, and webhook processing live in an isolated payment module/integration.
+- YooKassa payment creation, return URL handling, and webhook processing are a
+  deferred optional provider profile; they are not part of the current MVP or
+  FT-008 runtime.
 - Email provider/SMTP is selected during feature design and must stay isolated behind a notification module.
 - Delivery providers are out of scope; delivery methods use fixed tariffs in backend logic.
 - Local/staging credentials, webhook tunneling, and email provider configuration are feature/design inputs, not hardcoded architecture assumptions.
@@ -158,9 +163,11 @@ sequenceDiagram
 ## Event / Message Model
 
 - No custom event bus, distributed queue, or message broker is part of the MVP backbone.
-- External incoming events are HTTP webhooks, primarily YooKassa.
+- External incoming events may be HTTP webhooks in a future provider profile;
+  none are part of the current manual-payment MVP.
 - Internal side effects may use Medusa workflows/subscribers where appropriate, but business correctness stays in backend workflow/module code with durable state.
-- Email triggers must follow committed order/payment state and must tolerate repeated webhook processing without duplicate customer-visible effects.
+- Email triggers must follow committed order/payment state and must tolerate
+  repeated Admin/native events without duplicate customer-visible effects.
 
 ## Agent I/O Boundary
 
@@ -205,20 +212,22 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 
 ## Risks
 
-- YooKassa local/staging credentials and webhook tunneling are unresolved and must be handled in payment/local-dev feature design.
+- YooKassa local/staging credentials and webhook tunneling are deferred and are
+  not required for the current manual-payment MVP.
 - Fiscalization/receipt duties are out of MVP implementation scope but can block production launch if legal/payment review says they are required.
 - FT-007 resolved pending-order creation, native reservation ownership,
-  expiry/release, and idempotency against Medusa v2.16. Exact payment-success
-  finalization and Admin projection/status mapping remain feature-local design
-  inputs for FT-008 and FT-009.
+  expiry/release, and idempotency against Medusa v2.16. FT-008 resolves logical
+  lifecycle/Admin projection and keeps reservations until native fulfillment
+  consumes them. FT-009 is a deferred provider profile.
 - Email provider/configuration remains unselected and must be decided before notification implementation.
 
 ## Open Questions
 
 - Which email provider or SMTP configuration will be used for MVP local/staging?
-- Which YooKassa local/staging account, webhook URL, and tunneling approach will be available?
-- Which exact FT-008/FT-009 Medusa extension points will own payment-success
-  reservation finalization and final status/Admin field mapping?
+- Which YooKassa local/staging account, webhook URL, and tunneling approach will
+  be available when the optional provider profile is resumed?
+- FT-008's feature-local SDD resolves the manual payment lifecycle projection,
+  native fulfillment reservation boundary, and Admin source binding.
 - Which external backup target will store the paired PostgreSQL dump and
   product-media archive recovery sets for the VPS deployment?
 

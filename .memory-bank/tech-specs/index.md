@@ -20,5 +20,8 @@ status: active
 - [.memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md](FT-007-pending-order-inventory-reservation.md):
   native pending-order, inventory reservation, idempotency, expiry, and
   storefront handoff design hub.
+- [.memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md](FT-008-order-lifecycle-admin-visibility.md):
+  logical order lifecycle, guarded transitions, reservation handoff, and native
+  Medusa Admin visibility design hub.
 - [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](FT-011-windows-native-local-development.md):
   Windows-native local runtime and project scaffold.

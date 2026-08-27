@@ -2,8 +2,17 @@
 description: Feature FT-009 - ЮKassa payment, webhook, and return flow.
 status: draft
 lifecycle: planned
+payment_profile: deferred_optional
 ---
 # FT-009 ЮKassa Payment Webhook Return
+
+## Current MVP Boundary
+
+FT-009 is not a dependency of the current FT-008 implementation. The active MVP
+uses personal/offline payment and native Medusa Admin `Mark as paid`; the
+storefront makes no YooKassa request. When this feature is resumed, it must be
+designed as a separate optional provider profile with an explicit handoff to
+FT-008 and must not silently replace the Admin-only payment authority.
 
 ## Use Cases
 

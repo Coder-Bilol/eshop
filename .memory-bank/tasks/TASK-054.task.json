@@ -1,0 +1,108 @@
+{
+  "id": "TASK-054",
+  "title": "Add manual-Admin lifecycle state model and projection guards",
+  "status": "ready",
+  "wave": "W1",
+  "feature": "FT-008",
+  "reqs": ["REQ-022"],
+  "depends_on": ["TASK-053"],
+  "touched_files": [
+    "apps/backend/src/order-lifecycle/types.ts",
+    "apps/backend/src/order-lifecycle/projection.ts",
+    "apps/backend/src/order-lifecycle/guards.ts",
+    "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T2",
+  "gates": [
+    {"name": "lifecycle state integration", "command": "npm --workspace apps/backend run test:integration -- order-lifecycle-state", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "workspace build", "command": "npm run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "The logical state union covers pending_payment, paid, processing, completed, canceled, and refunded; expired normalizes to canceled with timeout reason.",
+    "Native Medusa status/payment/fulfillment evidence maps deterministically to the logical projection without trusting Store input.",
+    "Allowed transitions and forbidden transitions match the FT-008 state spec: Admin may mark an unpaid order paid or cancel it, while a paid/processing/completed order cannot become canceled and uses native Admin refund.",
+    "Repeated events targeting the current state are safe no-ops and contradictory events leave the source order state unchanged.",
+    "The helper preserves FT-007 metadata and does not add a custom order, Admin, payment, or inventory store."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-008.md",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Deterministic transition/projection matrix output for all allowed and forbidden states.",
+    "Expired-to-canceled, duplicate/no-op, payment/order disagreement, and reservation-preservation assertions.",
+    "Backend typecheck/build and Memory Bank lint output."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/epics/EP-003-checkout-order-inventory.md",
+    ".memory-bank/requirements.md",
+    ".memory-bank/tasks/plans/IMPL-FT-008.md",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md",
+    ".memory-bank/domains/order-lifecycle-admin-data.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use pure/backend-owned projection and guards over native Medusa state; do not modify Medusa Core.",
+    "Treat FT-007 expired as canceled with a timeout reason and preserve all existing metadata keys.",
+    "The current payment profile is personal/offline: only the native Admin payment action may produce paid; do not call a provider or expose a Store lifecycle mutation route.",
+    "Do not delete reservations or mutate stock quantities."
+  ],
+  "invariants": [
+    "Expired, canceled, and refunded orders cannot re-enter paid or processing.",
+    "A paid, processing, or completed order cannot enter canceled; unpaid Admin cancellation remains persisted and does not restore the active cart.",
+    "Projection is deterministic from authoritative native records and logical metadata.",
+    "Duplicate current-state events produce no second transition or side effect."
+  ],
+  "verification_targets": [
+    ".memory-bank/states/order-lifecycle-admin.md#verification-matrix",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md#transition-result",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md#verification-targets"
+  ],
+  "purpose": "Establish the executable lifecycle vocabulary and guard matrix before cross-module transition work.",
+  "success_outcome": "A deterministic backend projection and guard helper proves the complete FT-008 state machine without adding a second source of truth.",
+  "anti_goals": [
+    "Do not implement provider webhooks, online payment creation, Admin UI, email delivery, or inventory mutation.",
+    "Do not create a custom lifecycle database or replace native Medusa statuses."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-054.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/order-lifecycle/types.ts",
+      "apps/backend/src/order-lifecycle/projection.ts",
+      "apps/backend/src/order-lifecycle/guards.ts",
+      "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "YooKassa/provider/webhook implementation",
+      "Admin UI or custom order API",
+      "Medusa Core source",
+      "reservation deletion, direct stock mutation, production data, secrets"
+    ],
+    "stop_conditions": [
+      "Installed Medusa native status/payment/fulfillment fields cannot support a truthful projection.",
+      "The transition matrix conflicts with the linked FT-008 state spec or FT-007 expiry contract.",
+      "Verification cannot distinguish a no-op from a real duplicate side effect."
+    ]
+  }
+}

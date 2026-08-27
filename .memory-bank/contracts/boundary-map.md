@@ -2,7 +2,7 @@
 description: Lightweight responsibility and scope boundary notes for decomposition, implementation, and verification.
 status: active
 owner: spec-init
-last_updated: 2026-08-21
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -17,12 +17,12 @@ source_of_truth:
 | Boundary | Purpose | Direction | Owner | Known Constraints | Questions |
 |---|---|---|---|---|---|
 | Storefront | Buyer-facing catalog, cart, login-before-payment, checkout, return/waiting result pages. | Next.js -> Medusa APIs | Storefront / buyer UX | No custom admin replacement; checkout must require login before payment. | Exact UI layout later. |
-| Medusa Extensions | Product/cart/order/workflow/module extension boundary. | API -> Workflows -> Modules | Backend | Do not modify Medusa Core; keep KISS. | FT-007 pending-order/reservation points are resolved; FT-008/FT-009 finalization and Admin projection points remain feature-local. |
+| Medusa Extensions | Product/cart/order/workflow/module extension boundary. | API -> Workflows -> Modules | Backend | Do not modify Medusa Core; keep KISS. | FT-007 pending-order/reservation points are resolved; FT-008 owns the current Admin/manual lifecycle projection; FT-009 provider work is deferred. |
 | Auth Providers | Google OAuth and VK ID login. | External provider -> auth/customer identity | Auth module/integration | Security/privacy and T3 task routing likely. | Provider credentials and callback setup later. |
-| ЮKassa Payments | Payment creation, return state, authoritative webhook status. | Store/backend <-> ЮKassa | Payment module/integration | Webhook is source of truth; repeated events must be idempotent. | Local/staging webhook URLs and credentials. |
-| Inventory Reservation | Reserve/release/finalize stock around pending-payment order. | Order workflow -> inventory | Backend workflow/module | 72-hour pending timeout; no data loss. | FT-007 native reserve/release is resolved; FT-009 payment-success finalization and refund behavior remain open. |
-| Email Notifications | Pending order, payment success/error, order status change emails. | Order/payment events -> email provider | Notification module/integration | Email provider not selected. | Provider/config later. |
-| Medusa Admin Operations | Operator sees order contacts/products/delivery/payment/order status/amount/payment method. | Backend state -> Medusa Admin | Operations | Medusa Admin is MVP operations surface. | Field visibility/customization later. |
+| Manual Payment / Future ЮKassa | Current personal payment request and native Admin confirmation; future provider creation, return state, and webhook status. | Store/backend -> native Admin; future backend <-> ЮKassa | Backend / future payment module | Current profile has no provider call; future webhook is source of truth only inside the FT-009 profile and repeated events must be idempotent. | Future local/staging provider URLs and credentials. |
+| Inventory Reservation | Reserve/release/consume stock around pending-payment order. | Order workflow -> inventory | Backend workflow/module | 72-hour pending timeout; no data loss. | FT-007 owns reserve/release for unpaid orders; FT-008 keeps holds through payment and native fulfillment consumes them; refunds do not auto-restock. |
+| Email Notifications | Pending order, payment success/error, order status change emails. | Order/payment events -> email provider | Notification module/integration | Email provider not selected. | FT-010 consumes committed lifecycle state; provider/config later. |
+| Medusa Admin Operations | Operator sees order contacts/products/delivery/payment/order status/amount/payment method. | Backend state -> Medusa Admin | Operations | Medusa Admin is MVP operations surface. | FT-008 defines native field/metadata projection; no custom Admin replacement. |
 
 ## Runtime Context Hints
 - Allowed write scope hints: future implementation tasks should keep storefront, backend modules/workflows, integration modules, and local Windows runtime config scoped per feature/task.

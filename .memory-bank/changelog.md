@@ -4,6 +4,54 @@ status: active
 ---
 # Changelog
 
+## [2026-08-27] FT-008 manual Admin payment profile repair
+- Reframed: FT-008 now covers the current personal/offline payment profile;
+  storefront calculates and records the request, while native Medusa Admin is
+  the only payment and order-status authority.
+- Clarified: one unpaid native system payment collection (`pp_system_default`)
+  supports the Admin “Mark as paid” action; no online provider, redirect, or
+  webhook is part of the current FT-008 runtime.
+- Guarded: unpaid Admin cancellation persists `canceled`, removes the order
+  from the active customer cart, and rejects late payment; post-payment
+  correction uses native Admin refund instead of `canceled`.
+- Reconciled: TASK-054 no longer claims REQ-028 coverage, TASK-055/057 use the
+  explicit native Admin mechanism and source binding, and TASK-057 packet gaps
+  are resolved to `ready`.
+- Cleaned: durable requirements/epic navigation no longer links directly to
+  operational task-run artifacts; task records and protocol files remain the
+  navigation surface.
+- Reconciled: global invariants, boundary map, lifecycle hints, pending-order
+  data, Product Brief, PRD, product overview, and core-domain docs now label
+  YooKassa/webhook behavior as deferred FT-009 and use the current Admin/manual
+  authority consistently.
+- Verified: TASK-055's contract anchor and all FT-008 task/packet hashes and
+  write scopes are current; `mb-lint` and `mb-doctor --strict` pass.
+
+## [2026-08-25] FT-006 decomposition closure
+- Closed: FT-006 decomposition for the approved scope after the six-stage
+  Memory Bank review returned `APPROVE`.
+- Verified: `TASK-046` through `TASK-049` remain authoritative `done`, the
+  feature-level semantic gate is `semantic-pass`, and REQ-013 through REQ-017
+  remain `verified`.
+- Verified: `node scripts/mb-lint.mjs` passed for 144 files and
+  `node scripts/mb-doctor.mjs --strict` passed with 0 errors and 0 warnings.
+- Preserved: EP-003 remains `planned`; FT-007 and FT-009 remain downstream
+  owners, and no task promotion or new implementation scope was introduced.
+- Evidence: the FT-006 review remains in operational task-run artifacts;
+  durable navigation is kept in `.protocols/FT-006/plan.md`.
+
+## [2026-08-22] FT-008 feature design and task decomposition
+- Added: FT-008 feature-level SDD hub plus native order-lifecycle/Admin runtime,
+  internal transition contract, durable data projection, and lifecycle state specs.
+- Decided: logical `checkout_state` extends the FT-007 pending projection; native
+  Medusa status remains an Admin-compatible projection, payment keeps holds until
+  native fulfillment consumes them, and refunds do not auto-restock.
+- Added: IMPL-FT-008, protocol plan/decision log, schema-backed TASK-054..TASK-057,
+  and required canonical execution packets with tier routing and handoff scope.
+- Preserved: FT-007 pending-order/expiry ownership, FT-009 provider authenticity
+  and webhook idempotency ownership, FT-010 notification ownership, and the
+  no-custom-Admin/no-Medusa-Core-change boundaries.
+
 ## [2026-08-21] Final review remediation and durable-state reconciliation
 - Reconciled: T2 task, T2 feature, and T3 closure wording now exactly follows
   tier policy across architecture and testing docs.
@@ -276,13 +324,14 @@ status: active
   navigation to the FT-005 feature and implementation plan.
 - Preserved: document `status` values and status taxonomy remain unchanged; no unrelated
   requirement/feature lifecycle, task/queue lifecycle, or packet state was changed.
-- Evidence: [.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md](../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md).
+- Evidence: the FT-005 review remains in operational task-run artifacts;
+  durable navigation is kept in `.protocols/FT-005/plan.md`.
 
 ## [2026-08-11] TASK-042 scheduler closure sync
 - Reconciled: the authoritative TASK-042 record is `done` after final T3 retry 2/2 with
   functional `PASS`, semantic `semantic-pass`, `HUMAN_CHECKPOINT: done`, and
   `ROLLBACK_RECOVERY_NOTE: present`.
-- Linked: all nine final TASK-042 evidence paths resolve under `.tasks/TASK-042/` or
+- Linked: all nine final TASK-042 evidence paths resolve under task-run artifacts or
   `.protocols/TASK-042/`; the RTM and FT-005 implementation plan now reflect the closed
   browser acceptance slice.
 - Preserved: REQ-009, FT-005, and EP-002 remain `planned` pending feature-level semantic
@@ -291,7 +340,7 @@ status: active
 - Reported: packet `PACKET-TASK-042-R3` has a stale `source_task_hash` after scheduler
   closure; it was not refreshed.
 - Checked: Memory Bank lint, task/protocol consistency, and evidence-path reconciliation;
-  details are recorded in `.tasks/TASK-042/TASK-042-S-MB-SYNC-final-report-docs-01.md`.
+  details are recorded in the TASK-042 operational sync report.
 
 ## [2026-08-10] TASK-045 wishlist fixture sales-channel alignment
 - Fixed: the real browser publishable key is passed to the local wishlist acceptance
@@ -323,7 +372,7 @@ status: active
 ## [2026-08-10] TASK-045 scheduler closure sync
 - Reconciled: the authoritative TASK-045 record is `done` with T2 full protocol,
   required packet/spec gates, and functional `PASS`.
-- Linked: all seven authoritative evidence paths resolve under `.tasks/TASK-045/` or
+- Linked: all seven authoritative evidence paths resolve under task-run artifacts or
   `.protocols/TASK-045/`; the RTM and FT-005 implementation plan now include the closed
   acceptance-only sales-channel alignment slice.
 - Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-042 remains `in_progress`.
@@ -332,7 +381,7 @@ status: active
 - Reported: packet `PACKET-TASK-045-R1` has a stale `source_task_hash` after closure;
   it was not refreshed.
 - Checked: Memory Bank lint, task/protocol consistency, and evidence-path reconciliation;
-  details are recorded in `.tasks/TASK-045/TASK-045-S-MB-SYNC-final-report-docs-01.md`.
+  details are recorded in the TASK-045 operational sync report.
 
 ## [2026-08-10] TASK-042 bounded browser lifecycle retry
 - Changed: the real wishlist browser suite now obtains the current provider-double
@@ -361,7 +410,7 @@ status: active
 ## [2026-08-10] TASK-044 scheduler closure sync
 - Reconciled: the authoritative TASK-044 record is `done` with T2 full protocol,
   required packet/spec gates, and functional `PASS`.
-- Linked: all six authoritative evidence paths resolve under `.tasks/TASK-044/` or
+- Linked: all six authoritative evidence paths resolve under task-run artifacts or
   `.protocols/TASK-044/`; the RTM and FT-005 implementation plan now include the closed
   acceptance-only retention slice.
 - Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-042 remains `in_progress`.
@@ -370,7 +419,7 @@ status: active
 - Reported: packet `PACKET-TASK-044-R1` has a stale `source_task_hash` after closure;
   it was not refreshed.
 - Checked: Memory Bank lint and evidence-path reconciliation; details are recorded in
-  `.tasks/TASK-044/TASK-044-S-MB-SYNC-final-report-docs-01.md`.
+  the TASK-044 operational sync report.
 
 ## [2026-08-09] TASK-042 HIGH-gap remediation preflight
 - Blocked: the existing TASK-041 `write/read/cleanup` phase API cannot retain hidden
@@ -412,7 +461,7 @@ status: active
 - Reconciled: the authoritative TASK-041 record is `done` with T3 functional `PASS`,
   semantic `semantic-pass`, `HUMAN_CHECKPOINT: done`, and
   `ROLLBACK_RECOVERY_NOTE: present`.
-- Linked: all eight authoritative TASK-041 evidence paths resolve under `.tasks/TASK-041/`
+- Linked: all eight authoritative TASK-041 evidence paths resolve under task-run artifacts
   or `.protocols/TASK-041/`; RTM and the FT-005 implementation plan now reflect the
   closed backend acceptance slice.
 - Preserved: REQ-009, FT-005, and EP-002 remain `planned`; TASK-042 remains `planned`.
@@ -421,7 +470,7 @@ status: active
 - Reported: packet `PACKET-TASK-041-R3` is stale after closure changed the authoritative
   task-record hash; it was not refreshed.
 - Checked: Memory Bank lint and evidence-path reconciliation; details are recorded in
-  `.tasks/TASK-041/TASK-041-S-MB-SYNC-final-report-docs-01.md`.
+  the TASK-041 operational sync report.
 
 ## [2026-08-08] TASK-040 scheduler closure sync
 - Reconciled: the indexed authoritative TASK-040 record is `done` with the explicit
@@ -435,7 +484,7 @@ status: active
 - Reported: packet `PACKET-TASK-040-R3` has a stale pre-closure `source_task_hash`;
   the packet was not refreshed.
 - Checked: `node scripts/mb-lint.mjs` and evidence-path reconciliation; details are
-  recorded in `.tasks/TASK-040/TASK-040-S-MB-SYNC-final-report-docs-01.md`.
+  recorded in the TASK-040 operational sync report.
 
 ## [2026-08-08] TASK-040 wishlist controls and page execute
 - Added: accessible product-level wishlist controls to catalog and product detail,
@@ -463,7 +512,7 @@ status: active
 - Reported: TASK-039 packet `PACKET-TASK-039-R9` has a stale pre-closure
   `source_task_hash`; the packet was not refreshed.
 - Checked: `node scripts/mb-lint.mjs` passed; hash/evidence details are recorded in
-  `.tasks/TASK-039/TASK-039-S-MB-SYNC-final-report-docs-01.md`.
+  the TASK-039 operational sync report.
 
 ## [2026-08-08] TASK-039 storefront wishlist state execute
 - Added: session-cookie wishlist client and in-memory state controller for the
@@ -1745,7 +1794,7 @@ status: active
 - Added Product Brief, clarified PRD, pre-PRD SDD framing, domain, boundary, lifecycle, and invariant docs for the MVP internet shop.
 - Decomposed the PRD into product, requirements, epics, features, RTM, and testing strategy docs.
 - Added workflow router and synchronized spec registry statuses after the PRD review gate.
-- Recorded operational review evidence under `.tasks/TASK-MB-REVIEW/`.
+- Recorded operational review evidence in task-run artifacts.
 
 ## [2026-06-16] Initial setup
 - Created Memory Bank skeleton

@@ -24,3 +24,5 @@ status: active
 - [.memory-bank/contracts/pending-order-api.md](pending-order-api.md): FT-007
   authenticated pending-order request, idempotency, conflict, and safe response
   contract.
+- [.memory-bank/contracts/order-lifecycle-admin-api.md](order-lifecycle-admin-api.md): FT-008
+  internal guarded lifecycle transition workflow and native Admin read contract.

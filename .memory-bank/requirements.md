@@ -2,7 +2,7 @@
 description: Requirements (REQ IDs) and traceability matrix for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-08-21
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/prd.md
 ---
@@ -45,6 +45,19 @@ source_of_truth:
 - REQ-028: Medusa Admin must show contacts, products, delivery data, payment status, order status, total amount, and payment method.
 - REQ-029: Operators must be able to use Medusa Admin as the MVP order operations surface.
 - REQ-030: The project must provide a Windows 10 native local development path for storefront/backend/database without requiring Docker containers.
+
+## Current MVP Payment Profile
+
+REQ-017 and the FT-008 lifecycle/Admin slice are currently manual/offline: the
+storefront records a personal payment request and calculates the order price;
+only the native Medusa Admin can mark the native payment collection paid or
+change order status in this slice. No online provider, redirect, or webhook is
+required for FT-008. REQ-020 and REQ-023 through REQ-026 remain deferred FT-009
+provider roadmap items. For FT-008, cancellation means canceling an unpaid
+order; it remains in the database as `canceled`, is removed from the active
+customer cart, and a post-payment correction uses native Admin refund rather than
+`canceled`. The pre-existing FT-007 timeout/release path is preserved as a
+separate compatibility boundary and is not expanded by FT-008.
 
 ## Out Of Scope
 
@@ -103,7 +116,7 @@ source_of_truth:
 - REQ-009 is `verified`: all indexed FT-005 tasks (TASK-035..TASK-042, TASK-044,
   TASK-045) are scheduler-closed, and the feature-level review returned
   `SEMANTIC_VERDICT: semantic-pass`, `verdict: APPROVE`, and no findings.
-- Evidence navigation: [FT-005 feature review](../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md)
+- Evidence navigation: [FT-005 protocol plan](../.protocols/FT-005/plan.md)
   and [FT-005 implementation plan](tasks/plans/IMPL-FT-005.md).
 - No unrelated requirement lifecycle or document status taxonomy was changed by this
   reconciliation.
@@ -116,20 +129,22 @@ source_of_truth:
   features are not complete.
 - Evidence navigation: [TASK-046 record](tasks/TASK-046.task.json),
   [TASK-047 record](tasks/TASK-047.task.json), [TASK-048 record](tasks/TASK-048.task.json),
-  [TASK-049 record](tasks/TASK-049.task.json), [FT-006 feature review](../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md),
-  [TASK-049 execute evidence](../.tasks/TASK-049/TASK-049-S-execute-final-report-code-01.md),
-  [TASK-049 verification](../.tasks/TASK-049/TASK-049-S-VERIFY-final-report-docs-04.md),
-  [TASK-049 semantic verification](../.tasks/TASK-049/TASK-049-S-RED-VERIFY-final-report-docs-02.md),
-  [TASK-046 execute evidence](../.tasks/TASK-046/TASK-046-S-execute-final-report-code-02.md),
-  [TASK-046 verification](../.tasks/TASK-046/TASK-046-S-verify-final-report-docs-01.md),
-  [TASK-046 historical STOP_REPORT](../.tasks/TASK-046/TASK-046-S-execute-stop-report-code-01.md),
-  [TASK-046 handoff](../.protocols/TASK-046/handoff.md),
-  [TASK-046 progress](../.protocols/TASK-046/progress.md), and
-  [TASK-046 sync report](../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md).
+  [TASK-049 record](tasks/TASK-049.task.json), [FT-006 protocol plan](../.protocols/FT-006/plan.md),
+  [TASK-049 protocol verification](../.protocols/TASK-049/verification.md),
+  [TASK-049 protocol semantic verification](../.protocols/TASK-049/red-verification.md),
+  [TASK-046 protocol verification](../.protocols/TASK-046/verification.md),
+  [TASK-047 protocol verification](../.protocols/TASK-047/verification.md),
+  [TASK-046 handoff](../.protocols/TASK-046/handoff.md), and
+  [TASK-046 progress](../.protocols/TASK-046/progress.md).
 - Historical blocker preserved: the initial provider/configuration scope conflict was
   resolved through the recorded owner-approved bounded expansion to
   `apps/backend/medusa-config.ts`; the final gates and independent verification then
   passed without changing the Admin-managed source boundary.
+- Decomposition closure: the FT-006 scoped Memory Bank review returned `APPROVE`
+  for all six stages, with strict lint/doctor gates passing. No new task or
+  downstream promotion was inferred by this closure.
+- Review evidence: the FT-006 decomposition review remains in operational
+  task-run artifacts; durable navigation is kept in `../.protocols/FT-006/plan.md`.
 
 - FT-007 scheduler reconciliation: TASK-050 is `done` with functional `PASS`,
   semantic `semantic-pass`, packet readiness, and exact T3 checkpoint/recovery
@@ -137,13 +152,12 @@ source_of_truth:
   because timeout/cancellation work belongs to TASK-051/TASK-052. EP-003 remains
   `planned` and no dependent task promotion was performed.
 - Evidence navigation: [TASK-050 record](tasks/TASK-050.task.json),
-  [TASK-050 verification](../.tasks/TASK-050/TASK-050-S-VERIFY-final-report-docs-03.md),
-  [TASK-050 semantic verification](../.tasks/TASK-050/TASK-050-S-RED-VERIFY-final-report-docs-03.md),
+  [TASK-050 verification](../.protocols/TASK-050/verification.md),
+  [TASK-050 semantic verification](../.protocols/TASK-050/red-verification.md),
   [TASK-050 packet](packets/TASK-050.packet.json),
   [TASK-050 protocol verification](../.protocols/TASK-050/verification.md),
-  [TASK-050 protocol semantic verification](../.protocols/TASK-050/red-verification.md),
-  [TASK-050 handoff](../.protocols/TASK-050/handoff.md), and
-  [TASK-050 integration log](../.tasks/TASK-050/pending-order-integration.log).
+  [TASK-050 protocol semantic verification](../.protocols/TASK-050/red-verification.md), and
+  [TASK-050 handoff](../.protocols/TASK-050/handoff.md).
 
 - TASK-051 scheduler reconciliation: the task is `done` with functional
   `VERDICT: PASS`, per-task `SEMANTIC_VERDICT: semantic-pass`, exact T3
@@ -156,7 +170,7 @@ source_of_truth:
   [verification](../.protocols/TASK-051/verification.md),
   [semantic verification](../.protocols/TASK-051/red-verification.md),
   [handoff](../.protocols/TASK-051/handoff.md), and
-  [integration status](../.tasks/TASK-051/pending-order-expiry-integration-20260820-101621.status.json).
+  [integration verification](../.protocols/TASK-051/verification.md).
 
 - FT-007 final reconciliation: TASK-052 and feature follow-up TASK-053 are
   `done` with functional `PASS`, per-task `semantic-pass`, exact T3 markers,
@@ -168,4 +182,4 @@ source_of_truth:
 - Final evidence: [TASK-053 record](tasks/TASK-053.task.json),
   [functional verification](../.protocols/TASK-053/verification.md),
   [semantic verification](../.protocols/TASK-053/red-verification.md), and
-  [feature review](../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).
+  [feature protocol plan](../.protocols/FT-007/plan.md).

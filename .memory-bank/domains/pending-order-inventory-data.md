@@ -2,7 +2,7 @@
 description: FT-007 durable pending-order and inventory reservation data design.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-21
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/states/order-payment-inventory.md
@@ -20,9 +20,9 @@ feature-scoped metadata; native order fields and line items remain Medusa-owned.
   "checkout_state": "pending_payment",
   "pending_payment_expires_at": "2026-08-19T12:00:00.000Z",
   "checkout_idempotency_key": "opaque-bounded-key",
-  "delivery_method": "pickup",
-  "payment_method": "card",
-  "customer_comment": "optional text"
+  "checkout_delivery_method": "pickup",
+  "checkout_payment_method": "personal_request",
+  "checkout_customer_comment": "optional text"
 }
 ```
 
@@ -34,8 +34,8 @@ feature-scoped metadata; native order fields and line items remain Medusa-owned.
   plus exactly 72 hours.
 - `checkout_idempotency_key` is never logged or returned.
 - Contact and delivery data use native order shipping address/shipping method
-  fields where possible; comment and stable feature IDs remain in metadata until
-  FT-008 defines the final Admin projection.
+  fields where possible; comment, stable feature IDs, and the personal payment
+  method remain in metadata. FT-008 defines the Admin projection for them.
 
 ## Reservation Items
 

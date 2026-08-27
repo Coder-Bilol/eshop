@@ -2,7 +2,7 @@
 description: FT-007 state machine for pending orders and inventory reservations.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-21
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/domains/pending-order-inventory-data.md
@@ -13,8 +13,8 @@ source_of_truth:
 ## Logical Order States
 
 ```text
-global product: pending_payment -> paid      (FT-009 webhook-owned transition)
-global product: pending_payment -> canceled  (explicit cancel or expiry)
+global product: pending_payment -> paid      (native Admin marks unpaid system collection as paid in the current profile)
+global product: pending_payment -> canceled  (native Admin explicit cancel or existing expiry compatibility path)
 FT-007 projection on expiry: checkout_state pending_payment -> expired
 native Medusa on expiry: status pending -> canceled
 ```
@@ -28,13 +28,14 @@ page as payment authority.
 ## Reservation States
 
 ```text
-available -> reserved -> finalized (future payment success owner)
+available -> reserved -> finalized (native fulfillment after Admin payment confirmation)
                     \-> released  (cancel/expiry/payment failure owner)
 ```
 
 In FT-007, creation reaches `reserved`, and expiry/cancel reaches `released`.
-Finalization is a downstream handoff contract for FT-009/FT-008 and must not be
-faked by this feature.
+Finalization is a downstream handoff contract for FT-008 native fulfillment and
+must not be faked by this feature. A future FT-009 provider profile may add its
+own verified handoff without changing the current Admin authority implicitly.
 
 ## Guards
 

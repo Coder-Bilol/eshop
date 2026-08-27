@@ -42,13 +42,13 @@ Convert authenticated carts into pending orders with delivery data, fixed delive
   and Medusa Admin visibility, so the epic is not yet implemented/verified.
 - Evidence navigation: [FT-006](../features/FT-006-checkout-delivery-methods.md),
   [IMPL-FT-006](../tasks/plans/IMPL-FT-006.md),
-  [TASK-046 sync report](../../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md),
-  [TASK-047 verification](../../.tasks/TASK-047/TASK-047-S-VERIFY-final-report-docs-03.md),
-  [FT-006 feature review](../../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md),
+  [TASK-046 protocol verification](../../.protocols/TASK-046/verification.md),
+  [TASK-047 protocol verification](../../.protocols/TASK-047/verification.md),
+  [FT-006 protocol plan](../../.protocols/FT-006/plan.md),
   [TASK-051 record](../tasks/TASK-051.task.json),
   [TASK-051 verification](../../.protocols/TASK-051/verification.md),
   [TASK-053 record](../tasks/TASK-053.task.json), and
-  [FT-007 final feature review](../../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).
+  [FT-007 protocol plan](../../.protocols/FT-007/plan.md).
 
 ## Constraints / Invariants
 

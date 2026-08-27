@@ -2,7 +2,7 @@
 description: Product overview (C4 L1) for the MVP internet shop.
 status: active
 owner: prd
-last_updated: 2026-06-18
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -16,6 +16,13 @@ MVP интернет-магазина товаров для дома, включ
 ## Core Value
 
 Покупатель получает полный путь от поиска товара до оплаченного заказа, а команда сохраняет расширяемую, но простую архитектуру Medusa v2 без изменения Medusa Core и без enterprise-overhead.
+
+## Current Payment Profile
+
+В текущем MVP storefront только формирует цену и записывает запрос на личную
+оплату. Оплата подтверждается оператором через native Medusa Admin; storefront
+не запускает платёжный redirect и не меняет статус заказа. ЮKassa и webhook
+остаются отдельным deferred-профилем для будущего FT-009.
 
 ## Audience
 
@@ -33,8 +40,11 @@ MVP интернет-магазина товаров для дома, включ
 5. Перед оплатой входит через Google OAuth или VK ID.
 6. Гостевая корзина объединяется с пользовательской.
 7. Покупатель заполняет checkout, выбирает доставку и способ оплаты.
-8. Система создает `pending_payment` order, резервирует остатки на 72 часа и запускает оплату через ЮKassa.
-9. ЮKassa webhook авторитетно обновляет payment/order status.
+8. Система создает `pending_payment` order, резервирует остатки на 72 часа и
+   записывает запрос на личную оплату.
+9. Оператор после личного подтверждения использует native Medusa Admin, чтобы
+   отметить native payment collection как paid и выполнить дальнейшие status
+   actions.
 10. Покупатель получает email-уведомления, оператор видит заказ в Medusa Admin.
 
 ## Constraints

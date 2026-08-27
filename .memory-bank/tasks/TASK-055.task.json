@@ -1,0 +1,120 @@
+{
+  "id": "TASK-055",
+  "title": "Implement Admin-bound lifecycle workflow and native system payment handoff",
+  "status": "planned",
+  "wave": "W2",
+  "feature": "FT-008",
+  "reqs": ["REQ-022"],
+  "depends_on": ["TASK-054"],
+  "touched_files": [
+    "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
+    "apps/backend/src/subscribers/order-lifecycle.ts",
+    "apps/backend/src/order-lifecycle/projection.ts",
+    "apps/backend/src/order-lifecycle/guards.ts",
+    "apps/backend/src/workflows/checkout/create-pending-order.ts",
+    "apps/backend/medusa-config.ts",
+    "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+    "apps/backend/test/run-integration.cjs",
+    "apps/backend/package.json",
+    ".memory-bank/changelog.md"
+  ],
+  "tier": "T3",
+  "gates": [
+    {"name": "order lifecycle integration", "command": "npm --workspace apps/backend run test:integration -- order-lifecycle", "required": true},
+    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
+    {"name": "workspace build", "command": "npm run build", "required": true},
+    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+  ],
+  "verify": [
+    "The internal workflow accepts only fixed server-side entrypoints for native Admin events, re-reads the native order under lock, and updates merged lifecycle metadata.",
+    "Each pending order has one unpaid native system payment collection (`pp_system_default`); native Admin `paymentCollection.markAsPaid(...)` changes pending_payment to paid without deleting reservations or directly changing stock, and no external provider is called.",
+    "Native fulfillment-created, completed, unpaid-canceled, and confirmed-refund events project processing/completed/canceled/refunded through the same guards.",
+    "Late payment after expiry/cancellation, paid-order cancellation, contradictory source state, forged/missing Admin context, cross-order binding, and missing order fail closed with no mutation.",
+    "Duplicate event delivery is a safe no-op and does not emit duplicate lifecycle updates; FT-009 provider calls and FT-010 email side effects remain absent.",
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+  ],
+  "docs": [
+    ".memory-bank/tasks/plans/IMPL-FT-008.md",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md",
+    ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/changelog.md"
+  ],
+  "evidence_required": [
+    "Real local Medusa/PostgreSQL workflow evidence for payment, fulfillment, completion, cancel, refund, duplicate, and conflict cases.",
+    "Reservation counts/stock evidence proving payment preserves the hold and native fulfillment consumes it.",
+    "Sanitized logs and privacy scan with no provider payloads, credentials, cookies, tokens, PII, or production data.",
+    "Full T3 protocol, verify, semantic, checkpoint, and rollback/recovery evidence."
+  ],
+  "source_artifacts": [
+    ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/tasks/plans/IMPL-FT-008.md",
+    ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md",
+    ".memory-bank/domains/order-lifecycle-admin-data.md",
+    ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
+    ".memory-bank/architecture/pending-order-runtime.md"
+  ],
+  "normative_inputs": [
+    ".memory-bank/constitution.md",
+    ".memory-bank/architecture/system-architecture.md",
+    ".memory-bank/states/order-payment-inventory.md",
+    ".memory-bank/invariants.md",
+    ".memory-bank/testing/index.md",
+    ".memory-bank/workflows/tier-policy.md"
+  ],
+  "constraints": [
+    "Use supported Medusa workflows/subscribers and the existing order lock; do not modify Medusa Core.",
+    "The current payment profile uses the installed native system provider only to create an unpaid collection that Admin can mark as paid; FT-009 remains a deferred provider profile.",
+    "Only native Admin session/RBAC actions may enter the private transition entrypoints; do not accept caller-supplied source, actor, order binding, or payment state.",
+    "Do not delete payment-success reservations, directly adjust inventory, auto-restock refunds, add a custom Admin route, or send emails."
+  ],
+  "invariants": [
+    "Only current authoritative native state caused by an authenticated Admin action can advance the lifecycle.",
+    "Unpaid Admin cancellation persists the order as canceled, removes it from the active customer cart, releases the existing reservation through the supported cancel/expiry path, and cannot be reversed by a late event.",
+    "A payment-success transition preserves every native reservation until fulfillment.",
+    "Repeated events and retries cannot duplicate lifecycle metadata or cross a terminal state."
+  ],
+  "verification_targets": [
+    ".memory-bank/contracts/order-lifecycle-admin-api.md#error-and-guard-semantics",
+    ".memory-bank/architecture/order-lifecycle-admin-runtime.md#reservation-behavior",
+    ".memory-bank/states/order-lifecycle-admin.md#verification-matrix"
+  ],
+  "purpose": "Connect native Medusa Admin operator events to one guarded, durable lifecycle transition boundary; keep the deferred FT-009 provider profile out of the current runtime.",
+  "success_outcome": "Real local Medusa/PostgreSQL evidence shows correct lifecycle transitions, reservation safety, terminal guards, and idempotent repeats.",
+  "anti_goals": [
+    "Do not implement YooKassa HTTP/webhook/authentication or email provider behavior.",
+    "Do not replace Medusa Admin, create an order read-model table, or change native inventory quantities directly."
+  ],
+  "runtime_context": {
+    "packet_required": true,
+    "packet_ref": ".memory-bank/packets/TASK-055.packet.json",
+    "allowed_write_scope": [
+      "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
+      "apps/backend/src/subscribers/order-lifecycle.ts",
+      "apps/backend/src/order-lifecycle/projection.ts",
+      "apps/backend/src/order-lifecycle/guards.ts",
+      "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/medusa-config.ts",
+      "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "FT-009 provider calls, webhook endpoint, credentials, replay ledger, return page",
+      "FT-010 email provider/notification behavior",
+      "custom Admin or Store lifecycle API",
+      "Medusa Core source, production data, secrets, direct stock mutation"
+    ],
+    "stop_conditions": [
+      "Installed Medusa events or fulfillment workflow do not provide a truthful native handoff.",
+      "Payment-success reservation behavior cannot be proven without deleting or directly mutating stock.",
+      "A conflict requires changing FT-007 expiry semantics or FT-009 provider ownership.",
+      "Full T3 evidence cannot prove no mutation on rejected/duplicate events."
+    ]
+  }
+}

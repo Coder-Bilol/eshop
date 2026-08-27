@@ -85,6 +85,12 @@ For interactive development:
 npm run dev:local:watch
 ```
 
+On Windows, the same startup can be run through `start-local.bat` in the
+repository root. When launched from Windows Terminal, it uses the current tab;
+when launched by double-click, it opens a new Windows Terminal tab. The batch
+file prints the local storefront, backend, and Medusa Admin URLs, then delegates
+startup to the standard `npm run dev:local:watch` command.
+
 Expected services:
 - backend npm process from `apps/backend`;
 - storefront npm process from `apps/storefront`;

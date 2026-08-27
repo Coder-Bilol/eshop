@@ -2,7 +2,7 @@
 description: Implementation plan for FT-006 authenticated checkout delivery methods.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-13
+last_updated: 2026-08-25
 source_of_truth:
   - .memory-bank/features/FT-006-checkout-delivery-methods.md
   - .memory-bank/tech-specs/FT-006-checkout-delivery-methods.md
@@ -16,6 +16,19 @@ Implement the authenticated FT-006 checkout continuation that collects and
 validates contact/delivery/payment selection, resolves the three Admin-managed
 delivery options and initial local tariffs, and hands validated data to FT-007
 and FT-009 without creating an order or invoking a payment provider.
+
+## Decomposition Closure
+
+- Closure date: `2026-08-25`.
+- The FT-006 implementation plan and task queue are closed for the current
+  approved scope. TASK-046 through TASK-049 are authoritative `done`.
+- The scoped Memory Bank review returned `APPROVE` for architecture, scope/RTM,
+  plan/tasks, security, MBB compliance, and code quality.
+- Quality gates passed: `node scripts/mb-lint.mjs` (144 files) and
+  `node scripts/mb-doctor.mjs --strict` (0 errors, 0 warnings).
+- Do not regenerate or extend this decomposition through `/prd-to-tasks FT-006`
+  unless a product, normative-spec, or task-queue change reopens the scope.
+- Review evidence: [FT-006 decomposition review](../../../.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-FT006-final-report-docs-01.md).
 
 ## Source Artifacts
 
@@ -180,9 +193,10 @@ and FT-009 without creating an order or invoking a payment provider.
 
 ## Handoff
 
-- Do not execute tasks from `/prd-to-tasks`.
-- Run structural/schema/packet checks and strict `/mb-doctor` at the feature/task
-  queue boundary after this decomposition.
+- Decomposition closure is complete; no task execution or task-status decision
+  is performed by this plan.
+- Keep EP-003 planned: FT-007 and FT-008 remain downstream boundaries, and FT-009
+  still owns provider integration after the FT-006 payment-ID handoff.
 - TASK-046 has an authoritative scheduler `done` decision after the recorded
   provider/configuration blocker was resolved through the owner-approved bounded
   `apps/backend/medusa-config.ts` scope expansion and the required gates passed.

@@ -65,6 +65,20 @@ status: active
   do not cancel paid/non-pending orders, and do not claim expiry without observing
   reservation cleanup.
 
+## FT-008 Order Lifecycle And Admin
+
+- Unit: logical transition matrix, native status projection, expired-to-canceled
+  normalization, conflict guards, and duplicate/no-op behavior.
+- Integration: payment-success handoff, fulfillment-start reservation consumption,
+  completion/cancellation/refund projections, and unchanged native records on
+  rejected transitions.
+- Admin/runtime: built-in Medusa Admin order detail shows contacts, products,
+  delivery data, payment status, order status, total, and payment method for a
+  synthetic order; no custom Admin route is used.
+- Anti-cheat: do not mark payment successful from a return page, do not delete a
+  reservation on payment capture, do not auto-restock on refund, and do not claim
+  Admin visibility from a report-only fixture.
+
 ## Anti-cheat Rules
 
 - Do not mark payment success from return page alone.

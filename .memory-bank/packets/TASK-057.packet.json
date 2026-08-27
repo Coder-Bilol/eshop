@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-057-R1",
+  "task_id": "TASK-057",
+  "created_at": "2026-08-22T00:00:00+03:00",
+  "source_task_hash": "sha256:051591c63196edc1c40d8be42c20a632a4714df20a9bba426060d26564be9d2c",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Prove the complete FT-008 manual-payment lifecycle and operator surface through the real local runtime and built-in Admin browser flow.",
+  "success_outcome": "A sanitized backend/browser run demonstrates correct lifecycle state, reservation/inventory behavior, required Admin fields, and safe duplicate/terminal handling.",
+  "anti_goals": [
+    "Do not use live payment/provider mutation or production data.",
+    "Do not alter feature source to satisfy a report-only assertion or hide a native Admin mismatch.",
+    "Do not implement FT-009 return/webhook UI or FT-010 email behavior."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-057.task.json",
+    "feature": ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+      ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+      ".memory-bank/contracts/order-lifecycle-admin-api.md",
+      ".memory-bank/domains/order-lifecycle-admin-data.md",
+      ".memory-bank/states/order-lifecycle-admin.md",
+      ".memory-bank/states/pending-order-inventory-lifecycle.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-008/plan.md",
+      ".protocols/FT-008/decision-log.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/scripts/smoke-order-lifecycle-acceptance.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/storefront/e2e/run-real-medusa-e2e.cjs",
+      "apps/storefront/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "YooKassa live calls, credentials, webhook transport, return-page authority",
+      "FT-010 email provider/notification behavior",
+      "custom Admin/storefront order-management UI",
+      "production data, secrets, cookies, tokens, direct database browser access"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- order-lifecycle-acceptance",
+      "npm --workspace apps/storefront run test:e2e -- order-lifecycle-admin",
+      "npm run typecheck",
+      "npm run build",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "Real compiled Medusa/PostgreSQL runtime proves pending_payment through Admin-confirmed paid, processing, completed, unpaid canceled, and refunded behavior.",
+      "Built-in Admin/browser order detail shows every required operator field with synthetic content.",
+      "Admin-confirmed payment preserves reservations, fulfillment consumes them, unpaid cancellation persists the order and removes it from the active cart, duplicate/terminal events do not mutate twice, and no provider request occurs.",
+      "Cleanup, privacy, and recovery assertions are runtime-observed rather than report-only."
+    ],
+    "evidence_required": [
+      "Backend lifecycle/reservation/terminal-state report.",
+      "Browser/Admin trace or report for required fields and state projection.",
+      "Privacy, cleanup, typecheck/build/lint, and full T3 closure evidence."
+    ]
+  },
+  "stop_conditions": [
+    "The real Admin/browser boundary cannot be exercised with an existing local synthetic operator setup.",
+    "Evidence cannot prove native reservation consumption and no duplicate/terminal mutation.",
+    "Acceptance requires a new production auth/bearer mechanism or live provider credentials.",
+    "A discovered implementation defect requires edits outside the scoped lifecycle/Admin acceptance files."
+  ],
+  "required_handoff": [
+    "changed_files",
+    "commands_run",
+    "evidence",
+    "scope_compliance",
+    "blockers_or_none"
+  ]
+}

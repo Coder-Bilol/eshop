@@ -2,7 +2,7 @@
 description: Pure SDD spec registry and planned-spec index.
 status: active
 owner: spec-design
-last_updated: 2026-08-13
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-backbone.md
@@ -49,6 +49,11 @@ source_of_truth:
 | Pending Order API | contract | [.memory-bank/contracts/pending-order-api.md](contracts/pending-order-api.md) | active | /prd-to-tasks FT-007 | Authenticated order-creation request/response, idempotency, logical pending-payment state, and sanitized errors. |
 | Pending Order And Inventory Data | data | [.memory-bank/domains/pending-order-inventory-data.md](domains/pending-order-inventory-data.md) | active | /prd-to-tasks FT-007 | Native Medusa order metadata, line-linked reservation items, expiry metadata, and persistence boundary. |
 | Pending Order And Inventory Lifecycle | state | [.memory-bank/states/pending-order-inventory-lifecycle.md](states/pending-order-inventory-lifecycle.md) | active | /prd-to-tasks FT-007 | Pending-payment, reservation, expiry, cancellation, release, compensation, and downstream finalization guards. |
+| FT-008 Order Lifecycle And Admin Visibility | feature_design | [.memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md](tech-specs/FT-008-order-lifecycle-admin-visibility.md) | active | /spec-improve FT-008 | Feature hub for Admin-only manual payment, guarded lifecycle, reservation handoff, and native Medusa Admin visibility. |
+| FT-008 Order Lifecycle And Admin Runtime | architecture | [.memory-bank/architecture/order-lifecycle-admin-runtime.md](architecture/order-lifecycle-admin-runtime.md) | active | /spec-improve FT-008 | Native Admin order/payment/fulfillment events, manual payment projection, reservation consumption, and Admin read surface. |
+| FT-008 Order Lifecycle And Admin Contract | contract | [.memory-bank/contracts/order-lifecycle-admin-api.md](contracts/order-lifecycle-admin-api.md) | active | /spec-improve FT-008 | Internal Admin-bound transition workflow and native Admin read contract; no custom Store/Admin route. |
+| FT-008 Order Lifecycle And Admin Data | data | [.memory-bank/domains/order-lifecycle-admin-data.md](domains/order-lifecycle-admin-data.md) | active | /spec-improve FT-008 | Native order/payment/fulfillment ownership and manual-payment lifecycle metadata projection. |
+| FT-008 Order Lifecycle And Admin State | state | [.memory-bank/states/order-lifecycle-admin.md](states/order-lifecycle-admin.md) | active | /spec-improve FT-008 | Admin-only lifecycle transitions, native status mapping, guards, reservation behavior, and verification matrix. |
 | FT-011 Windows Native Local Development | feature_design | [.memory-bank/tech-specs/FT-011-windows-native-local-development.md](tech-specs/FT-011-windows-native-local-development.md) | active | /prd-to-tasks FT-011 | Feature-local Windows-native local runtime, project scaffold, database initialization, env templates, and smoke verification design. |
 | Boundary Map | boundary_hints | [.memory-bank/contracts/boundary-map.md](contracts/boundary-map.md) | active | /spec-init | Responsibility and scope boundary notes. |
 | Lifecycle Map | lifecycle_hints | [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) | active | /spec-init | Initial lifecycle hints retained for traceability. |

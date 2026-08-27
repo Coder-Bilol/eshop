@@ -5,6 +5,13 @@ lifecycle: planned
 ---
 # FT-010 Order Email Notifications
 
+## Current MVP Boundary
+
+The current payment-success event is the committed native Medusa Admin
+`Mark as paid` operation, not a provider webhook. FT-010 may later subscribe to
+that committed lifecycle result; a future YooKassa event source is optional and
+must not be assumed by this feature.
+
 ## Use Cases
 
 - System sends email when pending order is created.

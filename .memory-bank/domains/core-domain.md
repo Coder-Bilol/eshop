@@ -2,7 +2,7 @@
 description: Core domain framing for MVP internet shop decomposition.
 status: active
 owner: spec-init
-last_updated: 2026-06-18
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -21,8 +21,8 @@ source_of_truth:
 - Delivery Method: pickup, city courier, or transport-company delivery with fixed tariff.
 - Order: commercial record created before payment in `pending_payment`.
 - Inventory Reservation: stock hold linked to a pending-payment order.
-- Payment: ЮKassa payment attempt/status associated with an order.
-- Payment Webhook Event: authoritative provider event for payment status.
+- Payment: personal/offline payment request and native system collection associated with an order; a future FT-009 provider profile may add provider attempts.
+- Payment Webhook Event: deferred provider event for payment status; not part of the current FT-008 authority.
 - Email Notification: outbound message for order/payment/status events.
 
 ## User Roles
@@ -41,8 +41,8 @@ source_of_truth:
 - Orders are created before payment with `pending_payment` status.
 - Pending-payment orders reserve inventory for 72 hours.
 - Pending-payment orders allow payment retry and then expire/cancel if unpaid.
-- ЮKassa webhook is the source of truth for payment status.
-- Repeated webhook events must be idempotent.
+- Native Medusa Admin is the source of truth for payment/status operations in the current manual profile.
+- Repeated native Admin events must be idempotent; future provider webhook events remain FT-009 scope.
 - Medusa Admin remains the MVP operations surface.
 
 ## Entity States
@@ -50,14 +50,14 @@ source_of_truth:
 - Order: `pending_payment`, `paid`, `processing`, `completed`, `canceled`, `refunded`.
 - Cart ownership: guest-owned, customer-owned, merged.
 - Inventory reservation: reserved, released, finalized.
-- Payment confirmation: waiting, successful, failed/refunded as driven by ЮKassa webhook.
+- Payment confirmation: unpaid, Admin-confirmed, refunded in the current profile; future provider statuses remain FT-009 scope.
 
 ## Lifecycles
 
-- Purchase lifecycle: catalog discovery -> variant selection -> guest cart -> login -> checkout -> pending order -> payment -> admin operation.
+- Purchase lifecycle: catalog discovery -> variant selection -> guest cart -> login -> checkout -> pending order -> personal payment request -> Admin operation.
 - Order lifecycle: `pending_payment -> paid -> processing -> completed/canceled/refunded`.
-- Inventory lifecycle: available -> reserved during pending payment -> finalized on paid or released on timeout/cancel/refund.
-- Payment lifecycle: initiated -> waiting/redirected -> webhook-confirmed success/failure/refund.
+- Inventory lifecycle: available -> reserved during pending payment -> finalized on native fulfillment or released on timeout/cancel/refund.
+- Payment lifecycle: requested/unpaid -> Admin-confirmed -> refunded; future provider retry/webhook states belong to FT-009.
 
 ## Domain Constraints
 

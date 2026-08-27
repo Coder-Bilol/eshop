@@ -15,7 +15,7 @@ type: product-brief
 
 ## 1. One-liner
 
-MVP интернет-магазина товаров для дома на Medusa v2 и Next.js, где пользователь собирает корзину, входит через Google/VK, оформляет доставку, оплачивает через ЮKassa, а заказ управляется в Medusa Admin.
+MVP интернет-магазина товаров для дома на Medusa v2 и Next.js, где пользователь собирает корзину, входит через Google/VK, оформляет доставку и личный запрос на оплату, а заказ подтверждается и управляется в Medusa Admin. ЮKassa — отдельный deferred-профиль будущего FT-009.
 
 ## 2. Target Users
 
@@ -39,7 +39,7 @@ MVP интернет-магазина товаров для дома на Medusa
 
 ## 6. Product Concept
 
-Storefront показывает товары для дома с категориями, умеренными фильтрами и карточками товаров с вариантами/SKU. Пользователь может собрать гостевую корзину, но перед оплатой должен войти через Google OAuth или VK ID. Checkout собирает контакты, телефон, способ доставки и способ оплаты. Заказ создается до оплаты в состоянии `pending_payment`, резервирует остатки на 72 часа, затем обновляется по authoritative webhook от ЮKassa. Оператор видит заказ и ключевые статусы в Medusa Admin.
+Storefront показывает товары для дома с категориями, умеренными фильтрами и карточками товаров с вариантами/SKU. Пользователь может собрать гостевую корзину, но перед оплатой должен войти через Google OAuth или VK ID. Checkout собирает контакты, телефон, способ доставки и запрос на личную оплату. Заказ создается до оплаты в состоянии `pending_payment`, резервирует остатки на 72 часа, затем оператор подтверждает оплату и меняет status через native Medusa Admin. Будущий FT-009 может добавить ЮKassa/webhook как отдельный provider profile.
 
 ## 7. MVP Scope
 
@@ -51,8 +51,8 @@ Storefront показывает товары для дома с категори
 - Авторизация через Google OAuth и VK ID.
 - Checkout: имя, email, обязательный телефон, город, адрес, комментарий, способ доставки, способ оплаты.
 - Доставка без внешних интеграций: самовывоз, курьер по городу, транспортная компания; фиксированные тарифы по способу.
-- Оплата через ЮKassa: карты, СБП, SberPay.
-- Webhook ЮKassa как source of truth для статуса оплаты; повторные события обрабатываются идемпотентно.
+- Личная/offline оплата: storefront фиксирует запрос и цену, native Admin отмечает unpaid system collection как paid.
+- ЮKassa и webhook как source of truth остаются deferred FT-009 profile; повторные Admin/native события также обрабатываются идемпотентно в FT-008.
 - Жизненный цикл заказа: `pending_payment -> paid -> processing -> completed/canceled/refunded`.
 - Pending-заказы: retry оплаты, резерв остатков и автоматическое истечение/отмена через 72 часа.
 - Email-уведомления: pending-заказ, успешная оплата, ошибка оплаты, изменение статуса.
@@ -78,7 +78,7 @@ Storefront показывает товары для дома с категори
 
 - Покупатель может найти товар, выбрать вариант, добавить его в корзину и пройти checkout.
 - Гостевая корзина сохраняется между сессиями и корректно объединяется после входа.
-- Оплата через ЮKassa обновляет заказ через webhook без дублей при повторных событиях.
+- Оператор подтверждает личную оплату в native Admin, после чего заказ обновляется без дублей при повторных native событиях.
 - Pending-заказы резервируют остатки и истекают через 72 часа.
 - Оператор видит заказ и ключевые статусы в Medusa Admin.
 - Локальный dev-контур поднимается на Windows 10 без Docker containers.
@@ -108,16 +108,16 @@ Storefront показывает товары для дома с категори
 - Pending-order stock reservation for 72 hours can reduce available inventory if many payments are abandoned.
 - Cart merge rules can create unexpected quantities if not clearly shown to the user.
 - Fiscalization/receipts may become mandatory before production launch depending on legal/business setup.
-- OAuth provider setup and webhook URLs can slow local/staging validation.
+- OAuth provider setup can slow local/staging validation; future provider webhook setup is deferred and does not block the current profile.
 
 ## 13. Open Questions
 
-- Which environment credentials and webhook URLs are required for local and staging ЮKassa development?
+- Which environment credentials and webhook URLs will be required when the deferred FT-009 ЮKassa profile is resumed?
 - What exact fiscalization/receipt obligations apply before production launch?
 
 ## 14. PRD Input Summary
 
-Proceed to PRD with one primary purchase journey: browse/filter home goods, choose product variant, use guest cart, log in before payment, checkout with delivery/contact data, create pending order, reserve stock for 72 hours, process ЮKassa payment via webhook, update order status, notify by email, and operate through Medusa Admin. Treat payment idempotency, cart merge, stock reservation, fiscalization risk, and local webhook setup as PRD/spec focus areas.
+Proceed to PRD with the current primary purchase journey: browse/filter home goods, choose product variant, use guest cart, log in before payment, checkout with delivery/contact data, create pending order, reserve stock for 72 hours, record a personal payment request, confirm payment and status in native Medusa Admin, notify by email, and operate through Medusa Admin. Treat payment idempotency, cart merge, stock reservation, fiscalization risk, and the deferred FT-009 provider profile as PRD/spec focus areas.
 
 ## Decision
 

@@ -18,7 +18,11 @@ status: active
 - Blocking finding: the last verified public VPS SSH policy permits password
   authentication for `root`; operator policy forbids disabling it and the VPS
   provider currently blocks server access while resolving provider-side errors.
-- Strict doctor: PASS, 0 errors/warnings, 53/53 tasks done.
+- Strict doctor: PASS, 0 errors/warnings. Current queue snapshot: 53 done,
+  1 ready, 3 planned.
+- Preflight halt on 2026-08-22: no worker session was started because the
+  latest review verdict is not `APPROVE`; the latest review also predates the
+  FT-008 continuation (`TASK-054..057`).
 
 ## Blocking Questions / Assumptions
 - Blocking question: resolved. Operator approved the bounded scope expansion to
@@ -28,9 +32,9 @@ status: active
   from TASK-047 closure; no route-scoped parser or custom parser adapter is in scope.
 
 ## Queue State
-- Current snapshot: 53 done, 0 ready, 0 planned, 0 in_progress, 0 blocked,
-  0 failed, 0 invalid. The JSON queue is terminal; final review is rejected on
-  the external production SSH P1, not on task/dependency state.
+- Current snapshot: 53 done, 1 ready, 3 planned, 0 in_progress, 0 blocked,
+  0 failed, 0 invalid. `TASK-054` is dependency-ready, but selection is
+  halted by the review gate; `TASK-055..057` remain planned.
 - Reopened scheduler run for the four-task FT-006 continuation after the prior
   45-task terminal snapshot; no prior task was reopened.
 - Selected: `TASK-046` (`T2`); packet gate passed; dependency `TASK-015` done; owner-approved

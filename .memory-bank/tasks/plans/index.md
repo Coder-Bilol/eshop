@@ -20,5 +20,8 @@ status: active
 - [.memory-bank/tasks/plans/IMPL-FT-007.md](IMPL-FT-007.md): native pending-order
   creation, inventory reservation, 72-hour expiry/release, storefront handoff,
   and terminal idempotency remediation waves.
+- [.memory-bank/tasks/plans/IMPL-FT-008.md](IMPL-FT-008.md): logical order
+  lifecycle, guarded native Medusa transitions, reservation consumption, and
+  Admin visibility acceptance waves.
 - [.memory-bank/tasks/plans/IMPL-FT-011.md](IMPL-FT-011.md): Windows-native
   local development foundation implementation waves.

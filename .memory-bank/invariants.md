@@ -2,7 +2,7 @@
 description: Глобальные инварианты и запреты проекта (MUST/NEVER).
 status: active
 owner: spec-init
-last_updated: 2026-06-18
+last_updated: 2026-08-27
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -13,8 +13,11 @@ source_of_truth:
 - Preserve KISS and medium-complexity scope for MVP.
 - Use Medusa extension boundaries: API -> Workflows -> Modules.
 - Isolate external integrations as modules.
-- Treat ЮKassa webhook as the authoritative payment status source.
-- Handle repeated payment webhook events idempotently.
+- Treat native Medusa Admin as the authoritative payment/status boundary for the
+  current personal/offline profile. A future FT-009 provider profile may define
+  a verified webhook source separately.
+- Handle repeated native Admin events idempotently; future provider webhook
+  repeats remain FT-009 scope.
 - Preserve customer/cart/order/payment/inventory data; no data loss.
 - Reserve inventory while an order is in `pending_payment`.
 - Expire or cancel unpaid pending-payment orders after 72 hours.

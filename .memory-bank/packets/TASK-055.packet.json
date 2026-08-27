@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "packet_id": "PACKET-TASK-055-R1",
+  "task_id": "TASK-055",
+  "created_at": "2026-08-22T00:00:00+03:00",
+  "source_task_hash": "sha256:126a19c842edb2491d9b712acfde25c01afc46e9635bf4fee89a5a7d8a1867b3",
+  "status": "ready",
+  "tier": "T3",
+  "purpose": "Connect native Medusa Admin operator events to one guarded, durable lifecycle transition boundary; keep the deferred FT-009 provider profile out of the current runtime.",
+  "success_outcome": "Real local Medusa/PostgreSQL evidence shows correct lifecycle transitions, reservation safety, terminal guards, and idempotent repeats.",
+  "anti_goals": [
+    "Do not implement YooKassa HTTP/webhook/authentication or email provider behavior.",
+    "Do not replace Medusa Admin, create an order read-model table, or change native inventory quantities directly."
+  ],
+  "source_refs": {
+    "task": ".memory-bank/tasks/TASK-055.task.json",
+    "feature": ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
+    "specs": [
+      ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+      ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+      ".memory-bank/contracts/order-lifecycle-admin-api.md",
+      ".memory-bank/domains/order-lifecycle-admin-data.md",
+      ".memory-bank/states/order-lifecycle-admin.md",
+      ".memory-bank/states/order-payment-inventory.md",
+      ".memory-bank/architecture/pending-order-runtime.md",
+      ".memory-bank/states/pending-order-inventory-lifecycle.md",
+      ".memory-bank/architecture/system-architecture.md",
+      ".memory-bank/testing/index.md",
+      ".memory-bank/workflows/tier-policy.md"
+    ],
+    "guides": [],
+    "protocols": [
+      ".protocols/FT-008/plan.md",
+      ".protocols/FT-008/decision-log.md"
+    ]
+  },
+  "scope": {
+    "allowed_write_scope": [
+      "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
+      "apps/backend/src/subscribers/order-lifecycle.ts",
+      "apps/backend/src/order-lifecycle/projection.ts",
+      "apps/backend/src/order-lifecycle/guards.ts",
+      "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/medusa-config.ts",
+      "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/test/run-integration.cjs",
+      "apps/backend/package.json",
+      ".memory-bank/changelog.md"
+    ],
+    "forbidden_scope": [
+      "FT-009 provider calls, webhook endpoint, credentials, replay ledger, return page",
+      "FT-010 email provider/notification behavior",
+      "custom Admin or Store lifecycle API",
+      "Medusa Core source, production data, secrets, direct stock mutation"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "npm --workspace apps/backend run test:integration -- order-lifecycle",
+      "npm --workspace apps/backend run typecheck",
+      "npm run build",
+      "node scripts/mb-lint.mjs"
+    ],
+    "success_checks": [
+      "One unpaid native system collection (`pp_system_default`) is available per pending order; native Admin mark-as-paid projects pending_payment to paid and leaves reservations unchanged without an external provider call.",
+      "Native fulfillment/completion/unpaid-cancel/refund events use one guarded workflow and preserve required metadata.",
+      "Late, contradictory, paid-order-cancel, forged/missing Admin context, cross-order, missing-order, and duplicate events fail closed or no-op without mutation.",
+      "No provider call, email side effect, custom Admin route, direct stock mutation, or reservation deletion on payment is observed."
+    ],
+    "evidence_required": [
+      "Real Medusa/PostgreSQL lifecycle workflow output.",
+      "Reservation/stock before-and-after evidence for payment and fulfillment.",
+      "Sanitized privacy/cleanup output and full T3 protocol evidence."
+    ]
+  },
+  "stop_conditions": [
+    "Installed Medusa events or fulfillment workflow do not provide a truthful native handoff.",
+    "Payment-success reservation behavior cannot be proven without deleting or directly mutating stock.",
+    "A conflict requires changing FT-007 expiry semantics or FT-009 provider ownership.",
+    "Full T3 evidence cannot prove no mutation on rejected/duplicate events."
+  ],
+  "required_handoff": [
+    "changed_files",
+    "commands_run",
+    "evidence",
+    "scope_compliance",
+    "blockers_or_none"
+  ]
+}

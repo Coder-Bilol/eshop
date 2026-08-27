@@ -25,12 +25,14 @@ source_of_truth:
 - Lifecycle map: authoritative; see [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) and [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md).
 
 ## Open Design Questions
-- YooKassa local/staging credentials and webhook URL/tunneling setup: non-blocking for global backbone; blocks payment/local-dev feature implementation until resolved.
+- YooKassa local/staging credentials and webhook URL/tunneling setup: deferred
+  optional provider profile; does not block the current manual-payment MVP or
+  FT-008 implementation.
 - Fiscalization/receipt obligations before production launch: non-blocking for MVP implementation because fiscalization is out of scope; blocks production launch if legal/payment review requires receipts.
 - FT-007 has resolved pending-order/native-status mapping, stock reservation,
-  expiry/release, and idempotency. Exact payment-success finalization and final
-  Admin/status projection remain non-blocking global questions that FT-008 and
-  FT-009 must resolve in feature-level design.
+  expiry/release, and idempotency. FT-008 resolves the Admin-only logical
+  lifecycle projection and keeps holds until native fulfillment consumes them;
+  FT-009 remains a deferred optional provider profile.
 - Email provider/configuration: non-blocking for global backbone; must be resolved before FT-010 implementation.
 - Remote server deployment target: operational runbook exists in [DEPLOYMENT.md](../DEPLOYMENT.md) for AlmaLinux VPS, Docker Compose application containers, and host-level Caddy automatic HTTPS; actual production deploy work remains T3.
 
@@ -44,10 +46,10 @@ source_of_truth:
 | constraints | authoritative | [.memory-bank/constitution.md](constitution.md); [.memory-bank/invariants.md](invariants.md); [.memory-bank/prd.md](prd.md) | KISS, no Medusa Core modification, high-tier routing for sensitive areas. |
 | non_goals | authoritative | [.memory-bank/prd.md](prd.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | MVP exclusions remain unchanged. |
 | domain_model | authoritative | [.memory-bank/domains/core-domain.md](domains/core-domain.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | Shared vocabulary and lifecycle guardrails are ready for feature-local design. |
-| data_flow | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Catalog, cart/login, checkout/order, payment webhook, notifications/admin flows documented. |
+| data_flow | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Catalog, cart/login, checkout/order, Admin payment/status, notifications, and deferred provider flow documented. |
 | storage | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md); [DEPLOYMENT.md](../DEPLOYMENT.md) | PostgreSQL is the only durable structured/database store; deployment-owned persistent media is the durable blob store; browser state is non-authoritative. |
 | api_contracts | authoritative | [.memory-bank/contracts/api-guidelines.md](contracts/api-guidelines.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Endpoint-level schemas remain feature-local. |
-| event_message_contracts | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | No custom event bus; HTTP webhooks and Medusa-local side effects only. |
+| event_message_contracts | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md) | No custom event bus; native Admin/Medusa-local side effects now, future HTTP webhooks only in a separate provider profile. |
 | agent_io_contracts | not_applicable | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | not_applicable - product has no runtime AI/agent/chat I/O boundary. |
 | security_safety | authoritative | [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md); [.memory-bank/invariants.md](invariants.md); [.memory-bank/workflows/tier-policy.md](workflows/tier-policy.md) | Auth, payment, order, inventory, deploy, and compliance-sensitive work route high tier. |
 | testing_strategy | authoritative | [.memory-bank/testing/index.md](testing/index.md); [.memory-bank/workflows/tier-policy.md](workflows/tier-policy.md); [.memory-bank/architecture/system-architecture.md](architecture/system-architecture.md) | Unit/integration/e2e and T2/T3 verification requirements are linked. |
