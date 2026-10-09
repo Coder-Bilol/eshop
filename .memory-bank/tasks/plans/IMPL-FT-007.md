@@ -136,5 +136,5 @@ are verified; FT-008/FT-009 boundaries remain unchanged.
 
 Evidence: [TASK-053 verification](../../../.protocols/TASK-053/verification.md),
 [TASK-053 red verification](../../../.protocols/TASK-053/red-verification.md),
-[TASK-053 sync report](../../../.tasks/TASK-053/TASK-053-S-MB-SYNC-final-report-docs-01.md),
-and [FT-007 feature review](../../../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).
+[TASK-053 sync handoff](../../../.protocols/TASK-053/handoff.md),
+and [FT-007 feature review](../../../.protocols/FT-007/red-verification.md).

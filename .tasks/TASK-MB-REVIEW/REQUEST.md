@@ -10,8 +10,10 @@ protocol context, and relevant FT-007/FT-009 handoffs. Review surrounding
 Memory Bank governance and queue rules only insofar as they affect FT-008
 readiness, correctness, traceability, or safe execution.
 
-Existing reports in this folder are historical and are not stage verdicts for
-this run. This run uses the `-12` report set after the FT-008 remediation.
+Existing reports in this folder, including rejected report set `-17`, are
+historical and are not stage verdicts for this run. This run uses the `-18`
+report set after the reservation-linkage protection and Medusa refund-model
+remediation found by S-01 in set `-17`.
 
 ## Mode
 
@@ -55,28 +57,50 @@ this run. This run uses the `-12` report set after the FT-008 remediation.
 - Current FT-008 payment is personal/offline: the storefront calculates and
   records the price/request; native Admin is the only payment and status
   authority, using one unpaid native system collection (`pp_system_default`).
-- Unpaid native Admin cancellation persists the order as `canceled`, removes it
-  from the active customer cart, and rejects late payment. Paid/processing/
-  completed orders use native Admin refund rather than post-payment cancel.
-- Source/actor/order binding is server-side and fixed to authenticated native
-  Admin events; no Store-supplied `source`/`caller` is trusted.
+- New FT-006/FT-007 checkout requests accept only `personal_request`. Existing
+  orders with `card|sbp|sberpay` preserve that value as a legacy offline-request
+  label; FT-008 must not rewrite it or treat it as provider/payment proof.
+- Native Admin cancellation is authoritative for pending/paid/processing
+  orders when installed Medusa preconditions allow it; the native workflow owns
+  captured-payment refund and reservation cleanup, while completed-order
+  correction uses native refund/return. Cancellation persists `canceled`,
+  removes the order from the active customer cart, and rejects late payment.
+- Native Admin auth/RBAC authorizes the originating native operation. FT-008
+  subscribers accept only known server-internal event notifications, re-read
+  native records, and do not fabricate actor identity because the installed
+  event bus does not carry `req.auth_context`.
+- Partial refunds preserve the current logical state. `refunded` requires
+  persisted native refunds (or authoritative `raw_refunded_amount`) to cover
+  all persisted native captures (or `raw_captured_amount`) for the bound
+  payment collection within native currency precision, re-evaluated from
+  authoritative records for duplicate/out-of-order events without assuming
+  capture/refund status fields absent from installed Medusa DTOs.
+- The generic Admin metadata editor/API must reject or preserve changes/deletion
+  across the complete workflow-owned key set defined by the data/API specs,
+  explicitly including `checkout_reservation_item_ids` and
+  `checkout_reservation_line_ids`; explicitly unrelated operator metadata
+  remains editable.
+- Shared architecture/state/testing docs make webhook idempotency, simulated
+  provider events, and return-page behavior conditional FT-009-only targets.
+  Current FT-008 acceptance is native-Admin-driven.
 - The installed Medusa dashboard mechanism is explicit: order `metadata` is in
   `DEFAULT_FIELDS`, `showMetadata`/`showJSON` and metadata edit are available,
   and native `paymentCollection.markAsPaid(...)` / `order.cancel(...)` are the
   operator actions.
 - RTM plan coverage is `TASK-054/055/057 -> REQ-022` and
   `TASK-056/057 -> REQ-028/REQ-029`; all FT-008 packets are `ready` with fresh
-  hashes, including TASK-057.
+  hashes, including TASK-057. These claims must be revalidated against the
+  current files and gates, not treated as pre-approved evidence.
 
 ## Expected result
 
 Each stage writes a fresh report to:
 
-- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-01-final-report-docs-12.md`
-- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-02-final-report-docs-12.md`
-- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-03-final-report-docs-12.md`
-- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-04-final-report-docs-12.md`
-- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-05-final-report-docs-12.md`
+- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-01-final-report-docs-18.md`
+- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-02-final-report-docs-18.md`
+- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-03-final-report-docs-18.md`
+- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-04-final-report-docs-18.md`
+- `.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-05-final-report-docs-18.md`
 
 Each report must end with exact `VERDICT: APPROVE` or `VERDICT: REJECT`.
 A single blocking `REJECT` requires a fix list and repeated review after

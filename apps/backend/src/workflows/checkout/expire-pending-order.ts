@@ -91,6 +91,7 @@ const markExpiryCleanupPendingStep = createStep(
       metadata: {
         ...input.metadata,
         checkout_state: "expired",
+        checkout_expiry_origin: "ft-007",
         checkout_expiry_reason: "payment_timeout",
         checkout_expiry_cleanup: "pending",
       },
@@ -121,6 +122,7 @@ const markExpiryCleanupCompleteStep = createStep(
       metadata: {
         ...metadata,
         checkout_state: "expired",
+        checkout_expiry_origin: "ft-007",
         checkout_expiry_reason: "payment_timeout",
         checkout_expiry_cleanup: "complete",
       },
@@ -141,19 +143,9 @@ export const expirePendingOrderWorkflow = createWorkflow(
     acquireLockStep({ key: lockKey, timeout: 5, retryInterval: 0.1, ttl: 120 });
 
     const candidate = loadExpiryCandidateStep(input);
-    const canceled = when(
-      "ft-007-cancel-expired-pending-order",
-      { candidate },
-      ({ candidate }) => candidate.action === "cancel"
-    ).then(() =>
-      cancelOrderWorkflow.runAsStep({
-        input: { order_id: candidate.order.id },
-      })
-    );
-
     const cleanupPending = when(
       "ft-007-persist-expiry-cleanup-state",
-      { candidate, canceled },
+      { candidate },
       ({ candidate }) => candidate.action !== "skip"
     ).then(() =>
       markExpiryCleanupPendingStep({
@@ -162,6 +154,16 @@ export const expirePendingOrderWorkflow = createWorkflow(
           candidate.order.metadata && typeof candidate.order.metadata === "object"
             ? candidate.order.metadata
             : {},
+      })
+    );
+
+    const canceled = when(
+      "ft-007-cancel-expired-pending-order",
+      { candidate, cleanupPending },
+      ({ candidate }) => candidate.action === "cancel"
+    ).then(() =>
+      cancelOrderWorkflow.runAsStep({
+        input: { order_id: candidate.order.id },
       })
     );
 

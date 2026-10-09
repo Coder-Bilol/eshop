@@ -59,7 +59,7 @@ spec_design_links:
 - Lifecycle: `verified` after all indexed FT-005 tasks (TASK-035..TASK-042, TASK-044,
   TASK-045) reached scheduler-owned `done` and the feature-level semantic review returned
   `SEMANTIC_VERDICT: semantic-pass`, `verdict: APPROVE`, and no findings.
-- Evidence: [.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md](../../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md).
+- Evidence: [TASK-045 verification](../../.protocols/TASK-045/verification.md).
 - Task and RTM navigation: [IMPL-FT-005](../tasks/plans/IMPL-FT-005.md) and
   [requirements RTM](../requirements.md).
 

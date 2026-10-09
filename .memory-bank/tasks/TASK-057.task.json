@@ -24,8 +24,10 @@
   "verify": [
     "Real compiled Medusa/PostgreSQL runtime creates or reuses one FT-007 pending order with an unpaid native system payment collection, and Admin proves paid/processing/completed/refunded behavior.",
     "The browser/Admin flow shows contacts, products, delivery data, payment method/status, order status, total, and logical checkout_state on the built-in Admin order detail.",
-    "Admin cancellation of an unpaid order leaves it in the database as canceled, removes it from the active customer cart, releases the existing reservation through the supported path, and rejects a late payment event.",
+    "The end-to-end current checkout creates personal_request metadata, while a controlled legacy fixture preserves card/sbp/sberpay as a historical offline-request label without invoking or implying a provider payment.",
+    "Admin cancellation of a pending or paid order, when native preconditions allow it, leaves it in the database as canceled, removes it from the active customer cart, applies native refund/reservation-cleanup semantics where relevant, keeps cancellation-origin refund projection canceled, and rejects a late payment event.",
     "Reservation state remains held after Admin marks payment paid and is consumed only through native fulfillment; duplicate/contradictory event paths produce no duplicate order, reservation, stock, or lifecycle mutation, and no provider request is made.",
+    "The runtime/browser acceptance proves Store, customer, unauthenticated, and unauthorized-Admin lifecycle attempts are denied, no protected workflow key (including checkout_reservation_item_ids and checkout_reservation_line_ids) can be changed/deleted through metadata editor/API, cross-order and forged event references fail closed, partial refunds preserve state, cumulative full refund is required for refunded, and concurrent or out-of-order events cannot mutate a terminal order.",
     "Artifacts are privacy-safe, processes/ports/fixtures are cleaned up, and T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
   ],
   "docs": [
@@ -41,6 +43,7 @@
   "evidence_required": [
     "Backend runtime report for lifecycle transitions, native payment/fulfillment status, reservation consumption, terminal guards, and no duplicate mutation.",
     "Browser/Admin report or trace for all required operator fields and lifecycle states using synthetic content.",
+    "Sanitized negative-path report for authorization denial, every protected workflow key including checkout_reservation_item_ids and checkout_reservation_line_ids, cancellation-origin/single partial/cumulative partial/final full refund, allow-listing, same-order binding, late/terminal events, duplicate/replay, and concurrent transition races.",
     "Privacy scan, cleanup/process report, typecheck/build/lint output, and complete T3 functional/semantic/checkpoint/recovery evidence."
   ],
   "source_artifacts": [

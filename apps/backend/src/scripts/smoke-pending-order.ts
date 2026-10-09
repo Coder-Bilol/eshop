@@ -93,7 +93,7 @@ export default async function smokePendingOrder({ container }: ExecArgs) {
     );
     assert.equal(created.statusCode, 201, JSON.stringify(created.body));
     assert.equal(created.body.status, "pending_payment");
-    assert.equal(created.body.payment_id, "card");
+    assert.equal(created.body.payment_id, "personal_request");
     assert.equal(
       Date.parse(created.body.expires_at) - Date.now() > 71 * 60 * 60 * 1000,
       true

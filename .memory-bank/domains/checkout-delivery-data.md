@@ -2,7 +2,7 @@
 description: FT-006 checkout contact, delivery option, tariff, and transient handoff data specification.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-13
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/tech-specs/FT-006-checkout-delivery-methods.md
   - .memory-bank/architecture/checkout-delivery-runtime.md
@@ -24,7 +24,7 @@ FT-006 accepts the following checkout input for an authenticated buyer:
 | `address` | Required for `city_courier` and `transport_company`; not required for `pickup`. |
 | `comment` | Optional; backend-normalized and safe-length-bounded when supplied. |
 | `delivery_method` | Stable ID: `pickup`, `city_courier`, or `transport_company`. |
-| `payment_method` | Stable ID: `card`, `sbp`, or `sberpay`. |
+| `payment_method` | Stable current-MVP ID: `personal_request`; not a provider rail. |
 
 Normalization occurs before length checks. Exact numeric safe limits are an
 implementation-level assumption because BR-002 intentionally did not select
@@ -55,13 +55,13 @@ contact fields, applicable city/address/comment, selected stable delivery ID,
 resolved RUB tariff, and selected payment ID.
 
 - FT-007 consumes the checkout snapshot for its pending-order boundary.
-- FT-009 consumes only the selected payment ID for its payment boundary.
+- FT-007 persists `personal_request` with the pending order. Deferred FT-009
+  defines its own provider selection rather than reinterpreting this value.
 - FT-006 does not persist the snapshot as an order or custom durable record.
 - FT-006 does not include provider payment identifiers or payment credentials.
 
-Exact downstream transport and persistence remain owned by FT-007 and FT-009;
-this feature defines the data semantics they receive without duplicating their
-contracts.
+Exact downstream transport and persistence remain owned by FT-007. FT-009 owns
+its future provider-specific contract; this feature does not predefine it.
 
 ## Data Invariants
 

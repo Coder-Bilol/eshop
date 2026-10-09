@@ -88,7 +88,8 @@ Storefront показывает товары для дома с категори
 - Backend: Medusa v2, TypeScript, PostgreSQL.
 - Frontend: Next.js, TypeScript.
 - Auth: Google OAuth, VK ID.
-- Payments: ЮKassa для карт, СБП, SberPay.
+- Payments: текущий MVP использует `personal_request` и native Admin
+  confirmation; карты, СБП и SberPay относятся только к deferred FT-009.
 - Architecture: API -> Workflows -> Modules.
 - External integrations must be isolated as modules.
 - KISS: keep MVP narrow and operationally understandable.

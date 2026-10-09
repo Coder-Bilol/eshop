@@ -2,7 +2,7 @@
 description: FT-006 logical API and downstream handoff contract for checkout delivery validation.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-13
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/tech-specs/FT-006-checkout-delivery-methods.md
   - .memory-bank/domains/checkout-delivery-data.md
@@ -30,7 +30,7 @@ The request is a JSON object with these fields:
   "address": "...",
   "comment": "...",
   "delivery_method": "pickup",
-  "payment_method": "card"
+  "payment_method": "personal_request"
 }
 ```
 
@@ -40,7 +40,9 @@ The request is a JSON object with these fields:
 - `comment` is optional.
 - `delivery_method` accepts only `pickup`, `city_courier`, or
   `transport_company`.
-- `payment_method` accepts only `card`, `sbp`, or `sberpay`.
+- `payment_method` accepts only `personal_request` in the current MVP. Legacy
+  `card`, `sbp`, and `sberpay` values are not accepted for new checkout
+  requests; existing orders retain them as non-provider historical labels.
 - The backend normalizes string input before applying safe length limits and
   validation. Numeric limits are implementation-owned safe bounds, not client
   authority; they must be covered by tests and not bypassable by the UI.
@@ -52,13 +54,13 @@ The request is a JSON object with these fields:
 
 The successful logical result contains the selected stable delivery ID, the
 tariff resolved from configured Medusa Shipping Options in RUB, the validated
-contact/delivery fields required by the selected method, the optional comment,
-the selected payment ID for FT-009, and a validated checkout snapshot for FT-007.
+ contact/delivery fields required by the selected method, the optional comment,
+the `personal_request` ID, and a validated checkout snapshot for FT-007.
 
 The snapshot is transient FT-006 output. It is not an order, payment attempt,
 inventory reservation, or durable custom checkout record. FT-007 owns its exact
-order-creation transport and persistence boundary; FT-009 owns its exact
-payment-selection consumption boundary.
+order-creation transport and persistence boundary. FT-009 must add a separate
+provider-selection contract if resumed.
 
 ## Errors
 

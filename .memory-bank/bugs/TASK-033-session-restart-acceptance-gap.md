@@ -28,8 +28,8 @@ Auth/Customer JSON has no session-like fields.
 ## Evidence
 
 - `.protocols/TASK-033/verification.md`
-- `.tasks/TASK-033/verify-functional-gates-code-01.md`
-- `.tasks/TASK-033/TASK-033-S-VERIFY-final-report-code-01.md`
+- The failed functional gate and the missing real HTTP boundary proof are
+  recorded in the TASK-033 verification protocol.
 
 ## Required Resolution
 

@@ -2,7 +2,7 @@
 description: FT-006 checkout validation and unavailable-delivery recovery state specification.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-13
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/tech-specs/FT-006-checkout-delivery-methods.md
   - .memory-bank/contracts/checkout-delivery-api.md
@@ -14,8 +14,9 @@ source_of_truth:
 ## Scope
 
 This is transient validation/UI state, not the order or payment lifecycle.
-FT-004 owns authentication readiness; FT-007 owns order state after handoff;
-FT-009 owns payment state after payment selection is consumed.
+FT-004 owns authentication readiness; FT-007 consumes the current
+`personal_request` selection and owns order state after handoff. FT-009 owns
+future provider-specific selection and payment state only when resumed.
 
 ## States
 

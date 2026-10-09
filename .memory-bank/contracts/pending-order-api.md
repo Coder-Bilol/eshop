@@ -2,7 +2,7 @@
 description: FT-007 API contract for authenticated pending-order creation.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-16
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/architecture/pending-order-runtime.md
@@ -28,7 +28,7 @@ sanitized error envelope.
   "address": "...",
   "comment": "...",
   "delivery_method": "pickup",
-  "payment_method": "card"
+  "payment_method": "personal_request"
 }
 ```
 
@@ -49,7 +49,7 @@ HTTP `201`:
   "order_id": "order_opaque_id",
   "status": "pending_payment",
   "expires_at": "2026-08-19T12:00:00.000Z",
-  "payment_id": "card"
+  "payment_id": "personal_request"
 }
 ```
 
@@ -77,8 +77,9 @@ HTTP `201`:
 - A failed attempt must either compensate to no pending order/reservation or
   return a recoverable sanitized failure; it must not silently create a second
   order on retry.
-- Payment retry after order creation is owned by FT-009. FT-007 only exposes the
-  pending state and expiry guard that FT-009 must check.
+- Current payment confirmation after order creation is owned by native Admin in
+  FT-008. FT-007 returns `personal_request`; deferred FT-009 must define a
+  separate provider-selection and retry handoff when resumed.
 
 ## Security Invariants
 

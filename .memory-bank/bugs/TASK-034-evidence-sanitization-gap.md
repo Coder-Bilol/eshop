@@ -26,12 +26,13 @@ cart IDs, contrary to the linked auth/cart logging and evidence contracts.
 ## Evidence
 
 - `.protocols/TASK-034/verification.md`
-- `.tasks/TASK-034/verify-functional-gates-code-01.md`
+- The functional-gate result and sanitization findings are recorded in the
+  TASK-034 verification protocol.
 
 ## Required Resolution
 
 - Redact callback query values and full cart/customer/session identifiers before
-  writing backend runtime logs under `.tasks/TASK-034/`.
+  writing backend runtime evidence.
 - Scan text, screenshots, traces, reports, browser storage, console, and network
   artifacts without printing matched sensitive values.
 - Repeat the complete browser acceptance and require a clean artifact scan before
@@ -48,5 +49,5 @@ cart IDs, contrary to the linked auth/cart logging and evidence contracts.
 - Generated text logs, screenshots, and decompressed trace content pass a count-only
   privacy scan with zero token, secret, session, raw callback, customer email, or
   full customer/cart identifier matches.
-- Evidence: `.tasks/TASK-034/execute-remediation-local-gates-code-01.md` and
-  `.tasks/TASK-034/playwright/`.
+- The remediation gates, repeated browser traces, and privacy scan are recorded
+  in the TASK-034 task record and verification protocol.

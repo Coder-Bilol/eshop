@@ -2,7 +2,7 @@
 description: Pre-PRD spec framing and global SDD backbone state.
 status: active
 owner: spec-design
-last_updated: 2026-08-21
+last_updated: 2026-08-28
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/spec-index.md
@@ -31,8 +31,9 @@ source_of_truth:
 - Fiscalization/receipt obligations before production launch: non-blocking for MVP implementation because fiscalization is out of scope; blocks production launch if legal/payment review requires receipts.
 - FT-007 has resolved pending-order/native-status mapping, stock reservation,
   expiry/release, and idempotency. FT-008 resolves the Admin-only logical
-  lifecycle projection and keeps holds until native fulfillment consumes them;
-  FT-009 remains a deferred optional provider profile.
+  lifecycle projection, native Admin cancellation/refund semantics, and keeps
+  holds until native fulfillment consumes them; FT-009 remains a deferred
+  optional provider profile.
 - Email provider/configuration: non-blocking for global backbone; must be resolved before FT-010 implementation.
 - Remote server deployment target: operational runbook exists in [DEPLOYMENT.md](../DEPLOYMENT.md) for AlmaLinux VPS, Docker Compose application containers, and host-level Caddy automatic HTTPS; actual production deploy work remains T3.
 

@@ -96,14 +96,14 @@ async function verifyPendingOrderTransportAndRetryKey() {
             delivery_method: "pickup",
             tariff: { amount: 0, currency_code: "RUB" },
           },
-          payment_id: "card",
+          payment_id: "personal_request",
         });
       }
       return jsonResponse({
         order_id: "order_synthetic",
         status: "pending_payment",
         expires_at: "2026-08-23T12:00:00.000Z",
-        payment_id: "card",
+        payment_id: "personal_request",
       }, 201);
     },
   });
@@ -114,7 +114,7 @@ async function verifyPendingOrderTransportAndRetryKey() {
     phone: "+7 000",
     city: "Moscow",
     delivery_method: "pickup",
-    payment_method: "card",
+    payment_method: "personal_request",
   });
   const createPendingOrder = client.createPendingOrder;
   assert.equal(typeof createPendingOrder, "function");
@@ -125,7 +125,7 @@ async function verifyPendingOrderTransportAndRetryKey() {
       phone: "+7 000",
       city: "Moscow",
       delivery_method: "pickup",
-      payment_method: "card",
+      payment_method: "personal_request",
     },
     "cart_synthetic",
     "task052-same-key"
@@ -137,7 +137,7 @@ async function verifyPendingOrderTransportAndRetryKey() {
       phone: "+7 000",
       city: "Moscow",
       delivery_method: "pickup",
-      payment_method: "card",
+      payment_method: "personal_request",
     },
     "cart_synthetic",
     "task052-same-key"
@@ -160,7 +160,7 @@ async function verifyPendingOrderTransportAndRetryKey() {
     phone: "+7 000",
     city: "Moscow",
     delivery_method: "pickup",
-    payment_method: "card",
+    payment_method: "personal_request",
   });
 }
 
@@ -189,7 +189,7 @@ async function verifySanitizedPendingOrderError() {
           phone: "7000",
           city: "Moscow",
           delivery_method: "pickup",
-          payment_method: "card",
+          payment_method: "personal_request",
         },
         "cart_synthetic",
         "task052-stock-conflict"

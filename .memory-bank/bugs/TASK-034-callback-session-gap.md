@@ -26,9 +26,8 @@ current-customer request returns `401`.
 ## Evidence
 
 - `.protocols/TASK-034/verification.md`
-- `.tasks/TASK-034/verify-functional-gates-code-01.md`
-- `.tasks/TASK-034/playwright/real-runtime-progress.log`
-- `.tasks/TASK-034/playwright/real-medusa-failure.png`
+- The failed functional gate and browser callback/session observations are
+  recorded in the TASK-034 verification protocol.
 
 ## Required Resolution
 
@@ -72,7 +71,6 @@ current-customer request returns `401`.
 
 - Commit `b6e39a0` implements the operator-approved bounded production fix and stale
   session-object regression.
-- `.tasks/TASK-034/playwright/real-runtime-progress.log` records coarse successful
-  callback/session/merge diagnostics without identifiers.
-- `.tasks/TASK-034/TASK-034-S-IMPL-final-report-code-01.md` records the repeated local
-  gates and independent-verification handoff.
+- The verification protocol records coarse successful callback/session/merge
+  diagnostics without identifiers, repeated local gates, and the independent
+  verification handoff.

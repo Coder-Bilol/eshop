@@ -979,7 +979,7 @@ async function verifyCheckoutDelivery(page, publishableKey, fixtures) {
     await page.locator('[data-payment-option] input').evaluateAll((inputs) =>
       inputs.map((input) => input.value)
     ),
-    ["card", "sbp", "sberpay"]
+    ["personal_request"]
   );
 
   await page.locator('[name="name"]').fill(" Synthetic Browser Buyer ");
@@ -991,19 +991,17 @@ async function verifyCheckoutDelivery(page, publishableKey, fixtures) {
 
   await page.locator('[name="phone"]').fill("+7 900 000 00 00");
   await page.locator('[name="comment"]').fill("Synthetic browser note");
-  await submitCheckoutFromBrowser(page, "pickup", "card", /0/);
+  await submitCheckoutFromBrowser(page, "pickup", "personal_request", /0/);
 
   await page.locator('[data-delivery-option="city_courier"] input').check();
   await visible(page.locator('[name="address"]'));
   await page.locator('[name="address"]').fill("Synthetic browser address");
-  await page.locator('[data-payment-option="sbp"] input').check();
-  await submitCheckoutFromBrowser(page, "city_courier", "sbp", /500/);
+  await submitCheckoutFromBrowser(page, "city_courier", "personal_request", /500/);
 
   await page.locator('[data-delivery-option="transport_company"] input').check();
   await visible(page.locator('[name="address"]'));
   await page.locator('[name="address"]').fill("Synthetic browser transport address");
-  await page.locator('[data-payment-option="sberpay"] input').check();
-  await submitCheckoutFromBrowser(page, "transport_company", "sberpay", /700/);
+  await submitCheckoutFromBrowser(page, "transport_company", "personal_request", /700/);
 
   runBackendAcceptancePhase(fixtures, "browser-disable");
   const unavailableResponse = page.waitForResponse(
@@ -1026,8 +1024,8 @@ async function verifyCheckoutDelivery(page, publishableKey, fixtures) {
 
   await page.locator('[data-delivery-option="pickup"] input').check();
   assert.equal(await page.locator('[name="address"]').count(), 0);
-  await page.locator('[data-payment-option="card"] input').check();
-  await submitCheckoutFromBrowser(page, "pickup", "card", /0/);
+  await page.locator('[data-payment-option="personal_request"] input').check();
+  await submitCheckoutFromBrowser(page, "pickup", "personal_request", /0/);
   assert.equal(checkoutRequests.at(-1)?.method, "pickup");
   assert.equal(forbiddenRequests.length, 0);
 
@@ -1037,7 +1035,7 @@ async function verifyCheckoutDelivery(page, publishableKey, fixtures) {
     checkoutRequests.every(
       (request) =>
         ["pickup", "city_courier", "transport_company"].includes(request.method) &&
-        ["card", "sbp", "sberpay"].includes(request.payment)
+        request.payment === "personal_request"
     ),
     true
   );
@@ -1066,7 +1064,7 @@ async function verifyCheckoutDelivery(page, publishableKey, fixtures) {
       },
       deliveryIds: ["pickup", "city_courier", "transport_company"],
       tariffsRub: [0, 500, 700],
-      paymentIds: ["card", "sbp", "sberpay"],
+      paymentIds: ["personal_request"],
       invalidFieldRecovery: true,
       unavailableRecovery: "422 delivery_method_unavailable then explicit pickup selection",
       noSilentSubstitution: true,
@@ -1171,8 +1169,8 @@ async function verifyPendingOrder(
     await page.locator('[name="phone"]').fill("+7 900 000 00 52");
     await page.locator('[name="city"]').fill("Synthetic Browser City");
     await page.locator('[data-delivery-option="pickup"] input').check();
-    await page.locator('[data-payment-option="card"] input').check();
-    await submitCheckoutFromBrowser(page, "pickup", "card", /0/);
+    await page.locator('[data-payment-option="personal_request"] input').check();
+    await submitCheckoutFromBrowser(page, "pickup", "personal_request", /0/);
 
     const firstResponsePromise = waitForPendingOrderResponse(page);
     await page.getByRole("button", { name: "Create pending order" }).click();
@@ -1187,7 +1185,7 @@ async function verifyPendingOrder(
     });
     assert.match(firstBody.order_id || "", /^order_/);
     assert.equal(firstBody.status, "pending_payment");
-    assert.equal(firstBody.payment_id, "card");
+    assert.equal(firstBody.payment_id, "personal_request");
     assert.ok(Date.parse(firstBody.expires_at) > Date.now());
 
     const pendingPanel = page.locator('[data-pending-order-state="created"]');

@@ -167,7 +167,7 @@ async function runBackendAcceptance(container: ExecArgs["container"]) {
     assert.equal(authenticated.body.snapshot.delivery_method, "pickup");
     assert.equal(authenticated.body.snapshot.tariff.amount, 0);
     assert.equal(authenticated.body.snapshot.tariff.currency_code, "RUB");
-    assert.equal(authenticated.body.payment_id, "card");
+    assert.equal(authenticated.body.payment_id, "personal_request");
     assert.equal("customer_id" in authenticated.body.snapshot, false);
 
     sessionCookie = await createMedusaSessionCookie(
@@ -217,7 +217,7 @@ async function runBackendAcceptance(container: ExecArgs["container"]) {
     assert.equal(normalized.body.snapshot.comment, "note with spaces");
     assert.equal(normalized.body.snapshot.delivery_method, "city_courier");
     assert.equal(normalized.body.snapshot.tariff.amount, 50_000);
-    assert.equal(normalized.body.payment_id, "card");
+    assert.equal(normalized.body.payment_id, "personal_request");
 
     for (const field of ["name", "email", "phone", "city"] as const) {
       const body = validInput() as Record<string, unknown>;
@@ -272,7 +272,7 @@ async function runBackendAcceptance(container: ExecArgs["container"]) {
         runningServer.baseUrl,
         validInput({
           delivery_method: deliveryMethod,
-          payment_method: PAYMENT_IDS[index],
+          payment_method: PAYMENT_IDS[0],
           ...(deliveryMethod === "pickup"
             ? { address: undefined }
             : { address: "Synthetic address" }),
@@ -286,7 +286,7 @@ async function runBackendAcceptance(container: ExecArgs["container"]) {
         LOCAL_TARIFFS_MINOR_RUB[index]
       );
       assert.equal(result.body.snapshot.tariff.currency_code, "RUB");
-      assert.equal(result.body.payment_id, PAYMENT_IDS[index]);
+      assert.equal(result.body.payment_id, PAYMENT_IDS[0]);
     }
 
     for (const paymentMethod of PAYMENT_IDS) {
@@ -971,7 +971,7 @@ function validInput(overrides: Record<string, unknown> = {}) {
     address: " Synthetic address ",
     comment: " Synthetic comment ",
     delivery_method: "pickup",
-    payment_method: "card",
+    payment_method: "personal_request",
     ...overrides,
   };
 }

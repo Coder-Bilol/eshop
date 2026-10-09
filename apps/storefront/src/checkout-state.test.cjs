@@ -61,7 +61,7 @@ function verifyLocalValidationAndNormalization() {
     phone: " +7 000 ",
     city: "  Moscow  ",
     delivery_method: "city_courier",
-    payment_method: "sbp",
+    payment_method: "personal_request",
   };
   const missingAddress = validateCheckoutForm(values);
   assert.equal(missingAddress.ok, false);
@@ -81,7 +81,7 @@ function verifyLocalValidationAndNormalization() {
     address: "Synthetic street 1",
     comment: "note for courier",
     delivery_method: "city_courier",
-    payment_method: "sbp",
+    payment_method: "personal_request",
   });
 
   const pickup = validateCheckoutForm({
@@ -91,7 +91,7 @@ function verifyLocalValidationAndNormalization() {
     phone: "7000",
     city: "Moscow",
     delivery_method: "pickup",
-    payment_method: "card",
+    payment_method: "personal_request",
   });
   assert.equal(pickup.ok, true);
   assert.equal("address" in pickup.input, false);
@@ -123,7 +123,7 @@ async function verifyValidatedHandoffUsesBackendTariff() {
   fillValidFields(controller);
   const state = await controller.submit();
   assert.equal(state.status, "checkout_validated");
-  assert.equal(state.handoff.payment_id, "sbp");
+  assert.equal(state.handoff.payment_id, "personal_request");
   assert.deepEqual(state.tariffs.city_courier, {
     amount: 50000,
     currency_code: "RUB",
@@ -206,7 +206,7 @@ function fillValidFields(controller) {
   controller.selectDeliveryMethod("city_courier");
   controller.setField("address", " Synthetic address ");
   controller.setField("comment", " optional note ");
-  controller.selectPaymentMethod("sbp");
+  controller.selectPaymentMethod("personal_request");
 }
 
 function successfulResult(input, amount) {

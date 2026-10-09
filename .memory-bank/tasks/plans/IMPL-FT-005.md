@@ -122,7 +122,7 @@ complete with `SEMANTIC_VERDICT: semantic-pass` and `verdict: APPROVE`.
 
 ## Completion Navigation
 
-- FT-005, REQ-009, and EP-002 are `verified`; see the [feature-level semantic review](../../../.tasks/FT-005/FT-005-S-RED-VERIFY-final-report-docs-01.md).
+- FT-005, REQ-009, and EP-002 are `verified`; see the [TASK-045 verification](../../../.protocols/TASK-045/verification.md).
 - Entity and RTM lifecycle context: [FT-005 feature](../../features/FT-005-authenticated-wishlist.md),
   [REQ-009 RTM](../../requirements.md), and [EP-002](../../epics/EP-002-customer-identity-cart-wishlist.md).
 

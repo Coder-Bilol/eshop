@@ -16,8 +16,9 @@ spec_design_links:
 
 - System creates order before payment with `pending_payment`.
 - System reserves inventory for pending order.
-- Pending order remains eligible for FT-009 payment retry within the pending
-  window; FT-007 itself does not call a payment provider.
+- Pending order records `personal_request` and remains eligible for native Admin
+  confirmation within the pending window; FT-007 itself does not call a payment
+  provider. A future FT-009 profile defines its own retry contract.
 - Pending order expires/cancels after 72 hours.
 
 ## Acceptance Criteria
@@ -80,9 +81,10 @@ spec_design_links:
 ## Design Boundaries
 
 - FT-007 owns authenticated cart-to-order creation, pending-payment metadata,
-  inventory reservation, timeout/cancel release, and the handoff of `order_id`
-  plus payment-selection context to FT-009.
-- FT-009 owns payment-provider calls and webhook-driven payment transitions.
+  inventory reservation, timeout/cancel release, and persistence of the current
+  `personal_request` selection for FT-008 Admin visibility.
+- FT-009 owns future provider selection, calls, retry, and webhook-driven
+  transitions; it may not reinterpret `personal_request` as provider proof.
 - FT-008 owns the complete order lifecycle and Medusa Admin projection; FT-007
   exposes the minimum durable metadata and transition guards it needs.
 - FT-007 does not introduce a custom admin panel, delivery provider, payment
@@ -100,7 +102,7 @@ spec_design_links:
 - Evidence: [TASK-050 task record](../tasks/TASK-050.task.json),
   [verification](../../.protocols/TASK-050/verification.md),
   [semantic verification](../../.protocols/TASK-050/red-verification.md),
-  [sync report](../../.tasks/TASK-050/TASK-050-S-MB-SYNC-final-report-docs-02.md),
+  [sync handoff](../../.protocols/TASK-050/handoff.md),
   [TASK-051 task record](../tasks/TASK-051.task.json),
   [TASK-051 verification](../../.protocols/TASK-051/verification.md), and
   [TASK-051 semantic verification](../../.protocols/TASK-051/red-verification.md).
@@ -116,4 +118,4 @@ spec_design_links:
   [TASK-053 record](../tasks/TASK-053.task.json),
   [TASK-053 verification](../../.protocols/TASK-053/verification.md),
   [TASK-053 semantic verification](../../.protocols/TASK-053/red-verification.md),
-  and [FT-007 final feature review](../../.tasks/FT-007/FT-007-S-RED-VERIFY-final-report-docs-02.md).
+  and [FT-007 final feature review](../../.protocols/FT-007/red-verification.md).

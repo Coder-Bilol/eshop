@@ -178,6 +178,18 @@ module.exports = defineConfig({
   },
   modules: [
     {
+      resolve: "@medusajs/medusa/locking",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/locking-postgres",
+            id: "postgres",
+            is_default: true,
+          },
+        ],
+      },
+    },
+    {
       resolve: "@medusajs/medusa/file",
       options: {
         providers: [

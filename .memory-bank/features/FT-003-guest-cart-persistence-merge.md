@@ -107,6 +107,6 @@ spec_design_links:
 - Remediation now passes seed -> product-detail smoke -> backend acceptance in
   order, and the feature red-verification retry returned
   `SEMANTIC_VERDICT: semantic-pass`. See
-  [.tasks/FT-003/FT-003-S-RED-VERIFY-final-report-docs-02.md](../../.tasks/FT-003/FT-003-S-RED-VERIFY-final-report-docs-02.md).
+  [FT-003 feature semantic verification](../../.protocols/FT-003/red-verification.md).
 - FT-003 lifecycle is `verified` after explicit manual closure by the user on
   2026-07-13; REQ-006 through REQ-008 have matching verified RTM evidence.

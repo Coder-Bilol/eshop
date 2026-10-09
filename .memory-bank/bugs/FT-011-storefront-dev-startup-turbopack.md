@@ -6,7 +6,6 @@ last_updated: 2026-06-25
 source_of_truth:
   - .memory-bank/features/FT-011-windows-native-local-development.md
   - .memory-bank/tech-specs/FT-011-windows-native-local-development.md
-  - .tasks/FT-011/red-verify-w1-storefront-default-next-dev-2026-06-25.log
   - .protocols/FT-011/red-verification.md
 ---
 # FT-011 Storefront Dev Startup Turbopack Failure
@@ -23,10 +22,10 @@ Resolved. Recheck on 2026-06-25 showed the same default storefront dev path star
 
 ## Evidence
 
-- `.tasks/FT-011/red-verify-w1-check-local-env-2026-06-25.txt`: local env check passed with `dockerRequired:false`.
-- `.tasks/FT-011/red-verify-w1-smoke-local-2026-06-25.txt`: local smoke passed, but storefront readiness is only typecheck.
-- `.tasks/FT-011/red-verify-w1-storefront-default-next-dev-2026-06-25.log`: storefront default dev startup failed with Turbopack/native binding error.
-- `.tasks/FT-011/recheck-storefront-default-dev-2026-06-25.log`: storefront default dev startup recheck passed and returned `GET / 200`.
+- The FT-011 red-verification protocol records that the local environment check
+  passed with `dockerRequired:false`, the local smoke reached typecheck, the
+  default startup initially failed because of the Turbopack/native binding, and
+  the recheck returned `GET / 200`.
 
 ## Resolution
 

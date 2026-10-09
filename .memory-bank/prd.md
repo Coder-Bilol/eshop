@@ -166,8 +166,8 @@ Key status model:
 7. If a previous user cart exists, the guest cart merges into it and identical positions are summed.
 8. Buyer enters name, email, required phone, delivery city, address, optional comment, delivery method, and payment method.
 9. System creates `pending_payment` order, reserves stock for 72 hours, and records a personal payment request.
-10. Operator confirms the personal payment and uses native Medusa Admin to mark the unpaid system collection as paid or cancel the unpaid order.
-11. Native Admin fulfillment/completion actions update the remaining order lifecycle; native Admin refund is used for a post-payment correction.
+10. Operator confirms the personal payment and uses native Medusa Admin to mark the unpaid system collection as paid or cancel the order when the native cancellation rules allow it.
+11. Native Admin cancellation may refund a captured payment and release the native reservation as part of the supported workflow; fulfillment/completion actions update the remaining lifecycle, while refund/return handles completed-order corrections.
 12. A future FT-009 provider profile may add a return page and verified webhook without becoming current FT-008 authority implicitly.
 13. System sends email notifications for pending order, successful payment, payment error, and order status changes.
 14. Store operator handles the order in Medusa Admin.

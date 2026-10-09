@@ -28,7 +28,8 @@ work starts.
 ## Evidence
 
 - `.protocols/TASK-033/red-verification.md`
-- `.tasks/TASK-033/TASK-033-S-RED-VERIFY-final-report-docs-01.md`
+- The semantic verification result is recorded in the TASK-033 red-verification
+  protocol.
 
 ## Resolution Criteria
 

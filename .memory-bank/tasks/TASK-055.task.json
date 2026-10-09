@@ -1,19 +1,25 @@
 {
   "id": "TASK-055",
-  "title": "Implement Admin-bound lifecycle workflow and native system payment handoff",
+  "title": "Implement shared-lock native Admin lifecycle projection and payment handoff",
   "status": "planned",
   "wave": "W2",
   "feature": "FT-008",
   "reqs": ["REQ-022"],
   "depends_on": ["TASK-054"],
   "touched_files": [
+    "apps/backend/src/order-lifecycle/lock.ts",
     "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
     "apps/backend/src/subscribers/order-lifecycle.ts",
+    "apps/backend/src/api/middlewares.ts",
     "apps/backend/src/order-lifecycle/projection.ts",
     "apps/backend/src/order-lifecycle/guards.ts",
     "apps/backend/src/workflows/checkout/create-pending-order.ts",
+    "apps/backend/src/workflows/checkout/expire-pending-order.ts",
+    "apps/backend/src/checkout/pending-order.ts",
+    "apps/backend/src/jobs/expire-pending-orders.ts",
     "apps/backend/medusa-config.ts",
     "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+    "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
     "apps/backend/test/run-integration.cjs",
     "apps/backend/package.json",
     ".memory-bank/changelog.md"
@@ -26,11 +32,19 @@
     {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
   ],
   "verify": [
-    "The internal workflow accepts only fixed server-side entrypoints for native Admin events, re-reads the native order under lock, and updates merged lifecycle metadata.",
+    "Supported project middleware wraps each installed built-in Admin mark-as-paid, cancel, fulfillment, completion, and refund handler with the canonical order-lifecycle:${order_id} Medusa lock, performs authoritative same-order/expiry/terminal preconditions before native mutation, and holds the lock through handler completion; native Admin workflows remain the mutation and authorization boundary.",
+    "FT-007 expiry uses that same canonical lock before its authoritative re-read and native cancellation, writes checkout_expiry_origin ft-007 plus pending cleanup before cancel, preserves checkout_state expired afterward, and finds partial cleanup retries by origin plus cleanup state.",
+    "The internal projector accepts only known server-internal native event kinds, reacquires the canonical lock, re-reads native state, and updates merged lifecycle metadata; event delivery is not treated as commit, actor, or serialization proof.",
     "Each pending order has one unpaid native system payment collection (`pp_system_default`); native Admin `paymentCollection.markAsPaid(...)` changes pending_payment to paid without deleting reservations or directly changing stock, and no external provider is called.",
-    "Native fulfillment-created, completed, unpaid-canceled, and confirmed-refund events project processing/completed/canceled/refunded through the same guards.",
-    "Late payment after expiry/cancellation, paid-order cancellation, contradictory source state, forged/missing Admin context, cross-order binding, and missing order fail closed with no mutation.",
+    "New pending orders persist checkout_payment_method personal_request. Existing orders carrying card, sbp, or sberpay retain the original value as a legacy offline-request label; projection does not rewrite it or treat it as provider/payment proof.",
+    "Native fulfillment-created, completed, and native-canceled events project processing/completed/canceled through the same guards; partial refund events preserve the current logical state and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) within native currency precision project refunded; no capture/refund status field is assumed.",
+    "Native order_canceled and cancellation-origin payment_refunded notifications preserve an FT-007-origin checkout_state expired projection, timeout reason, and pending/complete cleanup marker and do not release reservations through FT-008.",
+    "A payment_refunded notification caused by native cancellation leaves checkout_state as canceled; partial standalone refunds preserve state and only the final cumulative full refund on a non-canceled paid/processing/completed order projects refunded, regardless of event arrival order.",
+    "Late payment after expiry/cancellation, native cancellation failure for completed/active-fulfillment orders, contradictory native state, cross-order binding, and missing order fail closed with no projection mutation.",
+    "The generic Admin order metadata update path rejects or preserves changes/deletion of every workflow-owned protected key from the data/contract specs, including checkout_reservation_item_ids and checkout_reservation_line_ids, while allowing explicitly operator-editable unrelated metadata; only approved server-side checkout/expiry or lifecycle workflows may write protected keys.",
     "Duplicate event delivery is a safe no-op and does not emit duplicate lifecycle updates; FT-009 provider calls and FT-010 email side effects remain absent.",
+    "Unauthenticated, customer, Store, and unauthorized-Admin attempts are denied at the native Admin boundary; unknown, forged, out-of-order, and replayed notifications are filtered, while concurrent native operations are serialized before mutation with no mutation on rejection.",
+    "Forced expiry-versus-mark-as-paid and cancel-versus-mark-as-paid races prove the losing operation re-reads authoritative state and fails before unsafe payment capture/cancellation even when projector delivery is delayed.",
     "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
   ],
   "docs": [
@@ -39,11 +53,18 @@
     ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
     ".memory-bank/contracts/order-lifecycle-admin-api.md",
     ".memory-bank/states/order-lifecycle-admin.md",
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/domains/pending-order-inventory-data.md",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md",
     ".memory-bank/changelog.md"
   ],
   "evidence_required": [
     "Real local Medusa/PostgreSQL workflow evidence for payment, fulfillment, completion, cancel, refund, duplicate, and conflict cases.",
     "Reservation counts/stock evidence proving payment preserves the hold and native fulfillment consumes it.",
+    "Compatibility evidence proves new personal_request persistence and read-only preservation of existing card/sbp/sberpay legacy labels without provider calls or provider-authority claims.",
+    "Negative-path evidence for native Admin authorization denial, event allow-listing, same-order binding, late/terminal events, duplicate/replay, and concurrent native-operation races, including proof that the shared lock and precondition run before the native mutation and before/after no-mutation assertions.",
+    "Injected FT-007 failure after native cancellation proves order_canceled/refund projection preserves expiry origin/reason/cleanup and the next job run discovers and completes remaining reservation cleanup exactly once.",
+    "Negative-path evidence for cancellation-origin, single partial, cumulative intermediate, final full, duplicate, and out-of-order refund projection plus change/deletion attempts for every protected workflow key through the built-in metadata editor and direct Admin API request, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids.",
     "Sanitized logs and privacy scan with no provider payloads, credentials, cookies, tokens, PII, or production data.",
     "Full T3 protocol, verify, semantic, checkpoint, and rollback/recovery evidence."
   ],
@@ -56,7 +77,9 @@
     ".memory-bank/domains/order-lifecycle-admin-data.md",
     ".memory-bank/states/order-lifecycle-admin.md",
     ".memory-bank/states/pending-order-inventory-lifecycle.md",
-    ".memory-bank/architecture/pending-order-runtime.md"
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/domains/pending-order-inventory-data.md"
   ],
   "normative_inputs": [
     ".memory-bank/constitution.md",
@@ -67,20 +90,32 @@
     ".memory-bank/workflows/tier-policy.md"
   ],
   "constraints": [
-    "Use supported Medusa workflows/subscribers and the existing order lock; do not modify Medusa Core.",
+    "Use supported Medusa workflows/subscribers, project middleware, and the canonical order-lifecycle:${order_id} Medusa lock; do not modify Medusa Core or node_modules.",
+    "Acquire the shared lock and enforce authoritative operation-specific preconditions before every in-scope native mutation; hold the Admin route lock through its native handler and make the async projector reacquire the same key.",
+    "Do not rely on native event arrival as proof of transaction commit or serialization; delayed projection must not permit an unsafe later native operation.",
     "The current payment profile uses the installed native system provider only to create an unpaid collection that Admin can mark as paid; FT-009 remains a deferred provider profile.",
-    "Only native Admin session/RBAC actions may enter the private transition entrypoints; do not accept caller-supplied source, actor, order binding, or payment state.",
+    "Native Admin session/RBAC authorizes the native operation; the projector accepts no Store input or caller-supplied actor/source/order binding/payment state and does not treat event metadata as actor proof.",
+    "Use an explicit native-event allow-list, same-order binding, and one guarded re-read/write path under the canonical lock; do not accept unknown, forged, late, terminal, or concurrent conflicting input.",
+    "FT-007 remains the sole expiry/cleanup owner: persist expiry origin plus pending cleanup before cancel, preserve checkout_state expired after cancel, select retries by origin+cleanup, and never duplicate reservation release in FT-008.",
+    "Enforce the complete protected workflow metadata set at the server-side Admin metadata update boundary; UI-only disabling is not sufficient and unchanged protected metadata must be preserved.",
     "Do not delete payment-success reservations, directly adjust inventory, auto-restock refunds, add a custom Admin route, or send emails."
   ],
   "invariants": [
-    "Only current authoritative native state caused by an authenticated Admin action can advance the lifecycle.",
-    "Unpaid Admin cancellation persists the order as canceled, removes it from the active customer cart, releases the existing reservation through the supported cancel/expiry path, and cannot be reversed by a late event.",
+    "Only current authoritative native state exposed by a known server-internal native event can advance the projection; native Admin auth remains upstream and event delivery is not commit or serialization proof.",
+    "Every in-scope native mutation is serialized under order-lifecycle:${order_id} before authoritative preconditions and mutation; the projector reacquires the same key.",
+    "Native Admin cancellation persists the order as canceled, applies native refund/reservation-cleanup semantics where relevant, removes it from the active customer cart, and cannot be reversed by a late event.",
     "A payment-success transition preserves every native reservation until fulfillment.",
-    "Repeated events and retries cannot duplicate lifecycle metadata or cross a terminal state."
+    "Repeated events and retries cannot duplicate lifecycle metadata or cross a terminal state.",
+    "Cancellation-origin and partial refund notifications cannot change the logical state to refunded, and generic Admin metadata updates cannot mutate or delete any workflow-owned protected key.",
+    "FT-007-origin cancellation/refund notifications cannot replace checkout_state expired, expiry reason, origin, or cleanup state, and FT-008 cannot release its reservations.",
+    "Unknown, unauthorized, forged, cross-order, or rejected events produce no lifecycle mutation; competing transitions are serialized by the guarded operation."
   ],
   "verification_targets": [
     ".memory-bank/contracts/order-lifecycle-admin-api.md#error-and-guard-semantics",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md#protected-workflow-metadata",
     ".memory-bank/architecture/order-lifecycle-admin-runtime.md#reservation-behavior",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md#pre-native-operation-guard",
+    ".memory-bank/states/pending-order-inventory-lifecycle.md#recovery",
     ".memory-bank/states/order-lifecycle-admin.md#verification-matrix"
   ],
   "purpose": "Connect native Medusa Admin operator events to one guarded, durable lifecycle transition boundary; keep the deferred FT-009 provider profile out of the current runtime.",
@@ -93,13 +128,19 @@
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-055.packet.json",
     "allowed_write_scope": [
+      "apps/backend/src/order-lifecycle/lock.ts",
       "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
       "apps/backend/src/subscribers/order-lifecycle.ts",
+      "apps/backend/src/api/middlewares.ts",
       "apps/backend/src/order-lifecycle/projection.ts",
       "apps/backend/src/order-lifecycle/guards.ts",
       "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/src/workflows/checkout/expire-pending-order.ts",
+      "apps/backend/src/checkout/pending-order.ts",
+      "apps/backend/src/jobs/expire-pending-orders.ts",
       "apps/backend/medusa-config.ts",
       "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
       "apps/backend/test/run-integration.cjs",
       "apps/backend/package.json",
       ".memory-bank/changelog.md"
@@ -114,7 +155,12 @@
       "Installed Medusa events or fulfillment workflow do not provide a truthful native handoff.",
       "Payment-success reservation behavior cannot be proven without deleting or directly mutating stock.",
       "A conflict requires changing FT-007 expiry semantics or FT-009 provider ownership.",
-      "Full T3 evidence cannot prove no mutation on rejected/duplicate events."
+      "Full T3 evidence cannot prove no mutation on rejected/duplicate events.",
+      "Native Admin denial, same-order binding, or concurrent transition safety cannot be proven at the local runtime boundary.",
+      "Supported project middleware cannot hold the canonical lock around the complete installed built-in Admin native handler without modifying Medusa Core or adding a custom Admin mutation API.",
+      "FT-007 expiry origin cannot be persisted before native cancel or partial cleanup cannot be rediscovered by origin plus cleanup state.",
+      "The native Admin metadata update boundary cannot enforce the complete protected workflow metadata set without modifying Medusa Core or violating the approved extension boundary.",
+      "Authoritative native capture/refund totals or currency precision cannot support a deterministic cumulative full-refund predicate."
     ]
   }
 }

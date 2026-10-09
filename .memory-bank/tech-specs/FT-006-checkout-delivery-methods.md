@@ -2,7 +2,7 @@
 description: Feature-level SDD hub for FT-006 checkout data and delivery methods.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-13
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/features/FT-006-checkout-delivery-methods.md
   - .memory-bank/prd.md
@@ -57,11 +57,13 @@ remain with FT-004 and the later FT-007 through FT-010 feature boundaries.
 - The backend owns normalization and safe length limits before validation. Exact
   numeric limits remain an implementation-level assumption because BR-002 did
   not select public field-specific values.
-- Payment IDs are `card`, `sbp`, and `sberpay`.
+- The current payment ID is `personal_request`. It is an offline request label,
+  not evidence of a card, SBP, SberPay, or other provider payment.
 - An unavailable method returns `422 delivery_method_unavailable`; recovery is
   retry or selecting another method.
-- FT-006 hands a validated checkout snapshot to FT-007 and the selected payment
-  ID to FT-009. It creates no order and has no payment-provider integration.
+- FT-006 hands a validated checkout snapshot, including `personal_request`, to
+  FT-007. FT-009 must define its own provider-specific selection contract when
+  resumed. FT-006 creates no order and has no payment-provider integration.
 - The storefront is not an authoritative data store and cannot bypass the
   backend boundary. The authenticated checkout continuation must still be backed
   by backend actor validation; the FT-004 UI gate is not an authorization boundary.
@@ -95,8 +97,9 @@ remain with FT-004 and the later FT-007 through FT-010 feature boundaries.
   recovery are covered by TASK-046, TASK-047, TASK-048, and TASK-049.
 - REQ-016: configured initial RUB tariffs and deterministic resolution are covered
   by TASK-046, TASK-047, and TASK-049.
-- REQ-017: stable payment IDs and FT-009 handoff without provider integration are
-  covered by TASK-047, TASK-048, and TASK-049.
+- REQ-017: the stable `personal_request` ID and FT-007 handoff without provider
+  integration are covered by TASK-047, TASK-048, and TASK-049; provider IDs
+  remain deferred FT-009 scope.
 
 ## Assumptions And Non-Blocking Questions
 

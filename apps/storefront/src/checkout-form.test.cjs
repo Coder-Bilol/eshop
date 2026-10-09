@@ -115,7 +115,7 @@ async function verifyAuthenticatedBackendClient() {
           delivery_method: "city_courier",
           tariff: { amount: 50000, currency_code: "RUB" },
         },
-        payment_id: "sbp",
+        payment_id: "personal_request",
       });
     },
   });
@@ -128,9 +128,9 @@ async function verifyAuthenticatedBackendClient() {
     address: " Synthetic address ",
     comment: " note ",
     delivery_method: "city_courier",
-    payment_method: "sbp",
+    payment_method: "personal_request",
   });
-  assert.equal(result.payment_id, "sbp");
+  assert.equal(result.payment_id, "personal_request");
   assert.equal(result.snapshot.tariff.amount, 50000);
   assert.deepEqual(calls.map((call) => [call.init.method, new URL(call.url).pathname]), [
     ["POST", "/store/checkout"],
@@ -146,7 +146,7 @@ async function verifyAuthenticatedBackendClient() {
     address: "Synthetic address",
     comment: "note",
     delivery_method: "city_courier",
-    payment_method: "sbp",
+    payment_method: "personal_request",
   });
 }
 
@@ -173,7 +173,7 @@ async function verifyStableSanitizedErrors() {
         phone: "7000",
         city: "Moscow",
         delivery_method: "transport_company",
-        payment_method: "card",
+        payment_method: "personal_request",
         address: "Synthetic address",
       }),
     (error) =>

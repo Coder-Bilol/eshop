@@ -2,7 +2,7 @@
 description: Global system architecture backbone for the MVP internet shop.
 status: active
 owner: spec-design
-last_updated: 2026-08-21
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/constitution.md
@@ -194,8 +194,13 @@ There is no runtime agent, chat, or AI I/O boundary in the product. Agent-only e
 Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workflows/tier-policy.md](../workflows/tier-policy.md).
 
 - Unit tests: pure cart merge, tariff calculation, variant validation, timeout calculation, and transition guards.
-- Integration tests: cart persistence/merge, OAuth callback mocks, pending order creation, reservation/release, webhook idempotency, and email trigger boundaries.
-- E2E tests: browse/filter -> variant -> cart -> login -> checkout -> pending order -> simulated webhook -> visible order/payment result.
+- Integration tests for the current profile: cart persistence/merge, OAuth
+  callback mocks, pending order creation, reservation/release, native Admin
+  lifecycle projection, and email trigger boundaries. Webhook idempotency is
+  required only when the deferred FT-009 provider profile is resumed.
+- E2E tests for the current profile: browse/filter -> variant -> cart -> login ->
+  checkout -> pending order -> native Admin payment confirmation -> visible
+  order/payment result. Simulated webhook and return-page flows are FT-009-only.
 - T2 task closure requires the packet/spec gates and `/verify` `PASS`; per-task
   `/red-verify` is optional for T2, while feature-level `semantic-pass` is
   mandatory before a T2 feature is complete. T3 task closure additionally
@@ -227,7 +232,9 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 - Which YooKassa local/staging account, webhook URL, and tunneling approach will
   be available when the optional provider profile is resumed?
 - FT-008's feature-local SDD resolves the manual payment lifecycle projection,
-  native fulfillment reservation boundary, and Admin source binding.
+  native Admin cancellation/refund semantics, and native fulfillment reservation
+  boundary. The native Admin operation is authorized before the server-internal
+  projection event; the event payload is not treated as actor proof.
 - Which external backup target will store the paired PostgreSQL dump and
   product-media archive recovery sets for the VPS deployment?
 

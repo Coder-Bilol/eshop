@@ -5,10 +5,7 @@ owner: verify
 last_updated: 2026-06-23
 source_of_truth:
   - .memory-bank/tasks/TASK-002.task.json
-  - .tasks/TASK-002/verify-db-migrate.txt
-  - .tasks/TASK-002/verify-smoke-db.txt
-  - .tasks/TASK-002/verify-db-check-postgres18.txt
-  - .tasks/TASK-002/verify-smoke-db-postgres18.txt
+  - .protocols/TASK-002/verification.md
 ---
 # TASK-002 Local PostgreSQL Unavailable
 
@@ -20,18 +17,16 @@ Resolved on 2026-06-23 after PostgreSQL 18.4 became available locally and `TASK-
 
 ## Evidence
 
-- `.tasks/TASK-002/verify-db-migrate.txt`: `ECONNREFUSED 127.0.0.1:5432`.
-- `.tasks/TASK-002/verify-db-seed.txt`: `ECONNREFUSED 127.0.0.1:5432`.
-- `.tasks/TASK-002/verify-smoke-db.txt`: `ECONNREFUSED 127.0.0.1:5432`.
-- `.tasks/TASK-002/verify-docker-info.txt`: Docker CLI exists, but Docker daemon is unavailable.
-- `.tasks/TASK-002/verify-postgres-port.txt`: PostgreSQL port is not reachable.
+- The initial verification protocol records `ECONNREFUSED 127.0.0.1:5432` for
+  migration, seed, and backend smoke checks.
+- It also records that Docker CLI was available while the Docker daemon was
+  unavailable and that the PostgreSQL port was unreachable.
 
 ## Resolution Evidence
 
-- `.tasks/TASK-002/verify-db-check-postgres18.txt`: PostgreSQL 18.4 reachable at `127.0.0.1:5432`; Docker not required.
-- `.tasks/TASK-002/verify-db-migrate-postgres18.txt`: migration gate passed.
-- `.tasks/TASK-002/verify-db-seed-postgres18.txt`: seed gate passed with non-production local seed.
-- `.tasks/TASK-002/verify-smoke-db-postgres18.txt`: backend read/write smoke passed.
+- The resolution verification records PostgreSQL 18.4 reachable at
+  `127.0.0.1:5432`, with Docker not required, migration and non-production
+  seed gates passing, and the backend read/write smoke passing.
 
 ## Impact
 

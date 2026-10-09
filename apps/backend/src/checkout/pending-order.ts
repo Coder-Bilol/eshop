@@ -8,6 +8,7 @@ import type {
 } from "@medusajs/framework/types";
 
 import type { StoreCheckoutInput } from "./validation";
+import { orderLifecycleLockKey } from "../order-lifecycle/lock";
 
 export const PENDING_ORDER_TTL_HOURS = 72;
 export const PENDING_ORDER_CREATED_BY = "ft-007:create-pending-order";
@@ -157,7 +158,7 @@ export function pendingOrderLockKey(input: PendingOrderInput): string {
 }
 
 export function pendingOrderExpiryLockKey(orderId: string): string {
-  return `ft-007:pending-order-expiry:${orderId}`;
+  return orderLifecycleLockKey(orderId);
 }
 
 export function numericQuantity(value: unknown): number {
@@ -326,7 +327,9 @@ export function orderMetadata(input: {
     checkout_idempotency_key: input.idempotency_key,
     checkout_request_fingerprint: input.fingerprint,
     checkout_delivery_method: input.checkout.delivery_method,
-    checkout_payment_method: input.checkout.payment_method,
+    // The current profile is an offline/personal request. Existing legacy
+    // values are preserved because replayed orders never rebuild metadata.
+    checkout_payment_method: "personal_request",
     checkout_customer_comment: input.checkout.comment ?? null,
     checkout_managed_line_count: input.managed_line_count,
   } satisfies Record<string, unknown>;

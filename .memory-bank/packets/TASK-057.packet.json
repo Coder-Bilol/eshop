@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-057-R1",
   "task_id": "TASK-057",
-  "created_at": "2026-08-22T00:00:00+03:00",
-  "source_task_hash": "sha256:051591c63196edc1c40d8be42c20a632a4714df20a9bba426060d26564be9d2c",
+  "created_at": "2026-10-04T00:00:00+03:00",
+  "packet_id": "PACKET-TASK-057-R5",
+  "source_task_hash": "sha256:368b695ce7d261dd6d74224d080abd93d48d844f8f51dfd7296b2371b4078815",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove the complete FT-008 manual-payment lifecycle and operator surface through the real local runtime and built-in Admin browser flow.",
@@ -57,14 +57,19 @@
       "node scripts/mb-lint.mjs"
     ],
     "success_checks": [
-      "Real compiled Medusa/PostgreSQL runtime proves pending_payment through Admin-confirmed paid, processing, completed, unpaid canceled, and refunded behavior.",
+      "Real compiled Medusa/PostgreSQL runtime proves pending_payment through Admin-confirmed paid, processing, completed, native pending/paid cancellation, cancellation-origin refund, and standalone refund behavior.",
       "Built-in Admin/browser order detail shows every required operator field with synthetic content.",
-      "Admin-confirmed payment preserves reservations, fulfillment consumes them, unpaid cancellation persists the order and removes it from the active cart, duplicate/terminal events do not mutate twice, and no provider request occurs.",
+      "Current checkout persists personal_request and a controlled legacy fixture preserves card/sbp/sberpay only as a historical offline-request label without a provider call.",
+      "Admin-confirmed payment preserves reservations, fulfillment consumes them, native cancellation persists the order and applies native refund/reservation-cleanup semantics, duplicate/terminal events do not mutate twice, and no provider request occurs.",
+      "The runtime/browser acceptance proves Store, customer, unauthenticated, and unauthorized-Admin lifecycle attempts are denied, cross-order and forged event references fail closed, and concurrent or out-of-order events cannot mutate a terminal order.",
+      "The built-in metadata editor and direct Admin API cannot change or delete any protected workflow key, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids, while unrelated operator metadata remains editable.",
+      "Partial refunds preserve logical state and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) project refunded, without assuming a capture/refund status field.",
       "Cleanup, privacy, and recovery assertions are runtime-observed rather than report-only."
     ],
     "evidence_required": [
       "Backend lifecycle/reservation/terminal-state report.",
       "Browser/Admin trace or report for required fields and state projection.",
+      "Sanitized negative-path report for authorization denial, allow-listing, same-order binding, cancellation-origin/single partial/cumulative partial/final full refunds, every protected workflow key including checkout_reservation_item_ids and checkout_reservation_line_ids, late/terminal events, duplicate/replay, and concurrent transition races.",
       "Privacy, cleanup, typecheck/build/lint, and full T3 closure evidence."
     ]
   },

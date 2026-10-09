@@ -2,7 +2,7 @@
 description: FT-007 runtime architecture for pending orders and reservations.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-16
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/contracts/boundary-map.md
@@ -22,8 +22,9 @@ source_of_truth:
 - PostgreSQL-backed Medusa order metadata and native inventory reservation items
   are the durable sources for this feature. No second pending-order or inventory
   store is introduced.
-- FT-009 consumes the resulting `order_id` and payment selection. FT-008 owns
-  later lifecycle/admin projection.
+- FT-008 consumes the resulting order and its `personal_request` metadata for
+  later lifecycle/Admin projection. Deferred FT-009 must define a separate
+  provider-selection handoff when resumed.
 
 ## Creation Flow
 
@@ -41,8 +42,8 @@ source_of_truth:
    expects one usable location per inventory item; ambiguous allocation fails
    closed until a multi-location policy is explicitly designed.
 7. On success it returns the order ID, logical `pending_payment` state,
-   expiration timestamp, and selected payment ID for FT-009. No provider call is
-   made by FT-007.
+   expiration timestamp, and `personal_request` ID for the current Admin-only
+   flow. No provider call is made by FT-007.
 
 ## Compensation And Retry
 
@@ -63,11 +64,25 @@ source_of_truth:
 - The job lists native pending orders, filters logical metadata in memory, and
   invokes an idempotent expiration workflow for records whose UTC expiry has
   passed.
-- The workflow rechecks state under the order lock, calls native
-  `cancelOrderWorkflow`, then deletes reservation items by order line IDs.
-- A retry after cancellation or partial reservation cleanup is a no-op for
-  already-clean items and completes remaining cleanup. Paid/non-pending orders
-  are never canceled by this job.
+- The workflow acquires the canonical `order-lifecycle:${order_id}` Medusa lock
+  shared with FT-008 native Admin operations, then re-reads authoritative order
+  and payment state. Expired/non-pending or contradictory state fails closed.
+- Before `cancelOrderWorkflow`, FT-007 merges the durable
+  `checkout_expiry_origin: "ft-007"`,
+  `checkout_expiry_reason: "payment_timeout"`, and
+  `checkout_expiry_cleanup: "pending"` fields without prematurely changing the
+  current logical state. This marker lets an `order.canceled` projector preserve
+  expiry ownership.
+- After native cancellation succeeds, FT-007 writes
+  `checkout_state: "expired"`, deletes reservation items by order line IDs, and
+  finally marks `checkout_expiry_cleanup: "complete"` while still inside its
+  guarded workflow.
+- A retry after cancellation or partial reservation cleanup selects the order by
+  `checkout_expiry_origin: "ft-007"` plus non-complete cleanup state, not only
+  by `checkout_state`. It is a no-op for already-clean items and completes the
+  remaining cleanup. Paid/non-pending orders are never canceled by this job.
+- FT-008 may consume the same native cancellation notification, but it must not
+  replace FT-007 expiry metadata or release the reservation again.
 
 ## Runtime Source Boundaries
 
@@ -80,8 +95,11 @@ authenticated Store API
 
 hourly Medusa job
   -> expire-pending-order workflow
+     -> shared order-lifecycle:${order_id} lock
+     -> persist FT-007 expiry origin + cleanup pending
      -> cancelOrderWorkflow
      -> delete reservations by line item
+     -> persist checkout_state expired + cleanup complete
 ```
 
 ## Not Applicable

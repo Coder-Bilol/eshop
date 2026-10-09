@@ -53,11 +53,13 @@ storefront records a personal payment request and calculates the order price;
 only the native Medusa Admin can mark the native payment collection paid or
 change order status in this slice. No online provider, redirect, or webhook is
 required for FT-008. REQ-020 and REQ-023 through REQ-026 remain deferred FT-009
-provider roadmap items. For FT-008, cancellation means canceling an unpaid
-order; it remains in the database as `canceled`, is removed from the active
-customer cart, and a post-payment correction uses native Admin refund rather than
-`canceled`. The pre-existing FT-007 timeout/release path is preserved as a
-separate compatibility boundary and is not expanded by FT-008.
+provider roadmap items. For FT-008, native Admin cancellation is authoritative:
+it may cancel an unpaid order or a paid/processing order when the native Medusa
+cancel preconditions allow it. A paid cancellation uses the native workflow's
+refund/release behavior and remains `canceled` in the order lifecycle. Completed
+orders use the native Admin refund/return path because native cancellation does
+not apply to them. The pre-existing FT-007 timeout/release path is preserved as
+a separate compatibility boundary and is not expanded by FT-008.
 
 ## Out Of Scope
 
@@ -140,6 +142,10 @@ separate compatibility boundary and is not expanded by FT-008.
   resolved through the recorded owner-approved bounded expansion to
   `apps/backend/medusa-config.ts`; the final gates and independent verification then
   passed without changing the Admin-managed source boundary.
+- FT-008 foundation reconciliation: TASK-054 is `done` with functional `PASS`,
+  full T2 packet/spec/protocol evidence, and explicit manual closure ownership.
+  REQ-022 and FT-008 remain `planned` until TASK-055..057 and the feature-level
+  semantic review complete the native Admin lifecycle slice.
 - Decomposition closure: the FT-006 scoped Memory Bank review returned `APPROVE`
   for all six stages, with strict lint/doctor gates passing. No new task or
   downstream promotion was inferred by this closure.

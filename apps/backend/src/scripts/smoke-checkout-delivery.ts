@@ -269,14 +269,14 @@ export default async function smokeCheckoutDelivery({
         actorContext,
         validInput({
           delivery_method: deliveryMethod,
-          payment_method: PAYMENT_IDS[index],
+          payment_method: PAYMENT_IDS[0],
           ...(deliveryMethod === "pickup" ? {} : { address: "Synthetic address" }),
         })
       );
       assert.equal(result.statusCode, 200);
       assert.equal(result.body.snapshot.delivery_method, deliveryMethod);
       assert.equal(result.body.snapshot.tariff.amount, LOCAL_TARIFFS_MINOR_RUB[index]);
-      assert.equal(result.body.payment_id, PAYMENT_IDS[index]);
+      assert.equal(result.body.payment_id, PAYMENT_IDS[0]);
       stableMethods.push(deliveryMethod);
     }
     assert.deepEqual(stableMethods, [...DELIVERY_OPTION_IDS]);
@@ -831,7 +831,7 @@ function validInput(overrides: Record<string, unknown> = {}) {
     address: " Synthetic address ",
     comment: " Synthetic comment ",
     delivery_method: "pickup",
-    payment_method: "card",
+    payment_method: "personal_request",
     ...overrides,
   };
 }

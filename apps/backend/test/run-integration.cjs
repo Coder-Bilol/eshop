@@ -37,6 +37,7 @@ const suites = {
   "pending-order-expiry": "./src/scripts/smoke-pending-order-expiry.ts",
   "pending-order-acceptance":
     "./src/scripts/smoke-pending-order-acceptance.ts",
+  "order-lifecycle-state": "./src/scripts/smoke-order-lifecycle.ts",
 };
 
 function main() {
@@ -52,6 +53,10 @@ function main() {
   }
 
   for (const name of selected) {
+    if (name === "order-lifecycle-state") {
+      runPureNodeScript(suites[name]);
+      continue;
+    }
     if (name === "wishlist-product-id") {
       for (const script of suites[name]) {
         runMedusaScript(script);
@@ -123,6 +128,9 @@ function main() {
   if (selected.includes("pending-order-acceptance")) {
     sourceBoundary =
       "real-medusa-postgresql-route-workflow-job-order-inventory";
+  }
+  if (selected.includes("order-lifecycle-state")) {
+    sourceBoundary = "pure-backend-order-lifecycle-projection";
   }
 
   process.stdout.write(
@@ -389,6 +397,24 @@ function runMedusaScript(script, extraEnv = {}) {
     },
     stdio: "inherit",
   });
+}
+
+function runPureNodeScript(script) {
+  const absoluteScript = path.resolve(backendRoot, script);
+  execFileSync(
+    process.execPath,
+    [
+      "-r",
+      "ts-node/register",
+      "-e",
+      `require(${JSON.stringify(absoluteScript)}).default()`,
+    ],
+    {
+      cwd: backendRoot,
+      env: process.env,
+      stdio: "inherit",
+    }
+  );
 }
 
 try {

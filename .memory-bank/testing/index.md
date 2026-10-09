@@ -20,14 +20,14 @@ status: active
 - Fixed delivery tariff calculation.
 - Order status transition guards.
 - Pending-payment timeout calculation.
-- Webhook idempotency helper logic when isolated.
+- Webhook idempotency helper logic only for a resumed FT-009 provider profile.
 
 ## Integration Tests
 
 - Cart persistence and merge boundary.
 - OAuth login/callback boundary with mocks where possible.
 - Pending order creation and inventory reservation/release.
-- ЮKassa webhook status mapping and idempotency.
+- Resumed FT-009 only: ЮKassa webhook status mapping and idempotency.
 - Email trigger boundaries for order/payment/status events.
 - Medusa Admin visibility of required order fields where testable.
 
@@ -37,8 +37,10 @@ status: active
 - Guest cart persistence across browser session.
 - Login before payment and cart merge.
 - Checkout with delivery/contact/payment data.
-- Pending order -> simulated ЮKassa webhook -> order/payment status visible.
-- Return page waiting/result behavior without authoritative confirmation.
+- Current profile: pending order -> native Admin payment confirmation ->
+  order/payment status visible.
+- Resumed FT-009 only: simulated ЮKassa webhook and return-page waiting/result
+  behavior without client-side authoritative confirmation.
 
 ## FT-006 Checkout Delivery
 
@@ -69,9 +71,16 @@ status: active
 
 - Unit: logical transition matrix, native status projection, expired-to-canceled
   normalization, conflict guards, and duplicate/no-op behavior.
-- Integration: payment-success handoff, fulfillment-start reservation consumption,
-  completion/cancellation/refund projections, and unchanged native records on
-  rejected transitions.
+- Integration: payment-success handoff, fulfillment-start reservation
+  consumption, completion/cancellation projections, partial-refund no-op,
+  cumulative full-refund projection, and unchanged native records on rejected
+  transitions.
+- Security integration: Store/customer/unauthenticated/unauthorized-Admin deny
+  paths, server-internal event allow-listing, same-order reference binding,
+  atomic re-read/write serialization, and no-mutation proof for unknown, forged,
+  contradictory, cross-order, late, terminal, duplicate, out-of-order, replayed,
+  and concurrent events; generic Admin metadata updates cannot change/delete any
+  workflow-owned protected key while unrelated operator metadata remains editable.
 - Admin/runtime: built-in Medusa Admin order detail shows contacts, products,
   delivery data, payment status, order status, total, and payment method for a
   synthetic order; no custom Admin route is used.
@@ -82,7 +91,8 @@ status: active
 ## Anti-cheat Rules
 
 - Do not mark payment success from return page alone.
-- Do not accept duplicate webhook handling without duplicate-event evidence.
+- For resumed FT-009 only, do not accept duplicate webhook handling without
+  duplicate-event evidence.
 - Do not mark order/inventory work done without state transition evidence.
 - Do not mark cart merge done without same-SKU summing evidence.
 - Do not mark a T2 task done without tier-required `/verify` `PASS`, or a T2

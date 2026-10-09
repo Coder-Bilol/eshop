@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-056-R1",
+  "packet_id": "PACKET-TASK-056-R5",
   "task_id": "TASK-056",
-  "created_at": "2026-08-22T00:00:00+03:00",
-  "source_task_hash": "sha256:edf5408a8e127545695df64fc5c8363c9aa577021cdc69611d929f75094fe86b",
+  "created_at": "2026-10-04T00:00:00+03:00",
+  "source_task_hash": "sha256:50c1ace4c09f17219a8820dbf62b5fa2f4903bd357d9beec3d9e7be037f6a90e",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove that the native Admin-compatible order detail remains a complete operator projection while lifecycle state changes.",
@@ -55,13 +55,15 @@
     ],
     "success_checks": [
       "Native Admin order detail contains contacts, products, delivery data, payment method/status, order status, total, and checkout_state.",
+      "New orders show personal_request; controlled legacy card/sbp/sberpay values remain historical offline-request labels and are not provider evidence.",
       "The installed dashboard exposes metadata through its order detail fields/metadata editor and provides native mark-as-paid and cancel actions.",
       "Lifecycle fixtures preserve required fields while projecting payment, fulfillment, completion, unpaid cancel, and refund states.",
+      "Fixtures distinguish cancellation-origin, partial, and cumulative full refunds, and prove the metadata editor/direct Admin API cannot change or delete any protected workflow key, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids, while unrelated operator metadata remains editable.",
       "No custom Admin replacement, direct database browser route, alternate order record, or unsafe fixture mutation is used."
     ],
     "evidence_required": [
       "Native order detail payload with every required operator field.",
-      "Field-preservation and lifecycle projection output.",
+      "Field-preservation and lifecycle projection output, including cancellation-origin/single partial/cumulative partial/final full refund fixtures and every protected-metadata negative path.",
       "Fixture cleanup/privacy and T3 closure evidence."
     ]
   },

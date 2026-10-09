@@ -59,8 +59,8 @@ Resolved by the TASK-020 core-workflow remediation verified on 2026-07-07:
   totals matching a reference Medusa workflow cart, positive taxes, promotion
   discounts, ordering, compensation, retry, and stock conflict.
 
-Verification artifact:
-`.tasks/TASK-020/TASK-020-S-verify-final-report-code-02.md`.
+The verification result is recorded in the TASK-020 task record and verification
+protocol.
 
 ## Required Resolution
 

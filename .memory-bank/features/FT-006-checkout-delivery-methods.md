@@ -29,9 +29,12 @@ spec_design_links:
 - `comment` is optional.
 - Delivery methods use stable IDs in the order `pickup`, `city_courier`, `transport_company`.
 - Tariffs are read from Medusa Admin / Shipping Options; initial local values are `0 RUB`, `500 RUB`, and `700 RUB` in that order.
-- Payment IDs are `card`, `sbp`, and `sberpay`.
+- The current payment ID is `personal_request`; it records an offline payment
+  request and does not identify a provider rail.
 - An unavailable delivery method returns HTTP `422` with code `delivery_method_unavailable` and the UI offers retry or another method.
-- A validated checkout snapshot is handed to FT-007 and the selected payment ID is handed to FT-009.
+- A validated checkout snapshot, including `personal_request`, is handed to
+  FT-007. Any future provider-specific choice is introduced and owned by FT-009
+  when that deferred profile is resumed.
 - FT-006 creates no order and performs no payment-provider integration.
 
 ## Edge Cases & Failure Modes
@@ -43,7 +46,8 @@ spec_design_links:
 ## Test Strategy Pointers
 
 - Unit/integration: option resolution, tariff values, normalization, conditional fields, and stable unavailable-method error.
-- E2E: authenticated checkout field validation, delivery selection/recovery, tariff display, and payment-ID selection.
+- E2E: authenticated checkout field validation, delivery selection/recovery,
+  tariff display, and the single personal-request selection.
 - Acceptance proves that FT-006 creates neither an order nor a payment-provider request.
 
 ## Source Artifacts
@@ -89,7 +93,7 @@ spec_design_links:
 - No new task, dependent promotion, EP-003 closure, or downstream FT-009
   provider decision is created by this closure. Future work belongs to the
   downstream feature boundaries or an explicit scope/spec change.
-- Review evidence: [FT-006 decomposition review](../../.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-FT006-final-report-docs-01.md).
+- Review evidence: [FT-006 protocol plan](../../.protocols/FT-006/plan.md).
 
 ## Lifecycle Navigation
 
@@ -97,15 +101,14 @@ spec_design_links:
   scheduler-closed, and the feature-level semantic gate returned
   `SEMANTIC_VERDICT: semantic-pass`.
 - Evidence navigation: [IMPL-FT-006](../tasks/plans/IMPL-FT-006.md),
-  [TASK-046 execute evidence](../../.tasks/TASK-046/TASK-046-S-execute-final-report-code-02.md),
-  [TASK-046 verification](../../.tasks/TASK-046/TASK-046-S-verify-final-report-docs-01.md),
-  [TASK-046 sync report](../../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md),
-  [TASK-047 verification](../../.tasks/TASK-047/TASK-047-S-VERIFY-final-report-docs-03.md),
-  [TASK-047 semantic verification](../../.tasks/TASK-047/TASK-047-S-RED-VERIFY-final-report-docs-03.md),
-  [TASK-049 verification](../../.tasks/TASK-049/TASK-049-S-VERIFY-final-report-docs-04.md),
-  [TASK-049 semantic verification](../../.tasks/TASK-049/TASK-049-S-RED-VERIFY-final-report-docs-02.md),
-  and [FT-006 feature semantic verification](../../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md).
-- Decomposition review: [TASK-MB-REVIEW FT-006 aggregate](../../.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-FT006-final-report-docs-01.md).
+  [TASK-046 protocol handoff](../../.protocols/TASK-046/handoff.md),
+  [TASK-046 verification](../../.protocols/TASK-046/verification.md),
+  [TASK-047 protocol verification](../../.protocols/TASK-047/verification.md),
+  [TASK-047 semantic verification](../../.protocols/TASK-047/red-verification.md),
+  [TASK-049 verification](../../.protocols/TASK-049/verification.md),
+  [TASK-049 semantic verification](../../.protocols/TASK-049/red-verification.md),
+  and [FT-006 protocol plan](../../.protocols/FT-006/plan.md).
+- Decomposition review: [FT-006 protocol plan](../../.protocols/FT-006/plan.md).
 - Historical provider/configuration blocker and the owner-approved bounded
   `apps/backend/medusa-config.ts` expansion remain documented in the authoritative
   TASK-046 record and protocol/evidence trail.

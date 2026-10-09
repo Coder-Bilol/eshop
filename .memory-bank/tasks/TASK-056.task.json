@@ -22,8 +22,10 @@
   ],
   "verify": [
     "A real native order fixture exposes contacts, ordered products, delivery address/method, payment method, payment status, order status, total, and logical checkout_state through the native Admin order detail boundary.",
+    "Admin visibility shows personal_request for new orders and preserves card/sbp/sberpay only as explicit legacy offline-request labels on existing fixtures, without presenting them as provider payment evidence.",
     "The installed dashboard mechanism is verified: metadata is present in the order detail fields, `showMetadata`/`showJSON` and the metadata editor are available, and native `paymentCollection.markAsPaid(...)` and `order.cancel(...)` are the operator actions.",
-    "Admin actions and lifecycle events preserve the required fields while moving paid -> processing -> completed and terminal unpaid cancellation/refund projections.",
+    "Admin actions and lifecycle events preserve the required fields while moving paid -> processing -> completed and projecting native cancellation/refund outcomes; cancellation-origin refunds remain canceled, partial refunds preserve state, and only cumulative full refunds become refunded.",
+    "The built-in metadata editor and direct Admin order-update request cannot change or delete any protected workflow key, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids, while explicitly operator-editable unrelated metadata remains editable.",
     "The acceptance path uses existing Medusa Admin/native workflows and does not add a custom Admin replacement, direct database browser route, or alternate order record.",
     "Fixtures and evidence are cleaned up and contain no real PII, provider payloads, credentials, cookies, tokens, or production data.",
     "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
@@ -38,7 +40,7 @@
   ],
   "evidence_required": [
     "Native Medusa/PostgreSQL Admin-compatible order detail payload with all required operator fields.",
-    "Operator lifecycle projection and field-preservation assertions across payment, fulfillment, completion, cancel, and refund fixtures.",
+    "Operator lifecycle projection and field-preservation assertions across payment, fulfillment, completion, cancel, cancellation-origin refund, single/cumulative partial refunds, and final full-refund fixtures.",
     "Fixture cleanup, privacy scan, typecheck/build/lint output, and full T3 closure evidence."
   ],
   "source_artifacts": [
@@ -66,7 +68,7 @@
   ],
   "invariants": [
     "Admin-visible order data remains available across lifecycle transitions.",
-    "Payment method/status and logical/native order status cannot be silently dropped or replaced with client values.",
+    "Payment method/status and logical/native order status cannot be silently dropped or replaced with client values; personal_request and legacy offline labels remain distinguishable from provider proof.",
     "Acceptance cleanup is unconditional and does not affect unrelated orders or inventory."
   ],
   "verification_targets": [

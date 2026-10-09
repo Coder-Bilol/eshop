@@ -3,7 +3,7 @@ import {
   type DeliveryOptionId,
 } from "./delivery-options";
 
-export const PAYMENT_IDS = ["card", "sbp", "sberpay"] as const;
+export const PAYMENT_IDS = ["personal_request"] as const;
 
 export type PaymentId = (typeof PAYMENT_IDS)[number];
 

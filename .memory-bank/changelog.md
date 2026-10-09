@@ -4,6 +4,92 @@ status: active
 ---
 # Changelog
 
+## [2026-10-05] TASK-054 closure
+- Closed TASK-054 as `done` after functional `VERDICT: PASS`, full T2 protocol/packet/spec gates, and explicit standalone owner approval.
+- Kept FT-008 and REQ-022 `planned`; downstream TASK-055..057 and the feature-level semantic review remain outstanding.
+
+## [2026-10-05] TASK-054 lifecycle projection foundation
+- Added the pure backend-owned FT-008 lifecycle state model, native evidence
+  projection, transition guards, expiry-origin precedence, and cumulative
+  full-refund predicate without introducing a second order store or inventory
+  mutation path.
+- Added deterministic TASK-054 smoke evidence for allowed/forbidden transitions,
+  duplicate no-ops, legacy and current FT-007 expiry preservation,
+  cancellation-origin refunds, cumulative refunds, binding conflicts, and
+  forged/unknown event rejection.
+
+## [2026-10-04] FT-008 review remediation and payment-handoff repair
+- Unified: new FT-006/FT-007 checkout requests now use only
+  `personal_request`; existing `card|sbp|sberpay` order metadata is retained as
+  a legacy offline-request label without provider authority or rewriting.
+- Guarded: partial refunds preserve the current logical lifecycle state;
+  `refunded` requires persisted native refunds (or authoritative
+  `raw_refunded_amount`) to cover all persisted native captures (or
+  `raw_captured_amount`) within native currency precision, without assuming
+  capture/refund status fields absent from Medusa 2.16 DTOs.
+- Protected: the generic Admin metadata editor/API cannot change or delete the
+  complete workflow-owned checkout/expiry/idempotency/handoff key set,
+  including `checkout_reservation_item_ids` and
+  `checkout_reservation_line_ids`; unrelated operator metadata remains editable.
+- Scoped: webhook idempotency, simulated provider events, and return-page tests
+  are explicitly conditional FT-009-only targets; current FT-008 acceptance is
+  native-Admin-driven.
+- Synchronized: FT-006/FT-007/FT-008 specs, global testing/lifecycle routes,
+  root/analysis navigation, IMPL-FT-006/008, TASK-054..TASK-057, protocol
+  decisions, and all four derivative packets were refreshed. Task lifecycle
+  statuses were not changed.
+- Verified: storefront tests and storefront/backend typecheck pass. The local
+  checkout-delivery integration command did not complete within the 4-minute
+  environment timeout and produced no functional failure output.
+
+## [2026-09-13] FT-007/FT-008 expiry and native-operation serialization repair
+- Preserved: FT-007 now has a normative durable expiry-origin and cleanup
+  handoff. Native cancellation/refund projection cannot overwrite
+  `checkout_state: expired` or hide partial reservation cleanup.
+- Serialized: FT-007 expiry and supported built-in Admin lifecycle mutations use
+  one `order-lifecycle:${order_id}` lock before authoritative preconditions and
+  native mutation; async projectors reacquire the same key and do not treat
+  event delivery as commit or serialization proof.
+- Updated: FT-007/FT-008 runtime, contract, data, state, feature, implementation
+  plan, TASK-054/TASK-055 handoff, and their derivative execution packets. No
+  implementation source or task lifecycle status was changed.
+- Gated: TASK-055 must stop if supported project middleware cannot hold the lock
+  around the complete installed built-in Admin native handler; fresh review and
+  strict doctor remain required before TASK-054 execution.
+
+## [2026-09-03] FT-008 lifecycle authority clarification
+- Clarified: a refund emitted by native cancellation may leave native payment
+  evidence as refunded, but the logical order remains `canceled`; only a
+  standalone refund on a non-canceled paid/processing/completed order projects
+  `refunded`.
+- Protected: `checkout_state` is server-owned lifecycle metadata. Generic Admin
+  metadata updates must reject or preserve changes/deletion of that key while
+  allowing unrelated metadata edits.
+- Updated: FT-008 feature/runtime/contract/data/state specs, implementation
+  plan, protocol decision log, TASK-054..TASK-057 criteria, and derivative
+  execution packets for the clarified guards and negative-path evidence.
+
+## [2026-08-30] FT-008 review remediation in planning artifacts
+- Removed concrete `.tasks/*` evidence links from durable archived bug/knowledge
+  documents; historical conclusions now route through task records and protocols.
+- Added explicit FT-008 security acceptance checks for native Admin denial,
+  server-internal event allow-listing, same-order binding, atomic guards, late/
+  terminal/duplicate/replay/out-of-order handling, race safety, and no-mutation
+  negative paths.
+- Refreshed TASK-054, TASK-055, and TASK-057 derivative packets after task-record
+  changes; no separate native-event replay ledger was introduced.
+
+## [2026-08-28] FT-008 native Admin cancellation decision
+- Decided: native Admin may cancel pending, paid, or processing orders when
+  Medusa's native cancellation preconditions allow it. Captured-payment refund
+  and reservation cleanup remain native workflow behavior; completed-order
+  correction uses native refund/return.
+- Reconciled: FT-008 treats native events as server-internal projection
+  notifications, not as a transport of `req.auth_context` or fabricated actor
+  proof. Admin authentication remains at the native operation boundary.
+- Refreshed: FT-008 task records and all required packets now match the updated
+  lifecycle and native cancellation semantics.
+
 ## [2026-08-27] FT-008 manual Admin payment profile repair
 - Reframed: FT-008 now covers the current personal/offline payment profile;
   storefront calculates and records the request, while native Medusa Admin is

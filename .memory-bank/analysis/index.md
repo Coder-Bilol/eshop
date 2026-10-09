@@ -35,9 +35,11 @@ status: active
 
 ## Recommended Next Step
 
-The framing, PRD decomposition, and global backbone are complete. For new roadmap
-execution, select a planned feature (FT-008, FT-009, or FT-010) and run
-`/prd-to-tasks FT-<ID>`; use `/brief` only for genuinely new product scope.
+The framing, PRD decomposition, and global backbone are complete. FT-008 is
+already decomposed: close its fresh scoped review and strict doctor gates, then
+execute TASK-054. Use `/prd-to-tasks FT-<ID>` only for still-undecomposed
+features such as FT-009 or FT-010; use `/brief` only for genuinely new product
+scope.
 
 ## Open Routing Questions
 

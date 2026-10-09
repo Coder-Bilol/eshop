@@ -27,6 +27,7 @@
     "smoke:checkout-delivery-options": "node test/run-integration.cjs checkout-delivery-options",
     "smoke:checkout-delivery": "node test/run-integration.cjs checkout-delivery",
     "smoke:checkout-delivery-acceptance": "node test/run-integration.cjs checkout-delivery-acceptance",
+    "smoke:order-lifecycle-state": "node test/run-integration.cjs order-lifecycle-state",
     "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },

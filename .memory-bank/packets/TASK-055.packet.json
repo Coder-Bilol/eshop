@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-055-R1",
+  "packet_id": "PACKET-TASK-055-R6",
   "task_id": "TASK-055",
-  "created_at": "2026-08-22T00:00:00+03:00",
-  "source_task_hash": "sha256:126a19c842edb2491d9b712acfde25c01afc46e9635bf4fee89a5a7d8a1867b3",
+  "created_at": "2026-10-04T00:00:00+03:00",
+  "source_task_hash": "sha256:7fa1b626a409b6136838eb0037e0d877823032c6197cc56e74d772e4cf7a491b",
   "status": "ready",
   "tier": "T3",
   "purpose": "Connect native Medusa Admin operator events to one guarded, durable lifecycle transition boundary; keep the deferred FT-009 provider profile out of the current runtime.",
@@ -17,9 +17,11 @@
     "feature": ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
     "specs": [
       ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+      ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
       ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
       ".memory-bank/contracts/order-lifecycle-admin-api.md",
       ".memory-bank/domains/order-lifecycle-admin-data.md",
+      ".memory-bank/domains/pending-order-inventory-data.md",
       ".memory-bank/states/order-lifecycle-admin.md",
       ".memory-bank/states/order-payment-inventory.md",
       ".memory-bank/architecture/pending-order-runtime.md",
@@ -36,13 +38,19 @@
   },
   "scope": {
     "allowed_write_scope": [
+      "apps/backend/src/order-lifecycle/lock.ts",
       "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
       "apps/backend/src/subscribers/order-lifecycle.ts",
+      "apps/backend/src/api/middlewares.ts",
       "apps/backend/src/order-lifecycle/projection.ts",
       "apps/backend/src/order-lifecycle/guards.ts",
       "apps/backend/src/workflows/checkout/create-pending-order.ts",
+      "apps/backend/src/workflows/checkout/expire-pending-order.ts",
+      "apps/backend/src/checkout/pending-order.ts",
+      "apps/backend/src/jobs/expire-pending-orders.ts",
       "apps/backend/medusa-config.ts",
       "apps/backend/src/scripts/smoke-order-lifecycle.ts",
+      "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
       "apps/backend/test/run-integration.cjs",
       "apps/backend/package.json",
       ".memory-bank/changelog.md"
@@ -62,22 +70,40 @@
       "node scripts/mb-lint.mjs"
     ],
     "success_checks": [
+      "Supported project middleware holds order-lifecycle:${order_id} around each in-scope built-in Admin native handler and enforces authoritative same-order/expiry/terminal preconditions before mutation; the projector reacquires the same key.",
+      "FT-007 expiry uses the canonical lock, persists checkout_expiry_origin ft-007 plus pending cleanup before native cancel, preserves checkout_state expired, and rediscovers partial cleanup by origin plus cleanup state.",
       "One unpaid native system collection (`pp_system_default`) is available per pending order; native Admin mark-as-paid projects pending_payment to paid and leaves reservations unchanged without an external provider call.",
-      "Native fulfillment/completion/unpaid-cancel/refund events use one guarded workflow and preserve required metadata.",
-      "Late, contradictory, paid-order-cancel, forged/missing Admin context, cross-order, missing-order, and duplicate events fail closed or no-op without mutation.",
+      "New orders persist personal_request, while existing card/sbp/sberpay values remain read-only legacy offline-request labels and never become provider proof.",
+      "Native fulfillment/completion/cancel/refund events use one guarded projection and preserve required metadata; native cancellation owns refund and reservation cleanup.",
+      "FT-007-origin order_canceled/refund notifications preserve expiry state and do not release reservations through FT-008.",
+      "Cancellation-origin payment_refunded is a logical no-op for a canceled order; partial refunds preserve state and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) project refunded for a non-canceled paid/processing/completed order, regardless of event arrival order and without assuming a capture/refund status field.",
+      "Late payment after cancellation, native cancellation failure for completed/active-fulfillment orders, contradictory state, cross-order, missing-order, and duplicate events fail closed or no-op without projection mutation.",
+      "The generic Admin metadata update boundary rejects or preserves changes/deletion of every protected workflow-owned key, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids, allows explicitly unrelated operator metadata edits, and leaves protected writes to approved server-side workflows.",
+      "Unauthenticated, customer, Store, and unauthorized-Admin attempts are denied at the native Admin boundary; unknown, forged, out-of-order, and replayed notifications are filtered, while concurrent native operations are serialized before mutation with no mutation on rejection.",
+      "Forced expiry/payment and cancellation/payment races prove the loser fails before unsafe native mutation even when projector delivery is delayed.",
       "No provider call, email side effect, custom Admin route, direct stock mutation, or reservation deletion on payment is observed."
     ],
     "evidence_required": [
       "Real Medusa/PostgreSQL lifecycle workflow output.",
       "Reservation/stock before-and-after evidence for payment and fulfillment.",
+      "Negative-path evidence for native Admin authorization denial, event allow-listing, same-order binding, late/terminal events, duplicate/replay, and concurrent transition races, with before/after no-mutation assertions.",
+      "Route-level evidence proves canonical lock acquisition and authoritative preconditions occur before native mutation and remain held through handler completion.",
+      "Injected FT-007 post-cancel cleanup failure proves expiry metadata survives projector notifications and retry completes remaining cleanup exactly once.",
+      "Refund evidence covers cancellation origin, single/cumulative partials, final full refund, duplicate/out-of-order delivery, and both cancellation event orders.",
+      "Built-in metadata-editor and direct Admin API evidence proves every protected workflow key, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids, cannot be changed/deleted while unrelated operator metadata remains editable.",
       "Sanitized privacy/cleanup output and full T3 protocol evidence."
     ]
   },
   "stop_conditions": [
     "Installed Medusa events or fulfillment workflow do not provide a truthful native handoff.",
-    "Payment-success reservation behavior cannot be proven without deleting or directly mutating stock.",
-    "A conflict requires changing FT-007 expiry semantics or FT-009 provider ownership.",
-    "Full T3 evidence cannot prove no mutation on rejected/duplicate events."
+      "Payment-success reservation behavior cannot be proven without deleting or directly mutating stock.",
+      "A conflict requires changing FT-007 expiry semantics or FT-009 provider ownership.",
+      "Full T3 evidence cannot prove no mutation on rejected/duplicate events.",
+    "Native Admin denial, same-order binding, or concurrent transition safety cannot be proven at the local runtime boundary.",
+    "Supported project middleware cannot hold the canonical lock around the complete installed built-in Admin native handler without modifying Medusa Core or adding a custom Admin mutation API.",
+    "FT-007 expiry origin cannot be persisted before native cancel or partial cleanup cannot be rediscovered by origin plus cleanup state.",
+    "The native Admin metadata update boundary cannot enforce the complete protected workflow metadata set without modifying Medusa Core or violating the approved extension boundary.",
+    "Authoritative native capture/refund totals or currency precision cannot support a deterministic cumulative full-refund predicate."
   ],
   "required_handoff": [
     "changed_files",

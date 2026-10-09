@@ -17,6 +17,7 @@ import {
 } from "@medusajs/framework/workflows-sdk";
 import {
   acquireLockStep,
+  createOrderPaymentCollectionWorkflow,
   createOrderWorkflow,
   releaseLockStep,
   reserveInventoryStep,
@@ -331,6 +332,28 @@ export const createPendingOrderWorkflow = createWorkflow(
       ({ preparation }) => !preparation.existing_order
     ).then(() =>
       createOrderWorkflow.runAsStep({ input: createOrderInput as any })
+    );
+
+    const paymentCollectionInput = transform(
+      { createdOrder },
+      ({ createdOrder }) => ({
+        order_id: createdOrder!.id,
+        amount: Number(
+          (createdOrder as any).total ??
+            (createdOrder as any).summary?.total ??
+            0
+        ),
+      })
+    );
+    when(
+      "ft-008-create-system-payment-collection",
+      { preparation, createdOrder },
+      ({ preparation, createdOrder }) =>
+        !preparation.existing_order && !!createdOrder
+    ).then(() =>
+      createOrderPaymentCollectionWorkflow.runAsStep({
+        input: paymentCollectionInput,
+      })
     );
 
     const reservationInputs = transform(

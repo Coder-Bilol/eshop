@@ -1,7 +1,7 @@
 {
   "id": "TASK-054",
   "title": "Add manual-Admin lifecycle state model and projection guards",
-  "status": "ready",
+  "status": "done",
   "wave": "W1",
   "feature": "FT-008",
   "reqs": ["REQ-022"],
@@ -25,9 +25,43 @@
   "verify": [
     "The logical state union covers pending_payment, paid, processing, completed, canceled, and refunded; expired normalizes to canceled with timeout reason.",
     "Native Medusa status/payment/fulfillment evidence maps deterministically to the logical projection without trusting Store input.",
-    "Allowed transitions and forbidden transitions match the FT-008 state spec: Admin may mark an unpaid order paid or cancel it, while a paid/processing/completed order cannot become canceled and uses native Admin refund.",
+    "Allowed transitions and forbidden transitions match the FT-008 state spec: Admin may mark an unpaid order paid, and native Admin cancellation may project pending/paid/processing orders as canceled when native preconditions allow it.",
+    "An order_canceled or cancellation-origin payment_refunded event with checkout_expiry_origin ft-007 preserves checkout_state expired, timeout reason, and pending/complete cleanup state; compatible existing FT-007 expired records without the new marker are also preserved.",
+    "A cancellation-origin payment_refunded event keeps a canceled order in canceled; partial standalone refunds preserve the current logical state, and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) within native currency precision project a non-canceled paid/processing/completed order to refunded; no capture/refund status field is assumed.",
     "Repeated events targeting the current state are safe no-ops and contradictory events leave the source order state unchanged.",
-    "The helper preserves FT-007 metadata and does not add a custom order, Admin, payment, or inventory store."
+    "Unknown event kinds and caller-supplied source, actor, status, payment, or target-metadata values are rejected before any lifecycle write.",
+    "The helper preserves all FT-007 metadata, never claims that notification delivery proves commit or serialization, and does not add a custom order, Admin, payment, or inventory store.",
+    {
+      "scheduler_decision": "verification_pass",
+      "verdict": "PASS",
+      "reason": "All TASK-054 functional acceptance criteria, required T2 gates, supplemental transition/refund matrix, and scope/anti-goal checks passed.",
+      "evidence": [
+        ".protocols/TASK-054/verification.md",
+        ".tasks/TASK-054/smoke-order-lifecycle.log",
+        ".tasks/TASK-054/supplemental-verification.log",
+        ".tasks/TASK-054/integration.log",
+        ".tasks/TASK-054/typecheck.log",
+        ".tasks/TASK-054/build.log",
+        ".tasks/TASK-054/mb-lint.log"
+      ],
+      "operator_basis": "User explicitly requested closure of TASK-054 in standalone manual mode after functional verification PASS.",
+      "verification_status": "functional_pass",
+      "verified_at": "2026-10-05T11:57:58+03:00"
+    },
+    {
+      "scheduler_decision": "done",
+      "reason": "TASK-054 satisfies T2 manual closure requirements: full protocol, required packet/spec gates, functional PASS, and explicit standalone closure ownership.",
+      "evidence": [
+        ".memory-bank/tasks/TASK-054.task.json",
+        ".protocols/TASK-054/verification.md",
+        ".tasks/TASK-054/supplemental-verification.log",
+        ".tasks/TASK-054/build.log"
+      ],
+      "operator_basis": "Direct user instruction: Закрой таску.",
+      "verification_status": "closed",
+      "verdict": "PASS",
+      "closed_at": "2026-10-05T12:00:00+03:00"
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-008.md",
@@ -37,7 +71,9 @@
   ],
   "evidence_required": [
     "Deterministic transition/projection matrix output for all allowed and forbidden states.",
-    "Expired-to-canceled, duplicate/no-op, payment/order disagreement, and reservation-preservation assertions.",
+    "Expired-to-canceled normalization, FT-007 expiry-origin/cleanup preservation (including legacy expired compatibility), duplicate/no-op, payment/order disagreement, and reservation-preservation assertions.",
+    "Refund assertions cover cancellation origin, one partial refund, cumulative intermediate refunds, the final full refund, duplicate/out-of-order notifications, both cancellation event orders, and no premature or canceled-state overwrite.",
+    "Unknown-event and caller-supplied source/actor/status/payment/metadata rejection output with no lifecycle mutation.",
     "Backend typecheck/build and Memory Bank lint output."
   ],
   "source_artifacts": [
@@ -46,6 +82,9 @@
     ".memory-bank/requirements.md",
     ".memory-bank/tasks/plans/IMPL-FT-008.md",
     ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+    ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
+    ".memory-bank/architecture/pending-order-runtime.md",
+    ".memory-bank/domains/pending-order-inventory-data.md",
     ".memory-bank/states/order-lifecycle-admin.md",
     ".memory-bank/contracts/order-lifecycle-admin-api.md",
     ".memory-bank/domains/order-lifecycle-admin-data.md",
@@ -60,19 +99,23 @@
   ],
   "constraints": [
     "Use pure/backend-owned projection and guards over native Medusa state; do not modify Medusa Core.",
-    "Treat FT-007 expired as canceled with a timeout reason and preserve all existing metadata keys.",
+    "Treat FT-007 expired as global canceled with a timeout reason while preserving checkout_state expired, checkout_expiry_origin ft-007, expiry reason, pending/complete cleanup, and all existing metadata keys.",
+    "Model native events only as server-internal projection notifications; pre-native serialization belongs to TASK-055 and must not be falsely inferred from event arrival.",
     "The current payment profile is personal/offline: only the native Admin payment action may produce paid; do not call a provider or expose a Store lifecycle mutation route.",
     "Do not delete reservations or mutate stock quantities."
   ],
   "invariants": [
     "Expired, canceled, and refunded orders cannot re-enter paid or processing.",
-    "A paid, processing, or completed order cannot enter canceled; unpaid Admin cancellation remains persisted and does not restore the active cart.",
+    "FT-007-origin cancellation/refund evidence cannot overwrite checkout_state expired or hide pending reservation cleanup.",
+    "A cancellation-origin or partial refund cannot overwrite the logical state with refunded; standalone refunded requires a non-canceled paid/processing/completed order and the authoritative cumulative full-refund predicate.",
+    "A canceled order cannot re-enter paid or processing; native cancellation remains persisted and does not restore the active cart.",
     "Projection is deterministic from authoritative native records and logical metadata.",
     "Duplicate current-state events produce no second transition or side effect."
   ],
   "verification_targets": [
     ".memory-bank/states/order-lifecycle-admin.md#verification-matrix",
     ".memory-bank/contracts/order-lifecycle-admin-api.md#transition-result",
+    ".memory-bank/contracts/order-lifecycle-admin-api.md#cancellationrefund-precedence",
     ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md#verification-targets"
   ],
   "purpose": "Establish the executable lifecycle vocabulary and guard matrix before cross-module transition work.",
@@ -102,6 +145,8 @@
     "stop_conditions": [
       "Installed Medusa native status/payment/fulfillment fields cannot support a truthful projection.",
       "The transition matrix conflicts with the linked FT-008 state spec or FT-007 expiry contract.",
+      "The pure model cannot distinguish FT-007 expiry-origin cancellation from operator cancellation without discarding cleanup state.",
+      "Authoritative native capture/refund totals or currency precision cannot support a deterministic cumulative full-refund predicate.",
       "Verification cannot distinguish a no-op from a real duplicate side effect."
     ]
   }

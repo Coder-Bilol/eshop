@@ -7,8 +7,6 @@ source_of_truth:
   - .memory-bank/tasks/TASK-010.task.json
   - .memory-bank/packets/TASK-010.packet.json
   - .protocols/TASK-010/handoff.md
-  - .tasks/TASK-010/verify-smoke-product-detail.txt
-  - .tasks/TASK-010/verify-mb-doctor-strict-final.txt
 ---
 # TASK-010 Package Scope Gap
 
@@ -24,11 +22,13 @@ Resolved. TASK-010 scope now includes `apps/backend/package.json`, the packet wa
 
 ## Evidence
 
-- `.tasks/TASK-010/verify-db-seed.txt`: `db:seed` passed with 5 products, 8 variants, and `productionData:false`.
-- `.tasks/TASK-010/verify-smoke-product-detail.txt`: `smoke:product-detail` passed and proved multi-option variants, unavailable variant, default SKU product, option dimensions, SKU, price, and availability through backend/PostgreSQL.
-- `.tasks/TASK-010/verify-mb-lint.txt`: Memory Bank lint passed.
-- `.tasks/TASK-010/verify-mb-doctor-strict.txt`: strict doctor passed before the verification verdict was written.
-- `.tasks/TASK-010/verify-mb-doctor-strict-final.txt`: strict doctor failed after verdict write because TASK-010 packet `source_task_hash` is stale.
+- The verification protocol records that `db:seed` passed with 5 products, 8
+  variants, and `productionData:false`.
+- The same protocol records that `smoke:product-detail` passed and proved
+  multi-option variants, unavailable variant, default SKU product, option
+  dimensions, SKU, price, and availability through backend/PostgreSQL.
+- Memory Bank lint passed; strict doctor passed before the verdict and then
+  reported a stale TASK-010 packet hash after the verdict was written.
 
 ## Required Resolution
 
@@ -47,4 +47,5 @@ Completed on 2026-06-25.
 - Updated `.memory-bank/packets/TASK-010.packet.json` to include `apps/backend/package.json` in packet scope.
 - Refreshed the packet source task hash before reverify.
 - Reran `db:seed`, `smoke:product-detail`, and `mb-lint`; all passed.
-- Recorded final PASS evidence in `.tasks/TASK-010/TASK-010-S-verify-final-report-code-02.md`.
+- Recorded the final PASS evidence in the TASK-010 task record and verification
+  protocol.

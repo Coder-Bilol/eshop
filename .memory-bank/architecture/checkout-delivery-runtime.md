@@ -2,7 +2,7 @@
 description: FT-006 runtime architecture for authenticated checkout delivery validation.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-13
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/tech-specs/FT-006-checkout-delivery-methods.md
   - .memory-bank/contracts/checkout-delivery-api.md
@@ -22,8 +22,10 @@ source_of_truth:
   tariff lookup, and the transient validated handoff.
 - Medusa Admin / Shipping Options is the runtime source of configured delivery
   methods and tariff values. FT-006 does not create a second tariff registry.
-- FT-007 owns order creation and consumes the validated checkout snapshot. FT-009
-  owns payment-provider behavior and consumes the selected payment ID.
+- FT-007 owns order creation and consumes the validated checkout snapshot plus
+  the current `personal_request` selection. FT-009 owns any future
+  provider-specific selection and provider behavior under a separate resumed
+  contract.
 
 ## Runtime Flow
 
@@ -34,8 +36,9 @@ source_of_truth:
    applies server-side safe length limits before domain validation.
 4. The backend resolves the selected stable delivery ID against active Medusa
    Shipping Options and its configured RUB tariff.
-5. The backend returns a validated checkout snapshot for FT-007 and the selected
-   payment ID for FT-009. The operation creates no order and starts no payment.
+5. The backend returns a validated checkout snapshot and the
+   `personal_request` ID for FT-007. The operation creates no order and starts
+   no payment; no provider ID is produced for deferred FT-009.
 6. If the selected option is unavailable, the backend returns `422` with
    `delivery_method_unavailable`; the storefront can retry or select another
    option without claiming that checkout succeeded.

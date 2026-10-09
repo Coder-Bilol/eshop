@@ -7,7 +7,6 @@ source_of_truth:
   - .memory-bank/tasks/TASK-011.task.json
   - .memory-bank/tech-specs/FT-002-product-detail-variant-selection.md
   - apps/backend/src/catalog/product-detail.ts
-  - .tasks/TASK-011/verify-multi-variant-one-sellable.txt
 ---
 # TASK-011 Multi-Variant Default Selection
 
@@ -31,8 +30,8 @@ product into a default-SKU product based only on current sellability.
 
 ## Evidence
 
-- `.tasks/TASK-011/verify-multi-variant-one-sellable.txt`
-- `.tasks/TASK-011/TASK-011-S-verify-final-report-code-01.md`
+- The failing one-sellable-variant case is recorded in the TASK-011 verification
+  protocol.
 
 ## Required Resolution
 
@@ -49,4 +48,5 @@ Resolved on 2026-06-27.
 - Products with multiple concrete variants retain `requires_selection: true`.
 - PostgreSQL-backed regression coverage proves the previously failing case.
 - Independent reverification passed.
-- Evidence: `.tasks/TASK-011/TASK-011-S-verify-final-report-code-02.md`.
+- Independent reverification is recorded in the TASK-011 task record and
+  verification protocol.

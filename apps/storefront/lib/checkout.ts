@@ -6,7 +6,7 @@ export const DELIVERY_METHOD_IDS = [
 
 export type DeliveryMethodId = (typeof DELIVERY_METHOD_IDS)[number];
 
-export const PAYMENT_METHOD_IDS = ["card", "sbp", "sberpay"] as const;
+export const PAYMENT_METHOD_IDS = ["personal_request"] as const;
 
 export type PaymentMethodId = (typeof PAYMENT_METHOD_IDS)[number];
 
@@ -17,9 +17,7 @@ export const DELIVERY_METHOD_LABELS: Record<DeliveryMethodId, string> = {
 };
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodId, string> = {
-  card: "Bank card",
-  sbp: "SBP",
-  sberpay: "SberPay",
+  personal_request: "Personal payment request",
 };
 
 export type CheckoutFormValues = {
@@ -144,7 +142,7 @@ export function createInitialCheckoutValues(): CheckoutFormValues {
     address: "",
     comment: "",
     delivery_method: "pickup",
-    payment_method: "card",
+    payment_method: "personal_request",
   };
 }
 

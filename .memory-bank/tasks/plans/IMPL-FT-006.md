@@ -2,7 +2,7 @@
 description: Implementation plan for FT-006 authenticated checkout delivery methods.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-08-25
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/features/FT-006-checkout-delivery-methods.md
   - .memory-bank/tech-specs/FT-006-checkout-delivery-methods.md
@@ -28,7 +28,7 @@ and FT-009 without creating an order or invoking a payment provider.
   `node scripts/mb-doctor.mjs --strict` (0 errors, 0 warnings).
 - Do not regenerate or extend this decomposition through `/prd-to-tasks FT-006`
   unless a product, normative-spec, or task-queue change reopens the scope.
-- Review evidence: [FT-006 decomposition review](../../../.tasks/TASK-MB-REVIEW/TASK-MB-REVIEW-S-FINAL-FT006-final-report-docs-01.md).
+- Review evidence: [FT-006 protocol plan](../../../.protocols/FT-006/plan.md).
 
 ## Source Artifacts
 
@@ -58,7 +58,8 @@ and FT-009 without creating an order or invoking a payment provider.
 - FT-004 `authenticated_ready` is the only buyer-facing checkout entry state;
   backend actor validation remains mandatory.
 - FT-007 owns pending-order creation and persistence after snapshot handoff.
-- FT-009 owns payment-provider integration after payment-ID handoff.
+- FT-007 consumes the current `personal_request` handoff. FT-009 owns any future
+  provider-specific selection and integration under a separate resumed contract.
 
 ## Constraints
 
@@ -72,7 +73,8 @@ and FT-009 without creating an order or invoking a payment provider.
   bounded implementation assumptions and must stay server-side.
 - Unavailable delivery returns `422 delivery_method_unavailable`; recovery is
   retry or selecting another method.
-- Payment IDs are only `card`, `sbp`, and `sberpay`.
+- The current payment ID is only `personal_request`; it is an offline request
+  label and not provider payment proof.
 - FT-006 creates no order, inventory reservation, payment attempt, or provider
   request. No external delivery integration is added.
 - Do not add a custom durable checkout snapshot table or a second tariff registry.
@@ -175,8 +177,8 @@ and FT-009 without creating an order or invoking a payment provider.
 5. Make one delivery option unavailable in the local Admin/Shipping Options test
    setup; confirm `422 delivery_method_unavailable`, retry, and alternative
    selection behavior.
-6. Select each of `card`, `sbp`, and `sberpay`; confirm the validated handoff
-   exposes only the selected payment ID and no provider call is made.
+6. Confirm the single `personal_request` selection is handed to FT-007 and no
+   provider ID or provider call is produced.
 7. Confirm the FT-007 snapshot contains validated contact/delivery data and tariff
    but no order is created, no inventory reservation is made, and no payment
    provider is invoked.
@@ -233,13 +235,13 @@ and FT-009 without creating an order or invoking a payment provider.
 - [TASK-047 canonical packet](../../packets/TASK-047.packet.json)
 - [TASK-048 canonical packet](../../packets/TASK-048.packet.json)
 - [TASK-049 canonical packet](../../packets/TASK-049.packet.json)
-- [TASK-046 execute STOP_REPORT](../../../.tasks/TASK-046/TASK-046-S-execute-stop-report-code-01.md)
-- [TASK-046 execute evidence](../../../.tasks/TASK-046/TASK-046-S-execute-final-report-code-02.md)
-- [TASK-046 functional verification](../../../.tasks/TASK-046/TASK-046-S-verify-final-report-docs-01.md)
-- [TASK-046 sync report](../../../.tasks/TASK-046/TASK-046-S-MB-SYNC-final-report-docs-02.md)
+- [TASK-046 protocol progress](../../../.protocols/TASK-046/progress.md)
+- [TASK-046 protocol handoff](../../../.protocols/TASK-046/handoff.md)
+- [TASK-046 functional verification](../../../.protocols/TASK-046/verification.md)
+- [TASK-046 sync handoff](../../../.protocols/TASK-046/handoff.md)
 - [TASK-046 protocol handoff](../../../.protocols/TASK-046/handoff.md)
 - [TASK-046 protocol progress](../../../.protocols/TASK-046/progress.md)
 - [TASK-046 protocol verification](../../../.protocols/TASK-046/verification.md)
-- [TASK-049 final verification](../../../.tasks/TASK-049/TASK-049-S-VERIFY-final-report-docs-04.md)
-- [TASK-049 semantic verification](../../../.tasks/TASK-049/TASK-049-S-RED-VERIFY-final-report-docs-02.md)
-- [FT-006 feature semantic verification](../../../.tasks/FT-006/FT-006-S-RED-VERIFY-final-report-docs-01.md)
+- [TASK-049 final verification](../../../.protocols/TASK-049/verification.md)
+- [TASK-049 semantic verification](../../../.protocols/TASK-049/red-verification.md)
+- [FT-006 protocol plan](../../../.protocols/FT-006/plan.md)

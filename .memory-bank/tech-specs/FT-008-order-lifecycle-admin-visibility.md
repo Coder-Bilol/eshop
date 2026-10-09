@@ -2,7 +2,7 @@
 description: Feature-level SDD hub for FT-008 order lifecycle and Medusa Admin visibility.
 status: active
 owner: spec-improve
-last_updated: 2026-08-27
+last_updated: 2026-10-04
 source_of_truth:
   - .memory-bank/features/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/architecture/order-lifecycle-admin-runtime.md
@@ -54,8 +54,8 @@ The current product lifecycle is:
 
 ```text
 pending_payment -> paid -> processing -> completed
-pending_payment -> canceled
-paid|processing|completed -> refunded      (native Admin refund path, when needed)
+pending_payment|paid|processing -> canceled (native Admin cancel, when allowed)
+paid|processing|completed -> refunded        (native Admin refund path, when needed)
 ```
 
 `pending_payment` is represented by the FT-007 native `pending` order plus
@@ -64,8 +64,58 @@ the Medusa system payment provider (`pp_system_default`). `paid` is written only
 after the authenticated native Admin `Mark as paid` action. `processing` is
 projected from a native Admin fulfillment-start action, `completed` from the
 native Admin completion action, and `canceled` from the native Admin cancel
-action on an unpaid order. A post-payment cancel is rejected; a confirmed native
-Admin refund may project `refunded`.
+action when Medusa's native cancellation preconditions allow it, or from the
+existing FT-007 expiry path. Native cancellation may refund captured payment
+and clean up reservations as part of the supported workflow. A standalone
+confirmed cumulative full native Admin refund may project `refunded`; partial
+refunds preserve the current logical state. A completed order uses the native
+refund/return path because native cancellation does not apply to it.
+FT-007 expiry remains distinguishable through the durable
+`checkout_expiry_origin: "ft-007"` marker and retains
+`checkout_state: "expired"` as its timeout projection even though native/global
+order state is `canceled`.
+
+### Cancellation/refund precedence
+
+Native cancellation and its captured-payment refund are one operator action.
+The refund notification emitted by that action must not be interpreted as a
+standalone lifecycle refund. The guarded projector applies this deterministic
+precedence:
+
+| Native evidence | Logical projection |
+|---|---|
+| `order.canceled` or authoritative `order.status: canceled` without FT-007 expiry origin | `checkout_state: canceled` |
+| cancellation with `checkout_expiry_origin: "ft-007"` or a compatible existing FT-007 `expired` record | preserve FT-007 origin/reason/cleanup fields and `checkout_state: expired`; do not project operator cancellation |
+| `payment_refunded` while the authoritative order is `canceled` without FT-007 expiry origin | no-op for logical state; preserve `canceled` |
+| partial native refund while the order is not canceled | preserve the current logical state; retain native refund evidence |
+| persisted native refunds (or authoritative `raw_refunded_amount`) cover all persisted native captures (or `raw_captured_amount`) within currency precision while the order is not canceled and logical state is `paid`, `processing`, or `completed` | `checkout_state: refunded` |
+| refund notification with missing/contradictory payment-order binding, or a cancellation/refund race whose authoritative order state is not yet committed | reject/no-op; do not write lifecycle metadata |
+
+The projector must re-read the order and payment-collection binding under the
+canonical order-lifecycle lock for every notification. Event arrival order must
+not allow cancellation-origin refund to overwrite `canceled` with `refunded`,
+or an FT-007 cancellation notification to overwrite expiry cleanup state. The
+full-refund predicate is derived from current native raw capture/refund totals
+and currency precision, never from an event-supplied amount.
+
+### Pre-native serialization
+
+All competing operations for one order use the Medusa Locking module key
+`order-lifecycle:${order_id}`. FT-007 expiry and supported wrappers around the
+built-in Admin mark-as-paid, cancel, fulfillment, completion, and refund routes
+acquire it before authoritative re-read and precondition checks, then hold it
+through the native handler. The async projector acquires the same key again,
+re-reads native state, and writes only the matching projection. A native event
+is a notification, not proof that the source mutation committed or that it was
+serialized.
+
+Correctness does not depend on projector delivery timing: every native wrapper
+fails closed from current native state before irreversible mutation, and every
+projector reconciles from current native state after acquiring the same key.
+No Medusa Core or `node_modules` edit is allowed. If the installed Admin route
+boundary cannot hold the lock for the complete native handler, implementation
+must stop and the native Admin integration decision must be redesigned before
+TASK-055 continues.
 
 ## Admin Visibility Contract
 
@@ -86,25 +136,61 @@ The supported v2.16 Admin mechanism is the existing Order Detail page: its
 `showMetadata` and `showJSON` render `checkout_state`, and the built-in
 `/orders/:id/metadata/edit` route exposes the metadata section. The same page
 uses `sdk.admin.paymentCollection.markAsPaid(paymentCollectionId, { order_id })`
-for manual payment confirmation and `sdk.admin.order.cancel(orderId)` for an
-unpaid cancellation. No custom Admin replacement or direct database access is
+for manual payment confirmation and `sdk.admin.order.cancel(orderId)` for native
+order cancellation. No custom Admin replacement or direct database access is
 part of the feature.
+
+### Protected workflow metadata
+
+The built-in Admin metadata editor may display workflow metadata, but the
+generic Admin order-metadata update boundary must reject or preserve attempted
+changes/deletions for the complete current protected set:
+`checkout_state`, `pending_payment_expires_at`, `checkout_cart_id`,
+`checkout_idempotency_key`, `checkout_request_fingerprint`,
+`checkout_delivery_method`, `checkout_payment_method`,
+`checkout_customer_comment`, `checkout_managed_line_count`,
+`checkout_reservation_item_ids`, `checkout_reservation_line_ids`,
+`checkout_expiry_origin`, `checkout_expiry_reason`, and
+`checkout_expiry_cleanup`. The server-side boundary is authoritative; a
+disabled or hidden UI field is not sufficient. Only approved server-side
+checkout/expiry or lifecycle workflows may write protected keys; unrelated
+operator metadata remains editable.
 
 ## Verification Targets
 
 - Transition guards reject illegal or contradictory changes and make repeated
   already-applied Admin/native events safe no-ops.
+- Concurrent Admin payment/cancellation/fulfillment/refund and FT-007 expiry
+  acceptance proves the canonical lock is acquired before authoritative
+  precondition checks and native mutation, not only inside the later projector.
 - Admin mark-as-paid does not delete the reservation; native fulfillment consumes
   the reservation and performs the inventory adjustment.
-- An unpaid Admin cancellation remains `canceled` in PostgreSQL, releases the
-  reservation through the existing native/FT-007 path, and never returns the
+- An Admin cancellation remains `canceled` in PostgreSQL, applies native
+  refund/reservation-cleanup semantics where relevant, and never returns the
   order to the customer's active cart.
-- A canceled order cannot become paid/processing, and a paid/processing/
-  completed order cannot become canceled through the FT-008 lifecycle path.
+- Cancellation-origin refund evidence leaves the logical state `canceled`,
+  while partial standalone refunds preserve the current state and only a final
+  cumulative full refund on a non-canceled order projects `refunded`.
+- FT-007-origin cancellation preserves `checkout_state: expired`, expiry reason,
+  origin, and pending/complete cleanup state; partial cleanup remains discoverable
+  and no second reservation release is attempted by FT-008.
+- A canceled order cannot become paid/processing. Native cancellation failures
+  for completed orders or orders with active fulfillments remain native errors;
+  the FT-008 projector does not emulate or bypass that boundary.
 - Admin acceptance observes the exact required order fields and logical metadata
   in the built-in UI and native order payload using synthetic contacts and data.
-- Source-binding acceptance rejects forged source/actor/order pairs and any
-  Store-originated lifecycle mutation.
+- Projection acceptance rejects unknown event kinds, contradictory or
+  cross-order event data, and any Store-originated lifecycle mutation. It does
+  not claim that the event bus carries Admin actor proof.
+- Security acceptance also proves the native Admin unauthorized path is denied,
+  authoritative records are re-read under the canonical lock, same-order payment
+  binding is enforced, and duplicate, out-of-order, replayed, late, or
+  concurrent events cannot create a second transition or mutate a terminal
+  order. Native internal-event idempotency uses the guarded state transition;
+  FT-008 does not add a separate replay ledger.
+- Metadata acceptance proves that generic Admin metadata updates preserve or
+  reject change/deletion of every protected workflow key, including unchanged
+  submissions, while allowing explicitly operator-editable unrelated metadata.
 
 ## Explicit Non-Goals
 

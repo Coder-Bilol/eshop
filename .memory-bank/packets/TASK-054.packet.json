@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-054-R1",
+  "packet_id": "PACKET-TASK-054-R6",
   "task_id": "TASK-054",
-  "created_at": "2026-08-22T00:00:00+03:00",
-  "source_task_hash": "sha256:2c66bc8dd3fad7fa8edb9ae5f42084fb3c49221969ae3c59d9fb548f7b461a49",
+  "created_at": "2026-10-04T00:00:00+03:00",
+  "source_task_hash": "sha256:8b1dc2c888ce90e0d4c3ef27dc3567a788eea3cb85d040910cbdd7f6945022c1",
   "status": "ready",
   "tier": "T2",
   "purpose": "Establish the executable lifecycle vocabulary and guard matrix before cross-module transition work.",
@@ -17,9 +17,12 @@
     "feature": ".memory-bank/features/FT-008-order-lifecycle-admin-visibility.md",
     "specs": [
       ".memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md",
+      ".memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md",
       ".memory-bank/architecture/order-lifecycle-admin-runtime.md",
+      ".memory-bank/architecture/pending-order-runtime.md",
       ".memory-bank/contracts/order-lifecycle-admin-api.md",
       ".memory-bank/domains/order-lifecycle-admin-data.md",
+      ".memory-bank/domains/pending-order-inventory-data.md",
       ".memory-bank/states/order-lifecycle-admin.md",
       ".memory-bank/states/order-payment-inventory.md",
       ".memory-bank/states/pending-order-inventory-lifecycle.md",
@@ -59,18 +62,26 @@
     ],
     "success_checks": [
       "All six logical states and expired-to-canceled normalization are deterministic.",
-      "Allowed, forbidden, duplicate/no-op, and payment/order disagreement cases match the linked state and contract specs.",
+      "Allowed, forbidden, duplicate/no-op, and payment/order disagreement cases match the linked state and contract specs, including native Admin cancellation projection.",
+      "FT-007-origin order_canceled/refund notifications preserve checkout_state expired, timeout reason, and pending/complete cleanup state, including compatible existing expired records without the new origin marker.",
+      "Cancellation-origin payment_refunded keeps checkout_state canceled; partial refunds preserve the current logical state, and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) within native currency precision project refunded; no capture/refund status field is assumed.",
+      "Unknown event kinds and caller-supplied source, actor, status, payment, or target-metadata values are rejected before any lifecycle write.",
       "No provider, Admin replacement, direct stock, or second order store is introduced."
     ],
     "evidence_required": [
       "Transition/projection matrix output.",
-      "Expired, duplicate/no-op, disagreement, and reservation-preservation assertions.",
+      "Expired normalization and FT-007 expiry-origin/cleanup preservation assertions, including legacy compatibility.",
+      "Duplicate/no-op, disagreement, and reservation-preservation assertions.",
+      "Refund assertions cover cancellation origin, single/cumulative partials, final full refund, duplicate/out-of-order delivery, and no premature or canceled-to-refunded overwrite.",
+      "Unknown-event and caller-supplied source/actor/status/payment/metadata rejection output with no lifecycle mutation.",
       "Typecheck/build/lint output."
     ]
   },
   "stop_conditions": [
     "Installed Medusa native status/payment/fulfillment fields cannot support a truthful projection.",
     "The transition matrix conflicts with the linked FT-008 state spec or FT-007 expiry contract.",
+    "The pure model cannot distinguish FT-007 expiry-origin cancellation from operator cancellation without discarding cleanup state.",
+    "Authoritative native capture/refund totals or currency precision cannot support a deterministic cumulative full-refund predicate.",
     "Verification cannot distinguish a no-op from a real duplicate side effect."
   ],
   "required_handoff": [
