@@ -44,7 +44,7 @@ Use a modular monolith split by product boundary, not by deployable microservice
   backend data; product media is a separate durable blob store on the persistent
   server filesystem through the Medusa File Module.
 - Admin: Medusa Admin as the MVP operator surface.
-- Local runtime: Windows-native npm processes start storefront/backend, and PostgreSQL runs locally on Windows 10 for development and verification.
+- Local runtime: Windows-native npm processes remain available. By operator request on 2026-11-12, an additional Docker Desktop deployment profile uses the existing production Dockerfiles; see [DEPLOYMENT-WINDOWS.md](../../DEPLOYMENT-WINDOWS.md).
 
 No separate search service, event bus, cache service, custom admin application, or delivery-provider service is part of the MVP unless a later explicit spec changes scope.
 
@@ -83,7 +83,7 @@ Runtime source-of-truth rules:
 | Payment integration | Native Medusa system payment + future isolated provider module | Current MVP creates no provider payment; Admin marks the native unpaid collection as paid. YooKassa creation/webhook/retry/idempotency remain deferred. | Storefront cannot confirm payment; future provider events must use a separate verified contract. |
 | Notification integration | Isolated backend module | Email triggers for pending order, payment success/error, and order status change. | Sends follow committed state; duplicate suppression is required where webhook repeats can trigger email. |
 | Admin operations | Medusa Admin | Operator visibility for contacts, products, delivery, payment/order status, total, and payment method. | No custom admin replacement in MVP. |
-| Local development | Windows-native npm scripts and local PostgreSQL | Local storefront/backend/database path and smoke gates. | No Docker containers for local development; no production secrets in repo. |
+| Local development | Windows-native npm scripts or optional Docker Desktop profile | Local storefront/backend/database path and smoke gates. | No production secrets in repo; Docker profile has separate local volumes and image tags. |
 
 ## Data Flow
 
@@ -209,8 +209,8 @@ Use [.memory-bank/testing/index.md](../testing/index.md) and [.memory-bank/workf
 
 ## Deployment Assumptions
 
-- The only designed local runtime path in this backbone is Windows 10 native development with local Node.js/npm processes and local PostgreSQL.
-- Docker remains excluded from local development and local verification; Docker Desktop is not required on the local Windows machine.
+- Windows-native development with local Node.js/npm and PostgreSQL remains supported and does not require Docker Desktop.
+- Optional local container deployment: [DEPLOYMENT-WINDOWS.md](../../DEPLOYMENT-WINDOWS.md) and [compose.windows.yml](../../compose.windows.yml). It uses separate PostgreSQL/media volumes, loopback ports, and a shared backend/storefront network namespace so the existing public API URL also works for SSR. This is a built-app profile without hot reload; full OAuth/checkout configuration is outside its default smoke scope.
 - Remote server deployment runbook lives in [DEPLOYMENT.md](../../DEPLOYMENT.md): AlmaLinux VPS, Docker Compose application containers, PostgreSQL container, and host-level Caddy reverse proxy with automatic HTTPS.
 - VPS deployment uses Docker Compose on the server. Until a registry is introduced, backend and storefront images are built sequentially on the VPS with stable local `production` image tags.
 - Any remote deploy, Docker server deployment, live payment mutation, production migration, or production secret handling must be scoped as T3 with explicit operator approval and rollback/recovery notes.

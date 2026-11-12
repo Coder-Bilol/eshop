@@ -1,0 +1,77 @@
+name: eshop-local
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eshop
+      POSTGRES_DB: eshop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.docker}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U eshop -d eshop']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: eshop-backend:local
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 9000
+      DATABASE_URL: postgres://eshop:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/eshop
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET:?Set COOKIE_SECRET}
+      STORE_CORS: http://localhost:3000
+      ADMIN_CORS: http://localhost:9000
+      AUTH_CORS: http://localhost:3000,http://localhost:9000
+      MEDUSA_FILE_URL: http://localhost:9000/static
+      GOOGLE_AUTH_ENABLED: "false"
+      VK_ID_AUTH_ENABLED: "false"
+      YOOKASSA_MODE: mock
+      EMAIL_PROVIDER: mock
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - media:/app/apps/backend/.medusa/server/static
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:9000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  storefront:
+    image: eshop-storefront:local
+    build:
+      context: .
+      dockerfile: apps/storefront/Dockerfile
+      args:
+        NEXT_PUBLIC_MEDUSA_BACKEND_URL: http://localhost:9000
+        NEXT_PUBLIC_STOREFRONT_URL: http://localhost:3000
+        NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: ${NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY:-pk_build_placeholder}
+        NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID: ${NEXT_PUBLIC_MEDUSA_SALES_CHANNEL_ID:-sc_build_placeholder}
+    restart: unless-stopped
+    # SSR and the Windows browser must reach the same public backend URL.
+    network_mode: service:backend
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres_data:
+  media:

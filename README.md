@@ -66,8 +66,9 @@ Order создается до оплаты в статусе `pending_payment`, 
 
 Локальная разработка запускается нативно на Windows 10: Node.js/npm processes
 для backend и storefront, плюс локальный PostgreSQL service. Docker containers
-не используются для local development; Docker зарезервирован только для будущего
-remote server deployment.
+не обязательны для этого сценария. Дополнительный запуск собранного приложения
+в Docker Desktop описан в [DEPLOYMENT-WINDOWS.md](DEPLOYMENT-WINDOWS.md).
+Серверный сценарий: [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ```bash
 npm run check:local-env

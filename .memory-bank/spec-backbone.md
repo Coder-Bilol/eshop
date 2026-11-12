@@ -25,6 +25,9 @@ source_of_truth:
 - Lifecycle map: authoritative; see [.memory-bank/states/lifecycle-map.md](states/lifecycle-map.md) and [.memory-bank/states/order-payment-inventory.md](states/order-payment-inventory.md).
 
 ## Open Design Questions
+- Additional local container profile requested on 2026-11-12 is documented in
+  [DEPLOYMENT-WINDOWS.md](../DEPLOYMENT-WINDOWS.md) and uses
+  [compose.windows.yml](../compose.windows.yml); native FT-011 remains available.
 - YooKassa local/staging credentials and webhook URL/tunneling setup: deferred
   optional provider profile; does not block the current manual-payment MVP or
   FT-008 implementation.

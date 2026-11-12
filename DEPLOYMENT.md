@@ -2,7 +2,9 @@
 
 ## Runtime Policy
 
-- Local development and local verification run without Docker.
+- Native local development and verification remain available without Docker.
+- Optional Windows Docker Desktop deployment is documented separately in
+  [DEPLOYMENT-WINDOWS.md](DEPLOYMENT-WINDOWS.md), using `compose.windows.yml`.
 - Production deployment on the VPS runs through Docker Compose.
 - Docker Desktop is not required for local development. Production images are
   built directly on the VPS.

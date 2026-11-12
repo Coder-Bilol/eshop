@@ -6,6 +6,8 @@ status: active
 
 ## Навигация
 
+- [DEPLOYMENT-WINDOWS.md](../DEPLOYMENT-WINDOWS.md): дополнительный локальный Docker Desktop runbook — PowerShell, сборки, миграции, seed, backup и диагностика.
+
 - [.memory-bank/constitution.md](constitution.md): Project Constitution — top governing policy for agents.
 - [.memory-bank/mbb/index.md](mbb/index.md): Правила ведения Memory Bank (MBB).
 - [.memory-bank/roles/orchestrator.md](roles/orchestrator.md): Orchestrator role contract.

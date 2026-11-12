@@ -4,6 +4,14 @@ status: active
 ---
 # Changelog
 
+## [2026-11-12] Windows Docker deployment manual
+- По запросу оператора добавлен DEPLOYMENT-WINDOWS.md и отдельный compose.windows.yml
+  с локальными image tags, PostgreSQL 16, persistent media и loopback ports.
+- Нативный сценарий сохранён; запрет локального Docker в общем deployment policy
+  заменён дополнительным opt-in сценарием. Production конфигурация не менялась.
+- Документированы инициализация региона/seed, build-time public config, SSR network
+  namespace, backup без PowerShell binary redirection и ограничения OAuth.
+
 ## [2026-11-12] TASK-056 manual closure
 - Closed TASK-056 after offline functional PASS, independent semantic-pass,
   exact checkpoint/recovery markers and explicit operator closure instruction.
