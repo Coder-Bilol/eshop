@@ -18,7 +18,11 @@ spec_design_links:
 TASK-054 and TASK-055 are done. TASK-055 has functional offline PASS and
 independent semantic-pass under the operator's runtime waiver and accepted
 lock-free race risk; see [task record](../tasks/TASK-055.task.json).
-TASK-056/057 remain planned. Feature lifecycle and REQ-022/028/029 remain
+TASK-056 is done after offline functional PASS and independent semantic-pass:
+the existing Admin contract smoke covers controlled field/status preservation
+and protected metadata. Native runtime acceptance remains deferred by operator;
+see [task record](../tasks/TASK-056.task.json).
+TASK-057 remains planned. Feature lifecycle and REQ-022/028/029 remain
 planned pending downstream acceptance and feature-level semantic review.
 
 ## Use Cases

@@ -11,8 +11,9 @@ status: active
 - The operator explicitly authorized delegated offline development without VPS
   access or local server/database startup, independently of the old deployment
   review rejection. GENERAL owns this manual development pass.
-- Current task queue: 55 `done`, TASK-055 included, TASK-056/TASK-057
-  `planned`. Server-dependent acceptance is deferred for this pass.
+- Current task queue: 56 `done`, TASK-055/TASK-056 included, TASK-057
+  `planned`. TASK-056 has manual offline PASS and semantic-pass; server-dependent
+  acceptance is deferred. The historical scheduler run remains stopped.
 - Current routing: `.memory-bank/tasks/plans/IMPL-FT-008.md` offline continuation
   and `.protocols/FT-008/plan.md`. Historical snapshots below do not override the
   authoritative JSON task records.

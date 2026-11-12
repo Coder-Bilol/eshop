@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-056-R6",
+  "packet_id": "PACKET-TASK-056-R8",
   "task_id": "TASK-056",
-  "created_at": "2026-11-12T16:10:45.676Z",
-  "source_task_hash": "sha256:a8193d15fee59c212707cb9f718e5e603e82e261f4da5973db193643f4d6c530",
+  "created_at": "2026-11-12T17:15:06.9980983Z",
+  "source_task_hash": "sha256:90db57d60e348447c665c9536a3d19618ce533271991af4629d1bf020c7e46bf",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove that the native Admin-compatible order detail remains a complete operator projection while lifecycle state changes.",
-  "success_outcome": "A real local fixture demonstrates all required operator fields and native lifecycle projections without a custom Admin surface.",
+  "success_outcome": "Offline installed-Admin contract and controlled native-record fixtures cover required fields and lifecycle projections without a custom Admin surface; real HTTP/PostgreSQL/rendered Admin acceptance remains explicitly deferred by operator.",
   "anti_goals": [
     "Do not build Admin UI or a custom order route.",
     "Do not alter production order/payment behavior to make the fixture pass.",
@@ -48,12 +48,13 @@
   },
   "verification": {
     "commands": [
-      "npm --workspace apps/backend run test:integration -- order-admin-visibility",
+      "npm --workspace apps/backend run smoke:order-admin-visibility-contract",
       "npm --workspace apps/backend run typecheck",
       "npm run build",
       "node scripts/mb-lint.mjs"
     ],
     "success_checks": [
+      "Offline scope only: installed Admin contract and controlled records; real HTTP/PostgreSQL/rendered Admin checks are SKIPPED_BY_OPERATOR.",
       "Native Admin order detail contains contacts, products, delivery data, payment method/status, order status, total, and checkout_state.",
       "New orders show personal_request; controlled legacy card/sbp/sberpay values remain historical offline-request labels and are not provider evidence.",
       "The installed dashboard exposes metadata through its order detail fields/metadata editor and provides native mark-as-paid and cancel actions.",

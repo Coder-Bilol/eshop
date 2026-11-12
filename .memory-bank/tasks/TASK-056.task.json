@@ -1,7 +1,7 @@
 {
   "id": "TASK-056",
   "title": "Verify native Admin order visibility and manual payment projections",
-  "status": "planned",
+  "status": "done",
   "wave": "W3",
   "feature": "FT-008",
   "reqs": [
@@ -21,8 +21,8 @@
   "tier": "T3",
   "gates": [
     {
-      "name": "native Admin visibility integration",
-      "command": "npm --workspace apps/backend run test:integration -- order-admin-visibility",
+      "name": "offline Admin visibility contract (runtime deferred by operator)",
+      "command": "npm --workspace apps/backend run smoke:order-admin-visibility-contract",
       "required": true
     },
     {
@@ -42,6 +42,24 @@
     }
   ],
   "verify": [
+    {
+      "owner": "GENERAL",
+      "decision": "done",
+      "operator_basis": "2026-11-12 explicit instruction to continue until TASK-056 is closed, retaining no-server waiver and accepted lock-free risk.",
+      "verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "scope": "Offline installed Admin source contract and controlled project snapshot/projector/registered metadata middleware; not native runtime or production UAT.",
+      "skipped_by_operator": ["native HTTP authorization and metadata editor roundtrip", "PostgreSQL order payload and persistence", "rendered Admin", "native payment/inventory mutation"],
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "evidence": [
+        ".protocols/TASK-056/verification.md",
+        ".protocols/TASK-056/red-verification.md",
+        ".protocols/TASK-056/handoff.md",
+        ".tasks/TASK-056/verify-admin-contract.log",
+        ".tasks/TASK-056/build.log"
+      ]
+    },
     "A real native order fixture exposes contacts, ordered products, delivery address/method, payment method, payment status, order status, total, and logical checkout_state through the native Admin order detail boundary.",
     "Admin visibility shows personal_request for new orders and preserves card/sbp/sberpay only as explicit legacy offline-request labels on existing fixtures, without presenting them as provider payment evidence.",
     "The installed dashboard mechanism is verified: metadata is present in the order detail fields, `showMetadata`/`showJSON` and the metadata editor are available, and native `paymentCollection.markAsPaid(...)` and `order.cancel(...)` are the operator actions.",
@@ -51,7 +69,7 @@
     "Fixtures and evidence are cleaned up and contain no real PII, provider payloads, credentials, cookies, tokens, or production data.",
     "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
     {
-      "operator_basis": "2026-11-11 authorized offline acceptance preparation before dependency closure; no server/database startup. Runtime acceptance deferred; task remains planned.",
+      "operator_basis": "2026-11-12 operator requested the next task after TASK-055 closure, with subagents and KISS. GENERAL owns manual implementation handoff. Continue without VPS/local server/database; native runtime/browser acceptance is SKIPPED_BY_OPERATOR. Original runtime criteria remain deferred targets, not offline PASS claims.",
       "evidence": [
         ".memory-bank/tasks/plans/IMPL-FT-008.md",
         ".tasks/TASK-055/offline-harness-implementation.md"
@@ -105,7 +123,7 @@
     ".memory-bank/testing/index.md#ft-008-order-lifecycle-and-admin"
   ],
   "purpose": "Prove that the native Admin-compatible order detail remains a complete operator projection while lifecycle state changes.",
-  "success_outcome": "A real local fixture demonstrates all required operator fields and native lifecycle projections without a custom Admin surface.",
+  "success_outcome": "Offline installed-Admin contract and controlled native-record fixtures cover required fields and lifecycle projections without a custom Admin surface; real HTTP/PostgreSQL/rendered Admin acceptance remains explicitly deferred by operator.",
   "anti_goals": [
     "Do not build Admin UI or a custom order route.",
     "Do not alter production order/payment behavior to make the fixture pass.",

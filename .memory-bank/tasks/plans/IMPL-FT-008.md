@@ -22,7 +22,12 @@ source_of_truth:
 TASK-055 is `done` under explicit manual ownership, functional offline PASS and
 independent per-task semantic-pass. The operator waived real-server execution
 and accepted lock-free race risk. Evidence routes through
-[TASK-055](../TASK-055.task.json). TASK-056/057 remain planned; this closure does
+[TASK-055](../TASK-055.task.json). TASK-056 is also done under GENERAL's
+explicit manual closure ownership after offline functional PASS and independent
+semantic-pass; see [TASK-056](../TASK-056.task.json). TASK-057 remains planned.
+TASK-056 uses the existing offline waiver: installed Admin source contracts and
+controlled-record checks, with native runtime/browser checks explicitly deferred.
+These closures do
 not verify rendered Admin visibility or complete FT-008/REQ-022.
 
 ## Offline Continuation — 2026-11-11
