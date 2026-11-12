@@ -22,7 +22,7 @@ const storefrontPort = Number(
 );
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 const storefrontUrl = `http://127.0.0.1:${storefrontPort}`;
-const selectedSuites = selectSuites(process.argv.slice(2));
+const selectedSuites = selectSuites(require.main === module ? process.argv.slice(2) : []);
 const outputTaskId = resolveOutputTaskId();
 const outputDir = path.join(rootDir, ".tasks", outputTaskId, "playwright");
 const backendLogPath = path.join(outputDir, "medusa-backend.log");
@@ -2893,8 +2893,13 @@ function selectSuites(args) {
     "checkout-delivery",
     "pending-order",
   ];
-  const selected = args.filter((arg) => supported.includes(arg));
-  return selected.length > 0 ? Array.from(new Set(selected)) : ["catalog", "product-detail"];
+  const unknown = args.filter((arg) => !supported.includes(arg));
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown E2E suites: ${unknown.join(", ")}. Supported suites: ${supported.join(", ")}`
+    );
+  }
+  return args.length > 0 ? Array.from(new Set(args)) : ["catalog", "product-detail"];
 }
 
 function resolveOutputTaskId() {
@@ -3150,15 +3155,19 @@ function withTimeout(promise, timeoutMs) {
   ]);
 }
 
-main().then(
-  () => process.exit(0),
-  (error) => {
-    invalidateCheckoutSuccessArtifacts();
-    console.error(
-      error && (error.stack || error.message)
-        ? error.stack || error.message
-        : error
-    );
-    process.exit(1);
-  }
-);
+module.exports = { selectSuites };
+
+if (require.main === module) {
+  main().then(
+    () => process.exit(0),
+    (error) => {
+      invalidateCheckoutSuccessArtifacts();
+      console.error(
+        error && (error.stack || error.message)
+          ? error.stack || error.message
+          : error
+      );
+      process.exit(1);
+    }
+  );
+}

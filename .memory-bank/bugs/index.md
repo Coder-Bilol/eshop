@@ -4,6 +4,7 @@ status: active
 ---
 # Bugs
 
+- [TASK-055 native Admin verification gap](TASK-055-native-admin-verification-gap.md): archived closure blocker; runtime waiver and accepted lock-free risk recorded, no native runtime PASS claimed.
 - [TASK-034 callback session](TASK-034-callback-session-gap.md): resolved regenerated-session callback blocker.
 - [TASK-034 evidence sanitization](TASK-034-evidence-sanitization-gap.md): resolved raw callback/cart identifier evidence blocker.
 - [TASK-033 interrupted-run cleanup](TASK-033-interrupted-run-cleanup-gap.md): resolved stale temp-state and fixture recovery gap.

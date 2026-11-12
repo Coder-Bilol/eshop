@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "packet_id": "PACKET-TASK-056-R5",
+  "packet_id": "PACKET-TASK-056-R6",
   "task_id": "TASK-056",
-  "created_at": "2026-10-04T00:00:00+03:00",
-  "source_task_hash": "sha256:50c1ace4c09f17219a8820dbf62b5fa2f4903bd357d9beec3d9e7be037f6a90e",
+  "created_at": "2026-11-12T16:10:45.676Z",
+  "source_task_hash": "sha256:a8193d15fee59c212707cb9f718e5e603e82e261f4da5973db193643f4d6c530",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove that the native Admin-compatible order detail remains a complete operator projection while lifecycle state changes.",

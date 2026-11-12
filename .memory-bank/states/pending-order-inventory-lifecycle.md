@@ -53,9 +53,10 @@ own verified handoff without changing the current Admin authority implicitly.
   are available; partial success is compensated.
 - Expiration may act only when native order status is `pending`, logical state is
   `pending_payment`, and `expires_at <= now`.
-- Expiration and every competing native Admin lifecycle operation acquire the
-  same `order-lifecycle:${order_id}` lock before authoritative re-read,
-  precondition checks, and native mutation.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - A paid, canceled, expired, or otherwise non-pending order is never canceled by
   the expiry job.
 - A native cancellation projector preserves the FT-007 expiry origin, reason,
@@ -85,7 +86,7 @@ own verified handoff without changing the current Admin authority implicitly.
 | pending_payment -> reserved | reservation items for every managed line, stock changed exactly once |
 | duplicate request -> same order | same idempotency key and no second order/reservation set |
 | stock failure -> no success | no partial order/reservation mutation remains |
-| pending_payment -> canceled (`checkout_state: expired`) | 72-hour UTC guard, shared pre-mutation lock, durable FT-007 origin, native cancel, released reservations |
+| pending_payment -> canceled (`checkout_state: expired`) | 72-hour UTC guard, current native-state checks, durable FT-007 origin, native cancel, released reservations |
 | native `order.canceled` during expiry | FT-007 origin/reason/cleanup projection preserved; no FT-008 overwrite or duplicate release |
 | canceled + FT-007 cleanup pending -> cleanup complete | retry discovered by origin+cleanup, remaining reservations released exactly once |
 | canceled/paid -> expiry no-op | state guard and unchanged order/reservation state |

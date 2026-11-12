@@ -8,7 +8,6 @@ import type {
 } from "@medusajs/framework/types";
 
 import type { StoreCheckoutInput } from "./validation";
-import { orderLifecycleLockKey } from "../order-lifecycle/lock";
 
 export const PENDING_ORDER_TTL_HOURS = 72;
 export const PENDING_ORDER_CREATED_BY = "ft-007:create-pending-order";
@@ -157,9 +156,6 @@ export function pendingOrderLockKey(input: PendingOrderInput): string {
   return `ft-007:pending-order:${input.customer_id}:${input.cart_id}`;
 }
 
-export function pendingOrderExpiryLockKey(orderId: string): string {
-  return orderLifecycleLockKey(orderId);
-}
 
 export function numericQuantity(value: unknown): number {
   const primitive =

@@ -77,9 +77,9 @@ status: active
   transitions.
 - Security integration: Store/customer/unauthenticated/unauthorized-Admin deny
   paths, server-internal event allow-listing, same-order reference binding,
-  atomic re-read/write serialization, and no-mutation proof for unknown, forged,
-  contradictory, cross-order, late, terminal, duplicate, out-of-order, replayed,
-  and concurrent events; generic Admin metadata updates cannot change/delete any
+  current native-state re-read, and no-mutation proof for unknown, forged,
+  contradictory, cross-order, late, terminal, duplicate, out-of-order and replayed
+  events in sequential execution; generic Admin metadata updates cannot change/delete any
   workflow-owned protected key while unrelated operator metadata remains editable.
 - Admin/runtime: built-in Medusa Admin order detail shows contacts, products,
   delivery data, payment status, order status, total, and payment method for a
@@ -87,6 +87,27 @@ status: active
 - Anti-cheat: do not mark payment successful from a return page, do not delete a
   reservation on payment capture, do not auto-restock on refund, and do not claim
   Admin visibility from a report-only fixture.
+
+### Offline Development Pass — 2026-11-11
+
+The operator authorized continued development without VPS access or local
+server/database startup; see [FT-008 offline continuation](../tasks/plans/IMPL-FT-008.md).
+For this pass, real-runtime/browser execution is deferred and is not a blocker
+to scoped implementation or acceptance preparation.
+
+- Deterministic tests may exercise real project guards with controlled native
+  records and response collaborators. They must identify that boundary and
+  must not claim native HTTP authorization, persistence, or inventory proof.
+- A separately named `order-admin-visibility-contract` check may inspect the
+  installed Medusa Admin source for requested fields, metadata sections/editor,
+  and native payment/cancel actions. It must report `runtimeVerified: false`;
+  it does not replace the `order-admin-visibility` runtime suite.
+- Every explicitly requested unknown test suite must fail before setup, build,
+  seed, fixture/artifact mutation, or service startup. Mixed known/unknown names
+  must fail as well; a different suite cannot substitute for missing acceptance.
+- Keep historical runtime findings and deferred checks visible. Offline PASS
+  applies only to the stated tests; full task/feature runtime closure is not
+  implied by the operator's development waiver.
 
 ## Anti-cheat Rules
 

@@ -2,7 +2,7 @@
 description: FT-008 runtime architecture for logical order lifecycle and native Medusa Admin projection.
 status: active
 owner: spec-improve
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/states/order-payment-inventory.md
@@ -24,10 +24,10 @@ source_of_truth:
   itself prove transaction commit, serialization, or actor identity. Native
   Admin authentication authorizes the originating operation; the subscriber
   does not treat event payload as a new authorization command.
-- A project middleware/wrapper around each supported built-in Admin mutation
-  route and the FT-007 expiry workflow use the same canonical
-  `order-lifecycle:${order_id}` Medusa lock before native mutation. Medusa Core
-  and `node_modules` remain unchanged.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - FT-009 is a deferred optional provider-payment profile and is not called by
   the current runtime.
 - Medusa Admin reads the native order detail. It is not replaced or forked.
@@ -37,11 +37,11 @@ source_of_truth:
 ```text
 FT-007 pending order
   -> native order status pending + checkout_state pending_payment
-  -> Admin route wrapper acquires order-lifecycle:${order_id}
+  -> re-read native state and validate preconditions
   -> authoritative re-read + precondition
   -> native Admin "Mark as paid" on the unpaid payment collection
-  -> release route lock after native handler completes
-  -> projector reacquires same lock + re-reads native state: paid
+  -> re-read native state and validate preconditions
+  -> re-read native state and validate preconditions
   -> wrapped native fulfillment/completion actions follow the same pattern
 ```
 
@@ -52,31 +52,10 @@ pending_payment|paid|processing + Admin cancel -> native cancel workflow -> canc
 confirmed native Admin refund -> native payment status -> refunded projection
 ```
 
-Cancellation-origin payment refunds do not create a second logical transition:
-once the authoritative native order is `canceled`, a `payment_refunded`
-notification is a payment-evidence update/no-op for `checkout_state`. Only a
-confirmed cumulative full refund for a non-canceled order in `paid`,
-`processing`, or `completed` may project `refunded`. The guard re-reads all
-bound native captures/refunds under the lock, compares raw totals with native
-currency precision, and keeps the current logical state for every partial
-refund. It must make this true regardless of notification arrival order and
-must reject an uncommitted or contradictory native read.
-
-Native Admin routes/workflows remain the mutation and authorization boundary.
-Before the native handler starts, project middleware resolves the order ID,
-acquires the shared lock, re-reads authoritative native records, verifies
-same-order bindings and terminal/expiry preconditions, and fails closed on a
-conflict. It keeps the lock through completion or failure of that handler.
-
-The subscriber later receives a server-internal notification, acquires the same
-lock, re-reads the order and related payment/fulfillment records, rejects
-contradictory or cross-order data, and treats an already-applied target state as
-an idempotent no-op. Correctness relies on the pre-native guard plus current
-native state, not notification timing. The event bus does not carry the
-originating HTTP actor context, so FT-008 does not fabricate actor identity or
-claim event metadata is an actor proof. Any native audit fields available on the
-source record remain the audit source; the lifecycle projection stores only
-state and bounded event metadata.
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
 ## Security And Concurrency Boundary
 
@@ -85,20 +64,18 @@ state and bounded event metadata.
 - Native Admin authentication/RBAC authorizes the native operation. Store,
   customer, unauthenticated, and unauthorized-Admin attempts are denied at the
   native boundary and are covered by negative acceptance tests.
-- FT-007 expiry and built-in Admin mark-as-paid, cancel, fulfillment, completion,
-  and refund wrappers acquire `order-lifecycle:${order_id}` before authoritative
-  re-read, same-order/terminal checks, and native mutation. The route wrapper
-  holds the lock for the full native handler; FT-007 holds it through its own
-  cancellation and synchronous cleanup work.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - The projector re-reads the authoritative order and related records in one
-  guarded operation under that same key, verifies same-order
+  guarded operation without lifecycle locking, verifies same-order
   payment/fulfillment references, and performs no lifecycle write for unknown,
   forged, contradictory, or cross-order input.
-- Competing native mutations are serialized before they begin; projection
-  notifications reacquire the same key. Repeated events are state-based no-ops;
-  late or terminal events cannot restore payment, processing, cart,
-  reservation, or stock state even when projection is delayed. No separate
-  native-event replay ledger is introduced.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - The complete current workflow-owned metadata set defined by the data/contract
   specs is protected from the generic native Admin metadata update path. The
   server-side boundary rejects or preserves changes/deletions while allowing
@@ -146,6 +123,9 @@ return pages, if later implemented by FT-009, can only read backend state.
 
 ## Deployment And Operations
 
+- The operator-authorized offline pass defers server/database/browser checks;
+  use the bounded checks in [Testing](../testing/index.md).
+
 - No new service, queue, scheduler, database table, or migration is introduced.
 - Local verification uses the existing Windows-native Medusa/PostgreSQL runtime.
 - Acceptance fixtures use synthetic contacts, the native system payment provider,
@@ -153,6 +133,7 @@ return pages, if later implemented by FT-009, can only read backend state.
   excluded.
 - A transition or Admin visibility mismatch is a stop condition for execution,
   not a reason to add a custom Admin or bypass the native workflow.
-- If supported project middleware cannot hold the shared lock around the full
-  installed built-in Admin handler, TASK-055 stops before implementation changes
-  and the Admin integration design is revisited.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).

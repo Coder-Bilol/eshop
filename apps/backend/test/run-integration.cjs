@@ -38,23 +38,28 @@ const suites = {
   "pending-order-acceptance":
     "./src/scripts/smoke-pending-order-acceptance.ts",
   "order-lifecycle-state": "./src/scripts/smoke-order-lifecycle.ts",
+  "order-admin-visibility-contract": "./src/scripts/smoke-order-admin-visibility.ts",
+  "order-lifecycle": [
+    "./src/scripts/smoke-order-lifecycle.ts",
+    "./src/scripts/smoke-pending-order-expiry.ts",
+  ],
 };
 
 function main() {
-  const requested = process.argv.slice(2);
-  const selected =
-    requested.length === 0
-      ? Object.keys(suites)
-      : requested.filter((name) => suites[name]);
-  if (selected.length === 0) {
-    throw new Error(
-      `No integration suites matched: ${requested.join(", ") || "(none)"}`
-    );
-  }
+  const selected = selectSuites(process.argv.slice(2));
 
   for (const name of selected) {
-    if (name === "order-lifecycle-state") {
+    if (name === "order-admin-visibility-contract") {
       runPureNodeScript(suites[name]);
+      continue;
+    }
+    if (name === "order-lifecycle-state" || name === "order-lifecycle") {
+      if (name === "order-lifecycle-state") {
+        runPureNodeScript(suites[name]);
+      } else {
+        runPureNodeScript(suites[name][0]);
+        runMedusaScript(suites[name][1]);
+      }
       continue;
     }
     if (name === "wishlist-product-id") {
@@ -132,6 +137,15 @@ function main() {
   if (selected.includes("order-lifecycle-state")) {
     sourceBoundary = "pure-backend-order-lifecycle-projection";
   }
+  if (selected.includes("order-lifecycle")) {
+    sourceBoundary = "real-compiled-medusa-admin-postgresql-workflow";
+  }
+  const adminContractOnly = selected.every(
+    (name) => name === "order-admin-visibility-contract"
+  );
+  if (adminContractOnly) {
+    sourceBoundary = "installed-medusa-admin-source-contract";
+  }
 
   process.stdout.write(
     `${JSON.stringify(
@@ -139,12 +153,24 @@ function main() {
         command: "test:integration",
         status: "ok",
         sourceBoundary,
+        ...(adminContractOnly ? { runtimeVerified: false } : {}),
         suites: selected,
       },
       null,
       2
     )}\n`
   );
+}
+
+function selectSuites(requested) {
+  const supported = Object.keys(suites);
+  const unknown = requested.filter((name) => !Object.hasOwn(suites, name));
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown integration suites: ${unknown.join(", ")}. Supported suites: ${supported.join(", ")}`
+    );
+  }
+  return requested.length === 0 ? supported : Array.from(new Set(requested));
 }
 
 function runCartMergePersistenceSuite(script) {
@@ -417,13 +443,17 @@ function runPureNodeScript(script) {
   );
 }
 
-try {
-  main();
-} catch (error) {
-  console.error(
-    error && (error.stack || error.message)
-      ? error.stack || error.message
-      : error
-  );
-  process.exitCode = 1;
+module.exports = { selectSuites };
+
+if (require.main === module) {
+  try {
+    main();
+  } catch (error) {
+    console.error(
+      error && (error.stack || error.message)
+        ? error.stack || error.message
+        : error
+    );
+    process.exitCode = 1;
+  }
 }

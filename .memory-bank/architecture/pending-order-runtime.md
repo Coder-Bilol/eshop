@@ -2,7 +2,7 @@
 description: FT-007 runtime architecture for pending orders and reservations.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/contracts/boundary-map.md
@@ -64,9 +64,10 @@ source_of_truth:
 - The job lists native pending orders, filters logical metadata in memory, and
   invokes an idempotent expiration workflow for records whose UTC expiry has
   passed.
-- The workflow acquires the canonical `order-lifecycle:${order_id}` Medusa lock
-  shared with FT-008 native Admin operations, then re-reads authoritative order
-  and payment state. Expired/non-pending or contradictory state fails closed.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - Before `cancelOrderWorkflow`, FT-007 merges the durable
   `checkout_expiry_origin: "ft-007"`,
   `checkout_expiry_reason: "payment_timeout"`, and
@@ -95,7 +96,7 @@ authenticated Store API
 
 hourly Medusa job
   -> expire-pending-order workflow
-     -> shared order-lifecycle:${order_id} lock
+  -> re-read native state and validate preconditions
      -> persist FT-007 expiry origin + cleanup pending
      -> cancelOrderWorkflow
      -> delete reservations by line item

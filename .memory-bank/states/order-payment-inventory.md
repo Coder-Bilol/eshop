@@ -2,7 +2,7 @@
 description: Authoritative order, payment, inventory, and cart lifecycle guardrails.
 status: active
 owner: spec-design
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/prd.md
   - .memory-bank/domains/core-domain.md
@@ -44,7 +44,7 @@ Allowed global transitions:
 | `pending_payment` | `canceled` | Native Medusa Admin cancels the order, or the existing FT-007 expiry path runs. | Native cancellation rules apply; unpaid reservations are released exactly once and the order remains auditable. |
 | `paid` | `processing` | Native Medusa Admin fulfillment step. | Payment state remains successful. |
 | `processing` | `completed` | Native Medusa Admin completion step. | Required order data remains visible in Medusa Admin. |
-| `paid` or `processing` | `canceled` | Native Medusa Admin cancellation when native fulfillment preconditions allow it. | Shared pre-native lock and authoritative guard pass; native workflow handles captured-payment refund and reservation cleanup; FT-008 reconciles the authoritative result. |
+| `paid` or `processing` | `canceled` | Native Medusa Admin cancellation when native fulfillment preconditions allow it. | Native-state preconditions pass; native workflow handles captured-payment refund and reservation cleanup; FT-008 reconciles the authoritative result. |
 | `paid` or `processing` or `completed` | `refunded` | Native Medusa Admin refund step, when needed. | Persisted native refunds (or authoritative `raw_refunded_amount`) cover all persisted native captures (or `raw_captured_amount`) within native currency precision; partial refunds preserve the logical state and no capture/refund status field is assumed. |
 
 State mapping for expiry:
@@ -62,11 +62,10 @@ State mapping for expiry:
 
 Concurrency guard:
 
-- FT-007 expiry and built-in Admin payment, cancellation, fulfillment,
-  completion, and refund operations for one order acquire
-  `order-lifecycle:${order_id}` before authoritative preconditions and native
-  mutation. The later event projector reacquires the same key and cannot be the
-  only concurrency boundary.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
 Forbidden transitions:
 
@@ -74,8 +73,10 @@ Forbidden transitions:
 - Storefront request or client state -> any authoritative lifecycle mutation.
 - Contradictory or cross-order native event data -> any lifecycle projection.
 - Duplicate Admin/native event -> duplicate transition side effects.
-- Competing native operation without the canonical pre-mutation lock and
-  authoritative re-read -> any payment/order/inventory mutation.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - `pending_payment` timeout -> `canceled` after the order is already `paid`.
 - Any transition that bypasses inventory release/finalize rules.
 - Any status mutation that hides required order/payment/delivery fields from Medusa Admin.
@@ -174,8 +175,8 @@ Rules:
 - FT-008 resolves the logical `paid`/`processing`/`completed`/`canceled`/
   `refunded` projection for the Admin-only payment profile and keeps holds until
   native fulfillment consumes them; native Admin remains the operator surface
-  and shared pre-native locking is applied through supported project extension
-  points.
+  and project middleware checks native state before each operation without
+  shared lifecycle locking.
 - FT-009 remains a deferred optional provider profile and has no call into the
   current FT-008 payment transition boundary.
 - Refund projection does not automatically restock inventory; stock return is an

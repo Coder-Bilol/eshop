@@ -107,6 +107,12 @@ a separate compatibility boundary and is not expanded by FT-008.
 
 ## RTM Reconciliation
 
+- 2026-11-12: TASK-055 is done after manual functional offline PASS and per-task
+  semantic-pass, under the operator's explicit real-server waiver and accepted
+  lifecycle race risk. TASK-056/057 remain planned, so FT-008 and
+  REQ-022/028/029 lifecycle values are unchanged. Evidence:
+  [TASK-055 record](tasks/TASK-055.task.json).
+
 - FT-011 reconciliation: TASK-001 through TASK-004 are `done`, and the final
   feature-level review records `SEMANTIC_VERDICT: semantic-pass`. REQ-030 and
   sole-feature EP-005 are therefore `verified`.

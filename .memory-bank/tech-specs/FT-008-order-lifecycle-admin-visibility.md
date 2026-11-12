@@ -2,7 +2,7 @@
 description: Feature-level SDD hub for FT-008 order lifecycle and Medusa Admin visibility.
 status: active
 owner: spec-improve
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/features/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/architecture/order-lifecycle-admin-runtime.md
@@ -91,31 +91,20 @@ precedence:
 | persisted native refunds (or authoritative `raw_refunded_amount`) cover all persisted native captures (or `raw_captured_amount`) within currency precision while the order is not canceled and logical state is `paid`, `processing`, or `completed` | `checkout_state: refunded` |
 | refund notification with missing/contradictory payment-order binding, or a cancellation/refund race whose authoritative order state is not yet committed | reject/no-op; do not write lifecycle metadata |
 
-The projector must re-read the order and payment-collection binding under the
-canonical order-lifecycle lock for every notification. Event arrival order must
-not allow cancellation-origin refund to overwrite `canceled` with `refunded`,
-or an FT-007 cancellation notification to overwrite expiry cleanup state. The
-full-refund predicate is derived from current native raw capture/refund totals
-and currency precision, never from an event-supplied amount.
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
-### Pre-native serialization
+### Pre-native checks
 
-All competing operations for one order use the Medusa Locking module key
-`order-lifecycle:${order_id}`. FT-007 expiry and supported wrappers around the
-built-in Admin mark-as-paid, cancel, fulfillment, completion, and refund routes
-acquire it before authoritative re-read and precondition checks, then hold it
-through the native handler. The async projector acquires the same key again,
-re-reads native state, and writes only the matching projection. A native event
-is a notification, not proof that the source mutation committed or that it was
-serialized.
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
-Correctness does not depend on projector delivery timing: every native wrapper
-fails closed from current native state before irreversible mutation, and every
-projector reconciles from current native state after acquiring the same key.
-No Medusa Core or `node_modules` edit is allowed. If the installed Admin route
-boundary cannot hold the lock for the complete native handler, implementation
-must stop and the native Admin integration decision must be redesigned before
-TASK-055 continues.
+Native Admin middleware checks expiry, terminal state and same-order bindings.
+No full-handler wrapper or tracing-hook override is required.
 
 ## Admin Visibility Contract
 
@@ -160,9 +149,10 @@ operator metadata remains editable.
 
 - Transition guards reject illegal or contradictory changes and make repeated
   already-applied Admin/native events safe no-ops.
-- Concurrent Admin payment/cancellation/fulfillment/refund and FT-007 expiry
-  acceptance proves the canonical lock is acquired before authoritative
-  precondition checks and native mutation, not only inside the later projector.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - Admin mark-as-paid does not delete the reservation; native fulfillment consumes
   the reservation and performs the inventory adjustment.
 - An Admin cancellation remains `canceled` in PostgreSQL, applies native
@@ -182,12 +172,10 @@ operator metadata remains editable.
 - Projection acceptance rejects unknown event kinds, contradictory or
   cross-order event data, and any Store-originated lifecycle mutation. It does
   not claim that the event bus carries Admin actor proof.
-- Security acceptance also proves the native Admin unauthorized path is denied,
-  authoritative records are re-read under the canonical lock, same-order payment
-  binding is enforced, and duplicate, out-of-order, replayed, late, or
-  concurrent events cannot create a second transition or mutate a terminal
-  order. Native internal-event idempotency uses the guarded state transition;
-  FT-008 does not add a separate replay ledger.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - Metadata acceptance proves that generic Admin metadata updates preserve or
   reject change/deletion of every protected workflow key, including unchanged
   submissions, while allowing explicitly operator-editable unrelated metadata.

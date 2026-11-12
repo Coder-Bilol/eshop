@@ -28,6 +28,8 @@
     "smoke:checkout-delivery": "node test/run-integration.cjs checkout-delivery",
     "smoke:checkout-delivery-acceptance": "node test/run-integration.cjs checkout-delivery-acceptance",
     "smoke:order-lifecycle-state": "node test/run-integration.cjs order-lifecycle-state",
+    "smoke:order-admin-visibility-contract": "node test/run-integration.cjs order-admin-visibility-contract",
+    "test:runner-selection": "node test/runner-suite-selection.test.cjs",
     "test:integration": "node test/run-integration.cjs",
     "typecheck": "tsc --noEmit"
   },

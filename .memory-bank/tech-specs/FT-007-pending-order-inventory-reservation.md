@@ -2,7 +2,7 @@
 description: FT-007 feature design for pending order creation and inventory reservation.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/features/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/architecture/pending-order-runtime.md
@@ -37,11 +37,10 @@ the 72-hour payment window.
 - Serialize order-creation retries with the existing customer/cart workflow lock.
   The idempotency key is persisted in order metadata and a repeated successful
   request returns the same order instead of creating a second order.
-- Serialize expiry against native Admin payment, cancellation, fulfillment,
-  completion, and refund operations with the canonical
-  `order-lifecycle:${order_id}` Medusa lock. The expiry workflow acquires it
-  before its authoritative re-read and keeps it through native cancellation and
-  its synchronous FT-007 cleanup work.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - Use a Medusa cron job and an idempotent cancellation workflow to expire orders.
   Before native cancellation, persist
   `checkout_expiry_origin: "ft-007"`,

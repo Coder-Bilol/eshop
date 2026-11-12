@@ -1,5 +1,15 @@
 # TASK-055 Plan
 
+## Current Closure Scope — 2026-11-12
+
+GENERAL is the explicit manual closure owner under the user's instruction
+"Проверяй и закрывай таску". Earlier shared-lock implementation steps below
+are historical: the user removed lifecycle locking and accepted concurrent
+race risk. Native runtime/browser checks are waived; verify available offline
+logic, native-source boundaries, existing build evidence and packet readiness,
+then require independent semantic review before closure. No feature closure or
+TASK-056/057 promotion is implied.
+
 ## Goal Interpretation
 
 - Purpose: implement shared-lock native Admin lifecycle projection and payment handoff.

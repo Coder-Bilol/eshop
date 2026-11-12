@@ -5,6 +5,23 @@ status: complete
 ---
 # FT-008 Decomposition Plan
 
+## Current Simplification — 2026-11-12
+
+The operator removed lifecycle locking and accepted competing-operation races.
+Shared-lock/full-handler requirements below are historical and superseded by
+the updated FT-008 feature/spec/task records. Keep native state/auth/metadata
+checks; no native handler wrapper or tracing override is needed.
+
+## Operator Override — 2026-11-11
+
+Continue scoped development with delegated workers without VPS access and without
+starting local servers or a database. The operator explicitly waived real-server
+requirements for this pass. See the offline continuation section in
+`.memory-bank/tasks/plans/IMPL-FT-008.md` for allowed checks and evidence limits.
+Preparing dependent acceptance assets is permitted; dependency promotion and
+runtime verification are not implied. The top-level GENERAL agent owns manual
+coordination and integration; workers own only their assigned file scopes.
+
 ## Goal
 
 Define and implement the complete logical order lifecycle over native Medusa

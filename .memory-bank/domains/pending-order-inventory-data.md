@@ -2,7 +2,7 @@
 description: FT-007 durable pending-order and inventory reservation data design.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/tech-specs/FT-007-pending-order-inventory-reservation.md
   - .memory-bank/states/order-payment-inventory.md
@@ -97,8 +97,10 @@ silently added to FT-007.
 
 - Order creation and reservation are one workflow boundary with compensation.
 - Reservation quantity is never trusted from a browser snapshot.
-- Expiration/cancellation is guarded by current state and the shared
-  `order-lifecycle:${order_id}` lock used by competing FT-008 native operations.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - Expiry retry selection uses `checkout_expiry_origin: "ft-007"` and a
   non-complete cleanup state; it does not depend on a later projector preserving
   one exact `checkout_state` value.

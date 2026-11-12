@@ -2,7 +2,7 @@
 description: FT-008 order lifecycle state machine and native Medusa projection rules.
 status: active
 owner: spec-improve
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/contracts/order-lifecycle-admin-api.md
@@ -42,11 +42,10 @@ that record to `canceled` with `payment_timeout`.
 
 ## Guards
 
-- FT-007 expiry and each supported native Admin lifecycle operation acquire
-  `order-lifecycle:${order_id}` before authoritative re-read, operation-specific
-  preconditions, and native mutation. The route wrapper holds the lock through
-  the native handler; the async projector reacquires the same key before its
-  re-read and projection.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - `pending_payment -> paid` requires a current non-expired native pending order,
   an unpaid system payment collection belonging to that order, and the native
   Admin `Mark as paid` operation.
@@ -85,16 +84,14 @@ that record to `canceled` with `payment_timeout`.
 - Repeated events that target the current state are no-ops. Contradictory or
   cross-order events fail closed and leave the native records unchanged; Store
   requests cannot invoke the native operator workflows or projector.
-- The projector accepts only allow-listed server-internal native events, re-reads
-  authoritative records under the canonical lock, and rejects unknown, forged,
-  unauthorized, missing, or same-order-mismatched references without metadata
-  mutation.
-- Expiry, cancellation, payment, fulfillment, and refund native mutations are
-  serialized before they begin; their async projectors reacquire the same lock.
-  Late or terminal events reject or no-op and cannot restore payment,
-  processing, cart, reservation, or stock state even when projection is delayed.
-  Native-event idempotency is provided by the guarded transition and does not
-  require a separate replay ledger.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
 ## Reservation Lifecycle
 
@@ -118,7 +115,7 @@ stock directly. Native fulfillment owns the stock adjustment boundary.
 | Completion | `processing -> completed`, native order status completed |
 | Admin cancellation/late event | pending or paid order follows native cancel/refund/release semantics, remains canceled in DB, active cart is not restored, and late paid event is rejected |
 | FT-007 expiry cancellation | expiry origin/reason and pending/complete cleanup survive `order.canceled`; FT-008 performs no release |
-| Expiry vs Admin payment race | one canonical pre-native lock; loser re-reads terminal/paid state and fails before unsafe native mutation |
+| Sequential expiry/payment guards | native paid/terminal state fails on re-read; concurrent race safety is outside the accepted scope |
 | Cancellation-origin refund | native order remains `canceled`; payment evidence may be refunded; logical state is not overwritten |
 | Standalone refund | single partial and cumulative intermediate refunds preserve state; final cumulative full refund on non-canceled `paid/processing/completed` projects `refunded` without automatic restock |
 | Duplicate event | no duplicate metadata mutation or downstream side effect |

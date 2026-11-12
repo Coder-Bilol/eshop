@@ -4,6 +4,47 @@ status: active
 ---
 # Changelog
 
+## [2026-11-12] TASK-055 manual closure
+- Closed TASK-055 as done after functional offline PASS, independent semantic-pass,
+  checkpoint/recovery evidence and explicit user closure instruction.
+- Real-server/Admin/browser execution remains skipped by operator instruction;
+  concurrent lifecycle races remain accepted after requested lock removal.
+- TASK-056/057, FT-008 and its requirements remain planned; no dependent promotion.
+
+## [2026-11-12] Remove lifecycle locking for KISS
+- Operator explicitly accepted the loss of concurrent payment/cancel/expiry
+  protection and requested removing the lifecycle lock implementation.
+- Updated TASK-055/057 and linked FT-007/008 specifications to remove shared
+  serialization requirements; auth, native state checks, metadata protection,
+  and unrelated cart/order creation idempotency remain in scope.
+- The full-handler/disconnect lock-wrapper proposal is superseded; no custom
+  wrapper, tracing hook or lease management is introduced.
+
+## [2026-11-11] Offline FT-008 continuation authorized
+- Recorded the operator-approved development pass without VPS access or local
+  server/database startup, with delegated implementation and review.
+- Real-runtime/browser checks are deferred for this pass; historical runtime
+  findings and deployment security review are not represented as resolved.
+- Scoped offline implementation and dependent acceptance preparation may proceed
+  without falsely promoting task or feature completion.
+
+## [2026-11-12] FT-008 offline implementation and acceptance preparation
+- Replaced cross-module Order Module relation reads with Query graph and native
+  capture evidence; native terminal/payment state outranks delayed metadata.
+- Added offline lifecycle regressions and unique lock ownership; refund
+  reconciliation handles delayed payment projection. Full native-handler lock
+  completion after disconnect remains an explicit unresolved boundary.
+- Prepared the installed Admin source-contract check (runtimeVerified false)
+  and fail-closed backend/browser suite selection with 64 passing assertions.
+- TASK-055 is in progress; TASK-056/057 retain planned status with authorized
+  offline preparation. Runtime/browser acceptance is deferred by the operator.
+
+## [2026-10-10] TASK-055 shared-lock lifecycle handoff implementation
+- Added the canonical `order-lifecycle:${order_id}` lock helper and guarded native lifecycle projector workflow/subscriber for captured payment, fulfillment, completion, cancellation, and refund events.
+- Added supported Admin route middleware that keeps the lock through native handlers, enforces authoritative preconditions, and protects workflow-owned order metadata.
+- Added the native system payment-collection handoff for pending orders and changed FT-007 expiry to persist origin/pending cleanup before native cancellation while retaining the shared lock.
+- Verified local typecheck, lifecycle projection smoke, PostgreSQL expiry recovery smoke, pending-order smoke, workspace build, and Memory Bank lint; functional `/verify` and T3 semantic closure remain outstanding.
+
 ## [2026-10-05] TASK-054 closure
 - Closed TASK-054 as `done` after functional `VERDICT: PASS`, full T2 protocol/packet/spec gates, and explicit standalone owner approval.
 - Kept FT-008 and REQ-022 `planned`; downstream TASK-055..057 and the feature-level semantic review remain outstanding.

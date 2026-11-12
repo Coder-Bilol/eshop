@@ -4,22 +4,49 @@
   "status": "planned",
   "wave": "W3",
   "feature": "FT-008",
-  "reqs": ["REQ-022", "REQ-028", "REQ-029"],
-  "depends_on": ["TASK-056"],
+  "reqs": [
+    "REQ-022",
+    "REQ-028",
+    "REQ-029"
+  ],
+  "depends_on": [
+    "TASK-056"
+  ],
   "touched_files": [
     "apps/backend/src/scripts/smoke-order-lifecycle-acceptance.ts",
     "apps/backend/test/run-integration.cjs",
     "apps/storefront/e2e/run-real-medusa-e2e.cjs",
     "apps/storefront/package.json",
-    ".memory-bank/changelog.md"
+    ".memory-bank/changelog.md",
+    "apps/backend/test/runner-suite-selection.test.cjs"
   ],
   "tier": "T3",
   "gates": [
-    {"name": "order lifecycle runtime acceptance", "command": "npm --workspace apps/backend run test:integration -- order-lifecycle-acceptance", "required": true},
-    {"name": "order lifecycle Admin browser acceptance", "command": "npm --workspace apps/storefront run test:e2e -- order-lifecycle-admin", "required": true},
-    {"name": "workspace typecheck", "command": "npm run typecheck", "required": true},
-    {"name": "workspace build", "command": "npm run build", "required": true},
-    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+    {
+      "name": "order lifecycle runtime acceptance",
+      "command": "npm --workspace apps/backend run test:integration -- order-lifecycle-acceptance",
+      "required": true
+    },
+    {
+      "name": "order lifecycle Admin browser acceptance",
+      "command": "npm --workspace apps/storefront run test:e2e -- order-lifecycle-admin",
+      "required": true
+    },
+    {
+      "name": "workspace typecheck",
+      "command": "npm run typecheck",
+      "required": true
+    },
+    {
+      "name": "workspace build",
+      "command": "npm run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
   ],
   "verify": [
     "Real compiled Medusa/PostgreSQL runtime creates or reuses one FT-007 pending order with an unpaid native system payment collection, and Admin proves paid/processing/completed/refunded behavior.",
@@ -27,8 +54,15 @@
     "The end-to-end current checkout creates personal_request metadata, while a controlled legacy fixture preserves card/sbp/sberpay as a historical offline-request label without invoking or implying a provider payment.",
     "Admin cancellation of a pending or paid order, when native preconditions allow it, leaves it in the database as canceled, removes it from the active customer cart, applies native refund/reservation-cleanup semantics where relevant, keeps cancellation-origin refund projection canceled, and rejects a late payment event.",
     "Reservation state remains held after Admin marks payment paid and is consumed only through native fulfillment; duplicate/contradictory event paths produce no duplicate order, reservation, stock, or lifecycle mutation, and no provider request is made.",
-    "The runtime/browser acceptance proves Store, customer, unauthenticated, and unauthorized-Admin lifecycle attempts are denied, no protected workflow key (including checkout_reservation_item_ids and checkout_reservation_line_ids) can be changed/deleted through metadata editor/API, cross-order and forged event references fail closed, partial refunds preserve state, cumulative full refund is required for refunded, and concurrent or out-of-order events cannot mutate a terminal order.",
-    "Artifacts are privacy-safe, processes/ports/fixtures are cleaned up, and T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+    "The runtime/browser acceptance proves Store, customer, unauthenticated, and unauthorized-Admin lifecycle attempts are denied, no protected workflow key (including checkout_reservation_item_ids and checkout_reservation_line_ids) can be changed/deleted through metadata editor/API, cross-order and forged event references fail closed, partial refunds preserve state, cumulative full refund is required for refunded, and sequential late/out-of-order events are checked against current native state; simultaneous races are not serialized.",
+    "Artifacts are privacy-safe, processes/ports/fixtures are cleaned up, and T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+    {
+      "operator_basis": "2026-11-11 authorized offline acceptance preparation before dependency closure; no server/database startup. Runtime acceptance deferred; task remains planned.",
+      "evidence": [
+        ".memory-bank/tasks/plans/IMPL-FT-008.md",
+        ".tasks/TASK-055/offline-harness-implementation.md"
+      ]
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-008.md",
@@ -43,7 +77,7 @@
   "evidence_required": [
     "Backend runtime report for lifecycle transitions, native payment/fulfillment status, reservation consumption, terminal guards, and no duplicate mutation.",
     "Browser/Admin report or trace for all required operator fields and lifecycle states using synthetic content.",
-    "Sanitized negative-path report for authorization denial, every protected workflow key including checkout_reservation_item_ids and checkout_reservation_line_ids, cancellation-origin/single partial/cumulative partial/final full refund, allow-listing, same-order binding, late/terminal events, duplicate/replay, and concurrent transition races.",
+    "Sanitized negative-path report for authorization denial, every protected workflow key including checkout_reservation_item_ids and checkout_reservation_line_ids, cancellation-origin/single partial/cumulative partial/final full refund, allow-listing, same-order binding, late/terminal events, duplicate/replay, and sequential transition guards; concurrent race protection is intentionally absent.",
     "Privacy scan, cleanup/process report, typecheck/build/lint output, and complete T3 functional/semantic/checkpoint/recovery evidence."
   ],
   "source_artifacts": [
@@ -98,7 +132,8 @@
       "apps/backend/test/run-integration.cjs",
       "apps/storefront/e2e/run-real-medusa-e2e.cjs",
       "apps/storefront/package.json",
-      ".memory-bank/changelog.md"
+      ".memory-bank/changelog.md",
+      "apps/backend/test/runner-suite-selection.test.cjs"
     ],
     "forbidden_scope": [
       "YooKassa live calls, credentials, webhook transport, return-page authority",

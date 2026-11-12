@@ -1,13 +1,16 @@
 {
   "id": "TASK-055",
-  "title": "Implement shared-lock native Admin lifecycle projection and payment handoff",
-  "status": "planned",
+  "title": "Implement native Admin lifecycle projection and payment handoff",
+  "status": "done",
   "wave": "W2",
   "feature": "FT-008",
-  "reqs": ["REQ-022"],
-  "depends_on": ["TASK-054"],
+  "reqs": [
+    "REQ-022"
+  ],
+  "depends_on": [
+    "TASK-054"
+  ],
   "touched_files": [
-    "apps/backend/src/order-lifecycle/lock.ts",
     "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
     "apps/backend/src/subscribers/order-lifecycle.ts",
     "apps/backend/src/api/middlewares.ts",
@@ -22,19 +25,46 @@
     "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
     "apps/backend/test/run-integration.cjs",
     "apps/backend/package.json",
-    ".memory-bank/changelog.md"
+    ".memory-bank/changelog.md",
+    "apps/backend/src/order-lifecycle/native-order.ts",
+    "apps/backend/src/order-lifecycle/types.ts",
+    "apps/backend/src/scripts/smoke-order-lifecycle-offline.ts"
   ],
   "tier": "T3",
   "gates": [
-    {"name": "order lifecycle integration", "command": "npm --workspace apps/backend run test:integration -- order-lifecycle", "required": true},
-    {"name": "backend typecheck", "command": "npm --workspace apps/backend run typecheck", "required": true},
-    {"name": "workspace build", "command": "npm run build", "required": true},
-    {"name": "memory bank lint", "command": "node scripts/mb-lint.mjs", "required": true}
+    {
+      "name": "order lifecycle integration",
+      "command": "npm --workspace apps/backend run test:integration -- order-lifecycle",
+      "required": true
+    },
+    {
+      "name": "backend typecheck",
+      "command": "npm --workspace apps/backend run typecheck",
+      "required": true
+    },
+    {
+      "name": "workspace build",
+      "command": "npm run build",
+      "required": true
+    },
+    {
+      "name": "memory bank lint",
+      "command": "node scripts/mb-lint.mjs",
+      "required": true
+    }
   ],
   "verify": [
-    "Supported project middleware wraps each installed built-in Admin mark-as-paid, cancel, fulfillment, completion, and refund handler with the canonical order-lifecycle:${order_id} Medusa lock, performs authoritative same-order/expiry/terminal preconditions before native mutation, and holds the lock through handler completion; native Admin workflows remain the mutation and authorization boundary.",
-    "FT-007 expiry uses that same canonical lock before its authoritative re-read and native cancellation, writes checkout_expiry_origin ft-007 plus pending cleanup before cancel, preserves checkout_state expired afterward, and finds partial cleanup retries by origin plus cleanup state.",
-    "The internal projector accepts only known server-internal native event kinds, reacquires the canonical lock, re-reads native state, and updates merged lifecycle metadata; event delivery is not treated as commit, actor, or serialization proof.",
+    {
+      "operator_basis": "2026-11-11: operator explicitly authorized delegated development without VPS access or local server startup and waived real-server requirements for this development pass. GENERAL owns manual offline continuation; runtime acceptance and final closure remain deferred.",
+      "verification_status": "offline_continuation",
+      "evidence": [
+        ".memory-bank/tasks/plans/IMPL-FT-008.md",
+        ".protocols/FT-008/plan.md"
+      ]
+    },
+    "Project middleware checks authoritative same-order/expiry/terminal preconditions before native mutation; native Admin workflows remain the mutation and authorization boundary. No lifecycle lock is used.",
+    "FT-007 expiry re-reads native state before cancellation, persists expiry origin and pending cleanup before cancel, and preserves expired state and discoverable cleanup retries.",
+    "The internal projector accepts only known internal events, re-reads native state and merges lifecycle metadata without a lifecycle lock. Event delivery is not commit or actor proof.",
     "Each pending order has one unpaid native system payment collection (`pp_system_default`); native Admin `paymentCollection.markAsPaid(...)` changes pending_payment to paid without deleting reservations or directly changing stock, and no external provider is called.",
     "New pending orders persist checkout_payment_method personal_request. Existing orders carrying card, sbp, or sberpay retain the original value as a legacy offline-request label; projection does not rewrite it or treat it as provider/payment proof.",
     "Native fulfillment-created, completed, and native-canceled events project processing/completed/canceled through the same guards; partial refund events preserve the current logical state and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) within native currency precision project refunded; no capture/refund status field is assumed.",
@@ -43,9 +73,66 @@
     "Late payment after expiry/cancellation, native cancellation failure for completed/active-fulfillment orders, contradictory native state, cross-order binding, and missing order fail closed with no projection mutation.",
     "The generic Admin order metadata update path rejects or preserves changes/deletion of every workflow-owned protected key from the data/contract specs, including checkout_reservation_item_ids and checkout_reservation_line_ids, while allowing explicitly operator-editable unrelated metadata; only approved server-side checkout/expiry or lifecycle workflows may write protected keys.",
     "Duplicate event delivery is a safe no-op and does not emit duplicate lifecycle updates; FT-009 provider calls and FT-010 email side effects remain absent.",
-    "Unauthenticated, customer, Store, and unauthorized-Admin attempts are denied at the native Admin boundary; unknown, forged, out-of-order, and replayed notifications are filtered, while concurrent native operations are serialized before mutation with no mutation on rejection.",
-    "Forced expiry-versus-mark-as-paid and cancel-versus-mark-as-paid races prove the losing operation re-reads authoritative state and fails before unsafe payment capture/cancellation even when projector delivery is delayed.",
-    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
+    "Unauthenticated, customer, Store and unauthorized Admin callers are denied. Sequential invalid/late/terminal input is rejected from the current native snapshot; overlapping operations are not serialized.",
+    "Lifecycle lock removal is explicit: simultaneous payment/cancellation/expiry safety is not guaranteed, as accepted by the operator on 2026-11-12.",
+    "T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present.",
+    {
+      "scheduler_decision": "verification_fail",
+      "verdict": "FAIL",
+      "reason": "Technical gates pass, but required T3 native Admin, pre-native lock/race, authorization, protected metadata, and full payment/fulfillment/refund evidence is missing; the order-lifecycle integration alias runs only the pure projector smoke.",
+      "evidence": [
+        ".protocols/TASK-055/verification.md",
+        ".tasks/TASK-055/verify-gates-20261010.log",
+        ".memory-bank/bugs/TASK-055-native-admin-verification-gap.md",
+        ".tasks/TASK-055/integration.log",
+        ".tasks/TASK-055/build.log",
+        ".tasks/TASK-055/typecheck.log",
+        ".tasks/TASK-055/mb-lint.log"
+      ],
+      "operator_basis": "Standalone /verify TASK-055 requested; task status remains unchanged because T3 closure evidence is incomplete.",
+      "verification_status": "failed",
+      "recommended_status": "planned",
+      "verified_at": "2026-10-10T22:01:13+03:00"
+    },
+    {
+      "operator_basis": "2026-11-12: operator explicitly requested removal of lifecycle locking and accepted loss of race protection. This supersedes lock/serialization requirements, not authentication, state guards, metadata protection or unrelated creation/idempotency locks."
+    },
+    {
+      "verification_status": "offline_pass",
+      "operator_basis": "2026-11-12 user-approved lifecycle lock removal. Source reviewer APPROVE; full runtime acceptance remains deferred.",
+      "checks": [
+        "backend typecheck PASS",
+        "pure lifecycle smoke PASS",
+        "offline native-state regression PASS",
+        "runner suite selection 64 assertions PASS"
+      ],
+      "evidence": [
+        ".protocols/TASK-055/verification.md"
+      ]
+    },
+    {
+      "owner": "GENERAL, explicit standalone manual closure owner",
+      "decision": "done",
+      "verdict": "PASS",
+      "semantic_verdict": "semantic-pass",
+      "operator_basis": "User explicitly instructed verification and closure after waiving real-server execution and accepting removal of lifecycle race protection.",
+      "scope": "lock-free offline implementation; not native runtime UAT or production readiness",
+      "skipped_by_operator": [
+        "real Admin HTTP/browser",
+        "PostgreSQL runtime integration",
+        "native payment/fulfillment/refund execution and reservation consumption"
+      ],
+      "accepted_risk": "Concurrent lifecycle/expiry/projector operations are not serialized.",
+      "human_checkpoint": "done",
+      "rollback_recovery_note": "present",
+      "evidence": [
+        ".protocols/TASK-055/verification.md",
+        ".protocols/TASK-055/red-verification.md",
+        ".protocols/TASK-055/handoff.md",
+        ".tasks/TASK-055/lock-removal-build.log"
+      ],
+      "verified_at": "2026-11-12T16:41:32.815Z"
+    }
   ],
   "docs": [
     ".memory-bank/tasks/plans/IMPL-FT-008.md",
@@ -62,7 +149,7 @@
     "Real local Medusa/PostgreSQL workflow evidence for payment, fulfillment, completion, cancel, refund, duplicate, and conflict cases.",
     "Reservation counts/stock evidence proving payment preserves the hold and native fulfillment consumes it.",
     "Compatibility evidence proves new personal_request persistence and read-only preservation of existing card/sbp/sberpay legacy labels without provider calls or provider-authority claims.",
-    "Negative-path evidence for native Admin authorization denial, event allow-listing, same-order binding, late/terminal events, duplicate/replay, and concurrent native-operation races, including proof that the shared lock and precondition run before the native mutation and before/after no-mutation assertions.",
+    "Negative-path evidence covers native Admin authorization, event allow-listing, same-order binding and sequential late/terminal/duplicate behavior. Forced race serialization is out of scope by explicit operator decision.",
     "Injected FT-007 failure after native cancellation proves order_canceled/refund projection preserves expiry origin/reason/cleanup and the next job run discovers and completes remaining reservation cleanup exactly once.",
     "Negative-path evidence for cancellation-origin, single partial, cumulative intermediate, final full, duplicate, and out-of-order refund projection plus change/deletion attempts for every protected workflow key through the built-in metadata editor and direct Admin API request, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids.",
     "Sanitized logs and privacy scan with no provider payloads, credentials, cookies, tokens, PII, or production data.",
@@ -90,25 +177,25 @@
     ".memory-bank/workflows/tier-policy.md"
   ],
   "constraints": [
-    "Use supported Medusa workflows/subscribers, project middleware, and the canonical order-lifecycle:${order_id} Medusa lock; do not modify Medusa Core or node_modules.",
-    "Acquire the shared lock and enforce authoritative operation-specific preconditions before every in-scope native mutation; hold the Admin route lock through its native handler and make the async projector reacquire the same key.",
-    "Do not rely on native event arrival as proof of transaction commit or serialization; delayed projection must not permit an unsafe later native operation.",
+    "Use supported Medusa workflows/subscribers and project middleware without lifecycle locks; do not modify Medusa Core or node_modules.",
+    "Check authoritative operation-specific preconditions before native mutation. Do not add lifecycle locks, handler wrappers, tracing overrides or lease management.",
+    "Do not treat native event arrival as proof of transaction commit or authorization; read native evidence before projection.",
     "The current payment profile uses the installed native system provider only to create an unpaid collection that Admin can mark as paid; FT-009 remains a deferred provider profile.",
     "Native Admin session/RBAC authorizes the native operation; the projector accepts no Store input or caller-supplied actor/source/order binding/payment state and does not treat event metadata as actor proof.",
-    "Use an explicit native-event allow-list, same-order binding, and one guarded re-read/write path under the canonical lock; do not accept unknown, forged, late, terminal, or concurrent conflicting input.",
+    "Use an event allow-list, same-order binding and guarded re-read/write; reject invalid sequential input. Concurrent read/write races are accepted without serialization.",
     "FT-007 remains the sole expiry/cleanup owner: persist expiry origin plus pending cleanup before cancel, preserve checkout_state expired after cancel, select retries by origin+cleanup, and never duplicate reservation release in FT-008.",
     "Enforce the complete protected workflow metadata set at the server-side Admin metadata update boundary; UI-only disabling is not sufficient and unchanged protected metadata must be preserved.",
     "Do not delete payment-success reservations, directly adjust inventory, auto-restock refunds, add a custom Admin route, or send emails."
   ],
   "invariants": [
     "Only current authoritative native state exposed by a known server-internal native event can advance the projection; native Admin auth remains upstream and event delivery is not commit or serialization proof.",
-    "Every in-scope native mutation is serialized under order-lifecycle:${order_id} before authoritative preconditions and mutation; the projector reacquires the same key.",
+    "Lifecycle operations have no shared lock or concurrency guarantee; unrelated pending-order creation/idempotency locking is retained.",
     "Native Admin cancellation persists the order as canceled, applies native refund/reservation-cleanup semantics where relevant, removes it from the active customer cart, and cannot be reversed by a late event.",
     "A payment-success transition preserves every native reservation until fulfillment.",
     "Repeated events and retries cannot duplicate lifecycle metadata or cross a terminal state.",
     "Cancellation-origin and partial refund notifications cannot change the logical state to refunded, and generic Admin metadata updates cannot mutate or delete any workflow-owned protected key.",
     "FT-007-origin cancellation/refund notifications cannot replace checkout_state expired, expiry reason, origin, or cleanup state, and FT-008 cannot release its reservations.",
-    "Unknown, unauthorized, forged, cross-order, or rejected events produce no lifecycle mutation; competing transitions are serialized by the guarded operation."
+    "Unknown, unauthorized, forged, cross-order or rejected sequential events produce no lifecycle mutation. Concurrent conflicting operations are an accepted risk."
   ],
   "verification_targets": [
     ".memory-bank/contracts/order-lifecycle-admin-api.md#error-and-guard-semantics",
@@ -128,7 +215,6 @@
     "packet_required": true,
     "packet_ref": ".memory-bank/packets/TASK-055.packet.json",
     "allowed_write_scope": [
-      "apps/backend/src/order-lifecycle/lock.ts",
       "apps/backend/src/workflows/order-lifecycle/apply-order-lifecycle-transition.ts",
       "apps/backend/src/subscribers/order-lifecycle.ts",
       "apps/backend/src/api/middlewares.ts",
@@ -143,7 +229,10 @@
       "apps/backend/src/scripts/smoke-pending-order-expiry.ts",
       "apps/backend/test/run-integration.cjs",
       "apps/backend/package.json",
-      ".memory-bank/changelog.md"
+      ".memory-bank/changelog.md",
+      "apps/backend/src/order-lifecycle/native-order.ts",
+      "apps/backend/src/order-lifecycle/types.ts",
+      "apps/backend/src/scripts/smoke-order-lifecycle-offline.ts"
     ],
     "forbidden_scope": [
       "FT-009 provider calls, webhook endpoint, credentials, replay ledger, return page",
@@ -156,8 +245,7 @@
       "Payment-success reservation behavior cannot be proven without deleting or directly mutating stock.",
       "A conflict requires changing FT-007 expiry semantics or FT-009 provider ownership.",
       "Full T3 evidence cannot prove no mutation on rejected/duplicate events.",
-      "Native Admin denial, same-order binding, or concurrent transition safety cannot be proven at the local runtime boundary.",
-      "Supported project middleware cannot hold the canonical lock around the complete installed built-in Admin native handler without modifying Medusa Core or adding a custom Admin mutation API.",
+      "Native Admin denial or same-order binding cannot be enforced.",
       "FT-007 expiry origin cannot be persisted before native cancel or partial cleanup cannot be rediscovered by origin plus cleanup state.",
       "The native Admin metadata update boundary cannot enforce the complete protected workflow metadata set without modifying Medusa Core or violating the approved extension boundary.",
       "Authoritative native capture/refund totals or currency precision cannot support a deterministic cumulative full-refund predicate."

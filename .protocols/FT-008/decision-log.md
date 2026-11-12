@@ -5,6 +5,16 @@ status: complete
 ---
 # FT-008 Decision Log
 
+## 2026-11-12 — Lifecycle locking removed by operator decision
+
+The operator explicitly requested removing lifecycle locks and accepted the loss
+of concurrent-operation protection. This supersedes D-003/D-004 shared-lock
+requirements and the former full-handler-lock preflight blocker. Native auth,
+state checks, payment binding, metadata protection and unrelated cart/order
+creation idempotency locks remain. No same-path wrapper or tracing override is
+needed. Historical decisions below are retained as history, not current lock
+requirements.
+
 ## D-001 — Logical lifecycle over native Medusa status and online payment
 
 - Decision: keep the product lifecycle in the existing order metadata

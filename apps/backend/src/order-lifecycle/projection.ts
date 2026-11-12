@@ -20,6 +20,7 @@ const PAID_PAYMENT_STATUSES = new Set([
   "captured",
   "succeeded",
   "successful",
+  "completed",
 ]);
 const FULFILLMENT_STARTED_STATUSES = new Set([
   "processing",
@@ -80,48 +81,24 @@ export function projectOrderLifecycle(input: {
 
   if (event.event === "payment_marked_paid") {
     requirePaymentCollection(snapshot, event);
-    if (previousState === "paid") {
-      return result({
-        snapshot,
-        previousState,
-        state: previousState,
-        changed: false,
-        reason: "payment_already_projected",
-        metadata,
-      });
-    }
     if (
-      previousState !== "pending_payment" ||
       nativeOrderStatus === "canceled" ||
-      nativeOrderStatus === "completed" ||
       !isPaidPayment(snapshot)
     ) {
       throw new LifecycleProjectionError(
         "Native payment evidence cannot produce the requested paid transition."
       );
     }
-    return transitionResult({
+    return reconcileCommittedProgress({
       snapshot,
       previousState,
-      state: "paid",
       reason: "native_admin_payment_marked_paid",
       metadata,
     });
   }
 
   if (event.event === "fulfillment_started") {
-    if (previousState === "processing") {
-      return result({
-        snapshot,
-        previousState,
-        state: previousState,
-        changed: false,
-        reason: "fulfillment_already_projected",
-        metadata,
-      });
-    }
     if (
-      previousState !== "paid" ||
       nativeOrderStatus === "canceled" ||
       !isPaidPayment(snapshot) ||
       !hasStartedFulfillment(snapshot)
@@ -130,28 +107,16 @@ export function projectOrderLifecycle(input: {
         "Native fulfillment evidence cannot produce the requested processing transition."
       );
     }
-    return transitionResult({
+    return reconcileCommittedProgress({
       snapshot,
       previousState,
-      state: "processing",
       reason: "native_admin_fulfillment_started",
       metadata,
     });
   }
 
   if (event.event === "order_completed") {
-    if (previousState === "completed") {
-      return result({
-        snapshot,
-        previousState,
-        state: previousState,
-        changed: false,
-        reason: "completion_already_projected",
-        metadata,
-      });
-    }
     if (
-      previousState !== "processing" ||
       nativeOrderStatus !== "completed" ||
       !isPaidPayment(snapshot)
     ) {
@@ -159,10 +124,9 @@ export function projectOrderLifecycle(input: {
         "Native completion evidence cannot produce the requested completed transition."
       );
     }
-    return transitionResult({
+    return reconcileCommittedProgress({
       snapshot,
       previousState,
-      state: "completed",
       reason: "native_admin_order_completed",
       metadata,
     });
@@ -234,9 +198,8 @@ export function projectOrderLifecycle(input: {
       });
     }
     if (previousState !== "canceled") {
-      throw new LifecycleProjectionError(
-        "Cancellation-origin refund cannot project a canceled native order from another logical state."
-      );
+      return transitionResult({ snapshot, previousState, state: "canceled",
+        reason: "native_cancellation_before_refund_projection", metadata });
     }
     return result({
       snapshot,
@@ -246,6 +209,18 @@ export function projectOrderLifecycle(input: {
       reason: "cancellation_origin_refund_noop",
       metadata,
     });
+  }
+  if (previousState === "pending_payment" && isPaidPayment(snapshot)) {
+    // Capture and refund can both commit before the first notification is projected.
+    // Validate the missing paid milestone from native evidence, then reconcile once.
+    assertAllowedTransition(previousState, "paid");
+    if (isCumulativeFullRefundForPayments(paymentCollections(snapshot))) {
+      assertAllowedTransition("paid", "refunded");
+      return result({ snapshot, previousState, state: "refunded", changed: true,
+        reason: "native_capture_and_full_refund_reconciled", metadata });
+    }
+    return result({ snapshot, previousState, state: "paid", changed: true,
+      reason: "native_capture_before_partial_refund_projection", metadata });
   }
   if (
     previousState !== "paid" &&
@@ -428,8 +403,45 @@ function isPaidPayment(snapshot: NativeLifecycleSnapshot): boolean {
   return (
     (typeof snapshot.payment_status === "string" &&
       PAID_PAYMENT_STATUSES.has(snapshot.payment_status.toLowerCase())) ||
-    statuses.some((status) => PAID_PAYMENT_STATUSES.has(status))
+    statuses.some((status) => PAID_PAYMENT_STATUSES.has(status)) ||
+    paymentCollections(snapshot).some(hasCapturedPayment)
   );
+}
+
+/** PaymentDTO has capture evidence but no status field in installed Medusa. */
+export function hasCapturedPayment(payment: NativePaymentEvidence): boolean {
+  return PAID_PAYMENT_STATUSES.has(payment.status?.toLowerCase() ?? "") ||
+    payment.status === "partially_captured" ||
+    Boolean(payment.captured_at) ||
+    totalCaptured(payment) > 0;
+}
+
+function reconcileCommittedProgress(input: {
+  snapshot: NativeLifecycleSnapshot;
+  previousState: OrderLifecycleState;
+  reason: string;
+  metadata: LifecycleMetadata;
+}): LifecycleProjectionResult {
+  const { snapshot, previousState } = input;
+  if (previousState === "canceled" || previousState === "refunded" ||
+      isCumulativeFullRefundForPayments(paymentCollections(snapshot))) {
+    throw new LifecycleProjectionError("Terminal lifecycle evidence cannot be advanced by a delayed progress event.");
+  }
+  const state = nativeStatus(snapshot) === "completed"
+    ? "completed"
+    : hasStartedFulfillment(snapshot) ? "processing" : "paid";
+  const milestones = ["pending_payment", "paid", "processing", "completed"] as const;
+  const from = milestones.indexOf(previousState);
+  const to = milestones.indexOf(state);
+  if (from < 0 || from > to) {
+    throw new LifecycleProjectionError("Native progress cannot reverse a lifecycle milestone.");
+  }
+  // A delayed notification may observe several already-committed milestones.
+  // Validate each step using the existing transition model, never event order.
+  for (let index = from; index < to; index++) {
+    assertAllowedTransition(milestones[index], milestones[index + 1]);
+  }
+  return result({ ...input, state, changed: from !== to });
 }
 
 function hasStartedFulfillment(snapshot: NativeLifecycleSnapshot): boolean {

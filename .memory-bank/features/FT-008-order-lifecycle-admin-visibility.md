@@ -3,7 +3,7 @@ description: Feature FT-008 - order lifecycle and Medusa Admin visibility.
 status: draft
 lifecycle: planned
 spec_design_status: complete
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 spec_design_links:
   - .memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/architecture/order-lifecycle-admin-runtime.md
@@ -12,6 +12,14 @@ spec_design_links:
   - .memory-bank/states/order-lifecycle-admin.md
 ---
 # FT-008 Order Lifecycle Admin Visibility
+
+## Implementation Status — 2026-11-12
+
+TASK-054 and TASK-055 are done. TASK-055 has functional offline PASS and
+independent semantic-pass under the operator's runtime waiver and accepted
+lock-free race risk; see [task record](../tasks/TASK-055.task.json).
+TASK-056/057 remain planned. Feature lifecycle and REQ-022/028/029 remain
+planned pending downstream acceptance and feature-level semantic review.
 
 ## Use Cases
 
@@ -42,14 +50,10 @@ spec_design_links:
 - No storefront payment request, provider redirect, webhook, or client status
   mutation is part of this feature.
 - Required order and payment data is visible in the native Medusa Admin detail.
-- Lifecycle projection accepts only the allow-listed server-internal native
-  events, re-reads the authoritative records with the canonical order-lifecycle
-  lock, verifies
-  same-order bindings, and makes no mutation for unknown, forged, contradictory,
-  cross-order, late, or unauthorized input.
-- FT-007 expiry and all supported native Admin lifecycle mutations acquire
-  `order-lifecycle:${order_id}` before authoritative preconditions and native
-  mutation; projector delivery is not used as the concurrency boundary.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](FT-008-order-lifecycle-admin-visibility.md).
 - An FT-007-origin cancellation preserves `checkout_state: expired`, timeout
   reason, and pending/complete cleanup state. FT-008 does not overwrite that
   projection or repeat reservation release.
@@ -104,11 +108,10 @@ spec_design_links:
 
 - FT-007 remains the owner of pending-order creation, 72-hour expiry, and
   release of reservations for unpaid orders.
-- FT-008 owns the lifecycle projection and guarded consistency checks after a
-  native Admin operation, plus supported pre-native middleware that applies the
-  shared lock and authoritative operation preconditions. It does not expose a
-  Store lifecycle route or accept caller-supplied lifecycle state, source, or
-  actor data.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](FT-008-order-lifecycle-admin-visibility.md).
 - FT-009 is a deferred optional provider-payment profile. It is not a
   prerequisite for FT-008 and must not be called by the current implementation.
 - Medusa Admin remains the operator surface. Native fulfillment, completion, and
@@ -137,13 +140,10 @@ spec_design_links:
   native timeout cancellation. FT-008 preserves FT-007's `expired` projection,
   reason, origin, and cleanup marker for `order.canceled`/refund notifications;
   retry discovery remains owned by FT-007 and uses origin plus cleanup state.
-- FT-007 expiry and built-in Admin mark-as-paid, cancellation, fulfillment,
-  completion, and refund operations use the canonical
-  `order-lifecycle:${order_id}` Medusa lock before authoritative re-read,
-  precondition, and native mutation. The Admin route wrapper holds the lock
-  through its native handler; the async projector reacquires the same key and
-  reconciles from current native state. Event delivery is not commit,
-  serialization, or actor proof.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](FT-008-order-lifecycle-admin-visibility.md).
 - A refund caused by native cancellation is not a standalone lifecycle refund:
   when the authoritative native order is `canceled`, the `payment_refunded`
   notification must leave `checkout_state: canceled` and may only update the
@@ -194,7 +194,7 @@ spec_design_links:
   cancellation-origin refund without prematurely entering `refunded`.
 - Security negative-path acceptance proves deny-by-default event filtering,
   same-order payment binding, no mutation after rejected/late/terminal events,
-  and pre-native serialization of competing lifecycle operations. It must show
+  and current-state checks before native lifecycle operations. It must show
   that a late mark-as-paid attempt after cancellation/expiry fails before
   payment capture, even when metadata projection is delayed.
 - Expiry acceptance proves `order.canceled` cannot overwrite FT-007 origin,
@@ -202,11 +202,19 @@ spec_design_links:
 - Feature completion requires the tier-policy gates and a feature-level semantic
   review after all indexed tasks are closed.
 
+## Accepted Concurrency Risk
+
+On 2026-11-12 the operator explicitly requested removal of lifecycle locking
+for KISS and accepted the loss of this protection. FT-007 expiry, native Admin
+operations and lifecycle projection run without a shared lock. Auth, native
+state/binding checks, protected metadata and sequential retry/no-op behavior
+remain required. Concurrent payment/cancellation/expiry or projector writes may
+race and leave inconsistent order/payment/reservation state; serialization,
+atomic read/mutation and race-safety proof are no longer acceptance requirements.
+Order-creation/idempotency and cart locking are unaffected. No custom Admin
+wrapper, tracing-hook override, lease or renewal mechanism is added.
+
 ## Open Questions
 
-No product or design question remains open. TASK-055 has a mandatory preflight:
-prove that supported project middleware can hold the shared lock around each
-installed built-in Admin native handler. If it cannot, stop before coding and
-revisit the native Admin integration decision; modifying Medusa Core is not an
-allowed fallback. The current MVP still defers live YooKassa credentials,
-webhooks, return pages, and provider payment to FT-009.
+No lock-wrapper decision remains open. YooKassa credentials, webhooks, return
+pages and provider payment remain deferred to FT-009.

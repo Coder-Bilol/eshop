@@ -14,17 +14,16 @@ import {
   type WorkflowData,
 } from "@medusajs/framework/workflows-sdk";
 import {
-  acquireLockStep,
   cancelOrderWorkflow,
   deleteReservationsByLineItemsStep,
-  releaseLockStep,
 } from "@medusajs/medusa/core-flows";
 
 import {
   isExpiredPendingOrder,
   isPendingOrderExpiryCleanup,
-  pendingOrderExpiryLockKey,
 } from "../../checkout/pending-order";
+import { loadNativeLifecycleOrder, nativeLifecycleSnapshot } from "../../order-lifecycle/native-order";
+import { hasCapturedPayment } from "../../order-lifecycle/projection";
 
 export type ExpirePendingOrderWorkflowInput = {
   order_id: string;
@@ -48,13 +47,15 @@ const loadExpiryCandidateStep = createStep(
     input: ExpirePendingOrderWorkflowInput,
     { container }
   ): Promise<StepResponse<ExpiryCandidate>> => {
-    const orderModule = container.resolve<IOrderModuleService>(Modules.ORDER);
     let order: OrderDTO;
+    let capturedPayment = false;
     try {
-      order = await orderModule.retrieveOrder(input.order_id, {
-        relations: ["items"],
-      });
-    } catch {
+      const nativeOrder = await loadNativeLifecycleOrder(container, input.order_id);
+      order = nativeOrder as unknown as OrderDTO;
+      capturedPayment = (nativeLifecycleSnapshot(nativeOrder).payment_collections ?? []).some(hasCapturedPayment);
+    } catch (error) {
+      // An unavailable authoritative read must not be reported as a safe skip.
+      if ((error as { type?: string }).type !== "not_found") throw error;
       return new StepResponse({
         order: { id: input.order_id } as OrderDTO,
         action: "skip",
@@ -64,7 +65,7 @@ const loadExpiryCandidateStep = createStep(
 
     const now = input.now ? new Date(input.now) : new Date();
     const metadata = order.metadata;
-    const action: ExpiryAction = isExpiredPendingOrder(order, now)
+    const action: ExpiryAction = isExpiredPendingOrder(order, now) && !capturedPayment
       ? "cancel"
       : order.status === "canceled" && isPendingOrderExpiryCleanup(metadata)
         ? "cleanup"
@@ -137,11 +138,6 @@ export const expirePendingOrderWorkflow = createWorkflow(
     idempotent: false,
   },
   (input: WorkflowData<ExpirePendingOrderWorkflowInput>) => {
-    const lockKey = transform(input, (value) =>
-      pendingOrderExpiryLockKey(value.order_id)
-    );
-    acquireLockStep({ key: lockKey, timeout: 5, retryInterval: 0.1, ttl: 120 });
-
     const candidate = loadExpiryCandidateStep(input);
     const cleanupPending = when(
       "ft-007-persist-expiry-cleanup-state",
@@ -176,7 +172,7 @@ export const expirePendingOrderWorkflow = createWorkflow(
 
     const cleanupComplete = when(
       "ft-007-complete-expiry-cleanup",
-      { candidate, cleanupPending, released },
+      { candidate, cleanupPending, released, canceled },
       ({ candidate }) => candidate.action !== "skip"
     ).then(() =>
       markExpiryCleanupCompleteStep({
@@ -187,8 +183,6 @@ export const expirePendingOrderWorkflow = createWorkflow(
         ),
       })
     );
-
-    releaseLockStep({ key: lockKey });
 
     return new WorkflowResponse(
       transform(

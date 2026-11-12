@@ -37,6 +37,7 @@ export type NativePaymentEvidence = {
   order_id?: string;
   currency_code?: string;
   status?: string;
+  captured_at?: string | Date | null;
   captured_amount?: MoneyLike;
   refunded_amount?: MoneyLike;
   raw_captured_amount?: MoneyLike;

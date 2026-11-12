@@ -2,7 +2,7 @@
 description: FT-008 durable data design for order lifecycle and Medusa Admin visibility.
 status: active
 owner: spec-improve
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/architecture/order-lifecycle-admin-runtime.md
@@ -108,11 +108,10 @@ meaning, not a custom layout.
 - Metadata updates that attempt to change or remove any protected workflow key
   are rejected or reconciled to the current server-owned values; explicitly
   operator-editable unrelated metadata changes remain supported.
-- A lifecycle projection is committed only after the current native
-  order/payment/fulfillment state passes the projection guard under
-  `order-lifecycle:${order_id}`. Native Admin routes/workflows own authorization
-  and mutation, while project middleware acquires the same lock and enforces
-  authoritative preconditions before that native mutation begins.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - An Admin cancellation leaves the native order auditable as `canceled`, removes
   it from the customer's active cart/order projection, and does not hard-delete
   it. If payment was captured, native Medusa performs its supported refund and

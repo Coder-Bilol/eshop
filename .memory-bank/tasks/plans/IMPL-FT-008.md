@@ -2,7 +2,7 @@
 description: Implementation plan for FT-008 order lifecycle and Medusa Admin visibility.
 status: active
 owner: prd-to-tasks
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 feature: FT-008
 spec_design_status: complete
 spec_design_links:
@@ -16,6 +16,33 @@ source_of_truth:
   - .memory-bank/requirements.md
 ---
 # IMPL-FT-008 Order Lifecycle And Medusa Admin Visibility
+
+## Current Task Closure — 2026-11-12
+
+TASK-055 is `done` under explicit manual ownership, functional offline PASS and
+independent per-task semantic-pass. The operator waived real-server execution
+and accepted lock-free race risk. Evidence routes through
+[TASK-055](../TASK-055.task.json). TASK-056/057 remain planned; this closure does
+not verify rendered Admin visibility or complete FT-008/REQ-022.
+
+## Offline Continuation — 2026-11-11
+
+- Operator instruction: continue development without VPS access or the ability
+  to start a local server; real-server requirements may be ignored for this
+  development pass. Delegated implementation and review are explicitly authorized.
+- This instruction supersedes server-availability stop conditions for continuing
+  scoped implementation and preparing dependent acceptance assets. It does not
+  change native Admin authority, payment, inventory, access, or lifecycle behavior.
+- Run service-free checks: deterministic tests with controlled collaborators,
+  installed native-handler contract inspection, typecheck, build, and Memory Bank
+  lint. Do not start HTTP servers, PostgreSQL, Docker, or contact the VPS.
+- Record unavailable runtime/browser checks as deferred, never as successful
+  executions. Existing runtime FAIL evidence remains historical until superseded
+  by a clearly scoped verification report; do not claim full runtime readiness.
+- TASK-055 implementation fixes and offline acceptance preparation for
+  TASK-056/TASK-057 may proceed without promoting or closing dependent task records.
+- The historical VPS security review rejection remains a deployment concern and
+  does not block this explicitly authorized offline development pass.
 
 ## Goal
 
@@ -55,12 +82,10 @@ surface.
 
 - Use native Medusa v2.16 order/payment/fulfillment/reservation modules, supported
   workflows, and subscribers; do not modify Medusa Core.
-- Use one canonical Medusa Locking module key,
-  `order-lifecycle:${order_id}`, for FT-007 expiry and supported wrappers around
-  built-in Admin mark-as-paid, cancel, fulfillment, completion, and refund
-  operations. Acquire it before authoritative preconditions/native mutation and
-  hold it through the native handler; projectors reacquire the same key before
-  projection.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../../features/FT-008-order-lifecycle-admin-visibility.md).
 - Keep `checkout_state` as a merged logical metadata projection and preserve all
   FT-007 cart, idempotency, expiry, delivery, payment-selection, and reservation
   metadata.
@@ -96,9 +121,10 @@ surface.
 
 - Only a native Admin payment action can produce `pending_payment -> paid` in
   the current profile.
-- No native lifecycle mutation begins until the shared order lock is held and
-  current native state passes operation-specific preconditions. A later event
-  projector is reconciliation, not the safety boundary.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../../features/FT-008-order-lifecycle-admin-visibility.md).
 - Native Admin cancellation may move a pending, paid, or processing order to
   `canceled` when native preconditions allow it; captured-payment refund and
   reservation cleanup belong to the native workflow. The order remains in the
@@ -118,24 +144,25 @@ surface.
 
 ## Constitution Check
 
-- KISS: one lifecycle helper, one canonical per-order lock key, supported route
-  middleware, native event subscribers, and the existing Admin surface; no
-  parallel order store, queue, or service.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../../features/FT-008-order-lifecycle-admin-visibility.md).
 - Boundaries: FT-008 owns lifecycle projection; FT-007 owns pending expiry/release;
   FT-009 remains a deferred provider authenticity/idempotency profile; FT-010
   owns email effects.
 - Safety: state/payment/order/inventory work is T2/T3 and requires full protocol,
   packet, verification, semantic review, and recovery evidence where T3 applies.
-- No Constitution conflict or unresolved design blocker remains. TASK-055 must
-  stop at preflight if the installed built-in Admin handlers cannot be wrapped
-  for the full native operation without modifying Medusa Core.
+- The operator removed lifecycle serialization requirements. Native Admin
+  authentication, current-state guards and protected metadata remain required;
+  no full-handler wrapper or Medusa Core change is needed.
 
 ## Waves And Tasks
 
 | Wave | Task | Tier | Purpose |
 |---|---|---|---|
 | W1 | TASK-054 | T2 | Add the logical lifecycle model, expiry-origin precedence, native projection, and transition guards. |
-| W2 | TASK-055 | T3 | Implement shared pre-native serialization, native system payment handoff, FT-007 expiry preservation, and guarded projection. |
+| W2 | TASK-055 | T3 | Implement native-state preconditions, native system payment handoff, FT-007 expiry preservation, and guarded projection. |
 | W3 | TASK-056 | T3 | Verify native Admin order payload/visibility and operator lifecycle fixtures. |
 | W3 | TASK-057 | T3 | Prove the complete lifecycle and built-in Admin flow through real local runtime/browser evidence. |
 
@@ -170,62 +197,21 @@ surface.
 - `node scripts/mb-doctor.mjs --strict`
 - Feature-level `/red-verify --feature FT-008` after TASK-054..TASK-057 are done.
 
-Security acceptance must include the native Admin unauthorized/deny path, the
-server-internal event allow-list, same-order payment binding, authoritative
-re-read under the canonical lock, pre-native operation guards, and no-mutation
-evidence for unknown, forged,
-contradictory, cross-order, duplicate, out-of-order, late, terminal, and
-concurrent events. It must also prove cancellation-origin refund precedence and
-  cumulative full-refund enforcement plus server-side protection of every
-  workflow-owned metadata key through both the built-in metadata editor path and
-  a direct Admin API request. Native internal-event idempotency is
-state/transaction based;
-no separate replay ledger is introduced for FT-008.
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../../features/FT-008-order-lifecycle-admin-visibility.md).
 
-Concurrency acceptance must force races between FT-007 expiry and Admin
-mark-as-paid/cancel, and between Admin payment/cancel operations. It must prove
-the loser re-reads authoritative terminal/payment state and fails before unsafe
-native mutation, while delayed projector delivery cannot permit payment capture
-after cancellation. Expiry recovery acceptance must inject failure after native
-cancellation and prove origin+cleanup retry selection survives
-`order.canceled`/refund notifications.
+Sequential acceptance checks current native payment/terminal state and partial
+expiry cleanup recovery. Concurrent race-safety proof is outside the accepted
+scope; see the FT-008 feature decision.
 
 ## UAT Steps
 
-1. Start the existing Windows-native PostgreSQL, Medusa, and storefront runtime
-   with synthetic/local configuration.
-2. Use the completed FT-007 pending-order path to create one pending order with
-   native line-linked reservations and required contact/delivery/payment metadata.
-3. In the built-in Medusa Admin, mark the unpaid payment collection as paid and
-   confirm `paid`, unchanged reservations, native payment status, and the
-   Admin-readable `personal_request` payment method. Confirm that no Store or
-   provider request is made. A controlled pre-remediation fixture with
-   `card|sbp|sberpay` must retain its original value as a legacy offline label
-   without being rewritten or treated as provider proof.
-4. Use the native Medusa fulfillment action and confirm `processing`, reservation
-   consumption, and inventory adjustment through supported workflows.
-5. Cancel controlled pending and paid fixtures in Admin where native
-   preconditions allow it. Confirm each remains in the database as `canceled`,
-   that paid cancellation records native refund/reservation cleanup, and that
-   no late event returns it to `paid`. Complete a separate fixture and verify
-   native refund/return behavior: one partial and cumulative intermediate
-   refunds preserve the logical state, the final full refund projects
-   `refunded`, and no automatic restock or contradictory state occurs.
-6. Race a controlled expired fixture against Admin mark-as-paid and inject a
-   partial FT-007 cleanup failure. Verify the common pre-native lock prevents
-   unsafe capture, the expiry projection is not overwritten, and retry completes
-   remaining cleanup exactly once.
-7. Attempt to edit or delete every protected workflow metadata key, explicitly
-   including `checkout_reservation_item_ids` and
-   `checkout_reservation_line_ids`, through the
-   built-in metadata editor and direct Admin order-update request; verify that
-   changes/deletions are rejected or reconciled, unchanged submissions remain
-   stable, and explicitly operator-editable unrelated metadata remains editable.
-8. Open the built-in Medusa Admin order detail and verify contacts, products,
-   delivery data, payment status, order status, total, payment method, and the
-   protected logical state.
-9. Confirm all evidence is synthetic/privacy-safe and contains no live provider
-   mutation, secrets, cookies, tokens, or production data.
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../../features/FT-008-order-lifecycle-admin-visibility.md).
 
 ## Acceptance Coverage
 

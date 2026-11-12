@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "task_id": "TASK-057",
-  "created_at": "2026-10-04T00:00:00+03:00",
-  "packet_id": "PACKET-TASK-057-R5",
-  "source_task_hash": "sha256:368b695ce7d261dd6d74224d080abd93d48d844f8f51dfd7296b2371b4078815",
+  "created_at": "2026-11-12T16:30:09.324Z",
+  "packet_id": "PACKET-TASK-057-R7",
+  "source_task_hash": "sha256:27a02b92fc8473f2c0132c2858117bd106d47db263f7b85a396d2eb0adba5cc9",
   "status": "ready",
   "tier": "T3",
   "purpose": "Prove the complete FT-008 manual-payment lifecycle and operator surface through the real local runtime and built-in Admin browser flow.",
@@ -39,7 +39,8 @@
       "apps/backend/test/run-integration.cjs",
       "apps/storefront/e2e/run-real-medusa-e2e.cjs",
       "apps/storefront/package.json",
-      ".memory-bank/changelog.md"
+      ".memory-bank/changelog.md",
+      "apps/backend/test/runner-suite-selection.test.cjs"
     ],
     "forbidden_scope": [
       "YooKassa live calls, credentials, webhook transport, return-page authority",
@@ -57,20 +58,19 @@
       "node scripts/mb-lint.mjs"
     ],
     "success_checks": [
-      "Real compiled Medusa/PostgreSQL runtime proves pending_payment through Admin-confirmed paid, processing, completed, native pending/paid cancellation, cancellation-origin refund, and standalone refund behavior.",
-      "Built-in Admin/browser order detail shows every required operator field with synthetic content.",
-      "Current checkout persists personal_request and a controlled legacy fixture preserves card/sbp/sberpay only as a historical offline-request label without a provider call.",
-      "Admin-confirmed payment preserves reservations, fulfillment consumes them, native cancellation persists the order and applies native refund/reservation-cleanup semantics, duplicate/terminal events do not mutate twice, and no provider request occurs.",
-      "The runtime/browser acceptance proves Store, customer, unauthenticated, and unauthorized-Admin lifecycle attempts are denied, cross-order and forged event references fail closed, and concurrent or out-of-order events cannot mutate a terminal order.",
-      "The built-in metadata editor and direct Admin API cannot change or delete any protected workflow key, explicitly including checkout_reservation_item_ids and checkout_reservation_line_ids, while unrelated operator metadata remains editable.",
-      "Partial refunds preserve logical state and only persisted native refunds (or authoritative raw_refunded_amount) covering all persisted native captures (or raw_captured_amount) project refunded, without assuming a capture/refund status field.",
-      "Cleanup, privacy, and recovery assertions are runtime-observed rather than report-only."
+      "Real compiled Medusa/PostgreSQL runtime creates or reuses one FT-007 pending order with an unpaid native system payment collection, and Admin proves paid/processing/completed/refunded behavior.",
+      "The browser/Admin flow shows contacts, products, delivery data, payment method/status, order status, total, and logical checkout_state on the built-in Admin order detail.",
+      "The end-to-end current checkout creates personal_request metadata, while a controlled legacy fixture preserves card/sbp/sberpay as a historical offline-request label without invoking or implying a provider payment.",
+      "Admin cancellation of a pending or paid order, when native preconditions allow it, leaves it in the database as canceled, removes it from the active customer cart, applies native refund/reservation-cleanup semantics where relevant, keeps cancellation-origin refund projection canceled, and rejects a late payment event.",
+      "Reservation state remains held after Admin marks payment paid and is consumed only through native fulfillment; duplicate/contradictory event paths produce no duplicate order, reservation, stock, or lifecycle mutation, and no provider request is made.",
+      "The runtime/browser acceptance proves Store, customer, unauthenticated, and unauthorized-Admin lifecycle attempts are denied, no protected workflow key (including checkout_reservation_item_ids and checkout_reservation_line_ids) can be changed/deleted through metadata editor/API, cross-order and forged event references fail closed, partial refunds preserve state, cumulative full refund is required for refunded, and sequential late/out-of-order events are checked against current native state; simultaneous races are not serialized.",
+      "Artifacts are privacy-safe, processes/ports/fixtures are cleaned up, and T3 verification records semantic-pass, HUMAN_CHECKPOINT: done, and ROLLBACK_RECOVERY_NOTE: present."
     ],
     "evidence_required": [
-      "Backend lifecycle/reservation/terminal-state report.",
-      "Browser/Admin trace or report for required fields and state projection.",
-      "Sanitized negative-path report for authorization denial, allow-listing, same-order binding, cancellation-origin/single partial/cumulative partial/final full refunds, every protected workflow key including checkout_reservation_item_ids and checkout_reservation_line_ids, late/terminal events, duplicate/replay, and concurrent transition races.",
-      "Privacy, cleanup, typecheck/build/lint, and full T3 closure evidence."
+      "Backend runtime report for lifecycle transitions, native payment/fulfillment status, reservation consumption, terminal guards, and no duplicate mutation.",
+      "Browser/Admin report or trace for all required operator fields and lifecycle states using synthetic content.",
+      "Sanitized negative-path report for authorization denial, every protected workflow key including checkout_reservation_item_ids and checkout_reservation_line_ids, cancellation-origin/single partial/cumulative partial/final full refund, allow-listing, same-order binding, late/terminal events, duplicate/replay, and sequential transition guards; concurrent race protection is intentionally absent.",
+      "Privacy scan, cleanup/process report, typecheck/build/lint output, and complete T3 functional/semantic/checkpoint/recovery evidence."
     ]
   },
   "stop_conditions": [

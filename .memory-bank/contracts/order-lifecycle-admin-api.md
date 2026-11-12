@@ -2,7 +2,7 @@
 description: FT-008 internal contract for guarded order lifecycle transitions and Admin projection.
 status: active
 owner: spec-improve
-last_updated: 2026-10-04
+last_updated: 2026-11-12
 source_of_truth:
   - .memory-bank/tech-specs/FT-008-order-lifecycle-admin-visibility.md
   - .memory-bank/states/order-lifecycle-admin.md
@@ -22,26 +22,13 @@ serialization, or actor identity.
 
 ## Pre-native Operation Guard
 
-FT-007 expiry and the built-in Admin mark-as-paid, cancel, fulfillment,
-completion, and refund paths use the canonical Medusa Locking module key
-`order-lifecycle:${order_id}`.
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
-For an Admin operation, supported project middleware must:
-
-1. derive the order ID from the native route parameters/body and authoritative
-   payment/fulfillment binding, never from an untrusted lifecycle field;
-2. acquire the canonical lock before the native handler begins;
-3. re-read the order and related native records, enforce same-order, expiry,
-   terminal-state, and operation-specific preconditions, and fail closed without
-   native mutation on conflict;
-4. keep the lock until the native handler completes or fails.
-
-The async projector acquires the same key again before its authoritative re-read
-and metadata write. A delayed projector cannot make an unsafe native mutation
-valid: every later native operation repeats the authoritative precondition under
-the shared lock. The implementation may use only supported project extension
-points; inability to hold the lock around the complete installed Admin handler
-is a TASK-055 stop condition, not permission to patch Medusa Core.
+Native Admin authentication, native operation validation and protected-metadata
+checks remain required. Medusa Core and native handlers remain unchanged.
 
 ## Transition Input
 
@@ -71,10 +58,10 @@ fulfillment status, inventory quantity, or a target metadata object.
 
 ## Cancellation/refund precedence
 
-The native `order.canceled` and `payment_refunded` notifications do not by
-themselves distinguish operator cancellation from FT-007 expiry or prove
-transaction ordering. Therefore the projector must use the authoritative native
-order state and durable expiry marker under the canonical lock:
+Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 
 - If `checkout_expiry_origin: "ft-007"` is present, or an existing compatible
   record already has `checkout_state: "expired"` with FT-007 cleanup metadata,
@@ -88,15 +75,10 @@ order state and durable expiry marker under the canonical lock:
   `payment_refunded` is a safe no-op for
   `checkout_state`; the logical state remains `canceled` even when native
   payment evidence is `refunded`.
-- If the native order is not canceled and the logical state is `paid`,
-  `processing`, or `completed`, only a confirmed cumulative full refund may
-  project `refunded`. Under the lock, the projector sums persisted native
-  capture and refund records for every payment bound to the order's payment
-  collection, or uses their authoritative `raw_captured_amount` and
-  `raw_refunded_amount` aggregates, with native currency precision. The
-  predicate passes only when captured total is positive and no captured amount
-  remains refundable within the currency epsilon; it does not depend on a
-  capture/refund status field that the installed Medusa DTOs do not expose.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - A partial refund, including an intermediate refund in a cumulative series, is
   a no-op for `checkout_state`; the existing logical state remains unchanged
   while native payment/refund evidence remains visible. Every duplicate or
@@ -183,15 +165,14 @@ HTTP envelope under the global API guidelines and is outside FT-008.
   browser, unauthenticated, customer, and unauthorized-Admin requests cannot
   invoke the native operator workflow or call the projector directly; runtime
   acceptance must prove the denied path using synthetic credentials.
-- Before writing lifecycle metadata, the transition workflow re-reads the
-  authoritative order and related payment/fulfillment records under the
-  canonical order-lifecycle lock, verifies that every supplied reference
-  belongs to the same order, and writes nothing on a conflict.
-- Competing native operations acquire that same lock before their precondition
-  and mutation; event projectors reacquire it before projection. A late or
-  terminal transition is rejected or becomes a no-op, and cannot restore
-  payment, processing, cart, reservation, or stock state even when notification
-  delivery is delayed.
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
+- Native operations check authoritative state and same-order bindings before
+  mutation; projectors re-read native evidence before metadata updates.
+  No shared lifecycle lock or atomic read/mutation guarantee is provided; see
+  [FT-008 accepted concurrency risk](../features/FT-008-order-lifecycle-admin-visibility.md).
 - Repeated delivery of an already-applied native event returns `changed: false`
   and emits no second lifecycle mutation or downstream side effect. FT-008 uses
   this guarded state transition for native-event idempotency and does not add a
